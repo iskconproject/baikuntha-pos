@@ -126,6 +126,23 @@ export const productSearchFts = sqliteTable('product_search_fts', {
   content: text('content'), // Combined searchable text
 });
 
+// User activity log table for audit trail
+export const userActivity = sqliteTable('user_activity', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').references(() => users.id),
+  action: text('action').notNull(), // 'login', 'logout', 'create_user', 'update_user', 'deactivate_user', etc.
+  targetUserId: text('target_user_id').references(() => users.id), // For user management actions
+  details: text('details'), // JSON object with additional details
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  timestamp: integer('timestamp', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  userIdx: index('activity_user_idx').on(table.userId),
+  actionIdx: index('activity_action_idx').on(table.action),
+  timestampIdx: index('activity_timestamp_idx').on(table.timestamp),
+  targetUserIdx: index('activity_target_user_idx').on(table.targetUserId),
+}));
+
 // Sync metadata table for tracking synchronization state
 export const syncMetadata = sqliteTable('sync_metadata', {
   id: text('id').primaryKey(),
@@ -161,6 +178,9 @@ export type NewTransactionItem = typeof transactionItems.$inferInsert;
 
 export type SearchAnalytics = typeof searchAnalytics.$inferSelect;
 export type NewSearchAnalytics = typeof searchAnalytics.$inferInsert;
+
+export type UserActivity = typeof userActivity.$inferSelect;
+export type NewUserActivity = typeof userActivity.$inferInsert;
 
 export type SyncMetadata = typeof syncMetadata.$inferSelect;
 export type NewSyncMetadata = typeof syncMetadata.$inferInsert;

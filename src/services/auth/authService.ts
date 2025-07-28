@@ -151,7 +151,7 @@ export class AuthService {
    * Check if user has specific permission
    */
   hasPermission(userRole: UserRole, permission: Permission): boolean {
-    return (ROLE_PERMISSIONS[userRole] as readonly string[]).includes(permission);
+    return ROLE_PERMISSIONS[userRole].includes(permission as any);
   }
 
   /**

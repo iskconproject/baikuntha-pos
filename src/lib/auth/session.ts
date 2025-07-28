@@ -173,3 +173,10 @@ export function refreshSession(sessionData: SessionData): string {
 
   return tokenManager.encode(refreshedData);
 }
+
+/**
+ * Get authenticated user from request (alias for getSessionFromRequest)
+ */
+export async function getSessionUser(request: NextRequest): Promise<AuthUser | null> {
+  return getSessionFromRequest(request);
+}

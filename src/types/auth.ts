@@ -39,10 +39,17 @@ export const DEFAULT_AUTH_CONFIG: AuthConfig = {
   lockoutDurationMinutes: 15,
 };
 
-export const ROLE_PERMISSIONS = {
+export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   admin: ['users:read', 'users:write', 'products:read', 'products:write', 'transactions:read', 'transactions:write', 'reports:read'],
   manager: ['products:read', 'products:write', 'transactions:read', 'transactions:write', 'reports:read'],
   cashier: ['transactions:read', 'transactions:write'],
-} as const;
+};
 
-export type Permission = typeof ROLE_PERMISSIONS[keyof typeof ROLE_PERMISSIONS][number];
+export type Permission =
+  | 'users:read'
+  | 'users:write'
+  | 'products:read'
+  | 'products:write'
+  | 'transactions:read'
+  | 'transactions:write'
+  | 'reports:read';
