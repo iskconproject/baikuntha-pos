@@ -216,7 +216,9 @@ describe('ProductService', () => {
     });
 
     it('should fallback to regular search on FTS error', async () => {
-      mockDb.all.mockRejectedValue(new Error('FTS error'));
+      mockDb.all.mockImplementation(() => {
+        throw new Error('FTS error');
+      });
 
       const result = await productService.fullTextSearch('gita');
       

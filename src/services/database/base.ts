@@ -2,7 +2,7 @@ import { eq, count } from 'drizzle-orm';
 import { getLocalDb, getCloudDb, type LocalDatabase, type CloudDatabase } from '@/lib/db/connection';
 
 // Base database service class with common CRUD operations
-export abstract class BaseService<T, TInsert> {
+export abstract class BaseService<T, TInsert extends Record<string, any>> {
   protected localDb: LocalDatabase;
   protected cloudDb: CloudDatabase | null = null;
   
@@ -57,10 +57,10 @@ export abstract class BaseService<T, TInsert> {
     }
   }
   
-  async create(data: TInsert): Promise<T> {
+  async create(data: Omit<TInsert, 'id'>): Promise<T> {
     try {
       const id = this.generateId();
-      const insertData = { ...data, id } as any;
+      const insertData = { ...data, id } as TInsert;
       
       await this.localDb.insert(this.table).values(insertData);
       

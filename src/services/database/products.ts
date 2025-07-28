@@ -142,7 +142,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
   ): Promise<ProductSearchResult[]> {
     try {
       // Use FTS5 for full-text search
-      const results = await this.localDb.all(sql`
+      const results = this.localDb.all(sql`
         SELECT 
           p.*,
           c.name as category_name,
