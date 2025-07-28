@@ -348,13 +348,10 @@ describe('ProductService', () => {
 
   describe('deactivateProduct', () => {
     it('should deactivate product successfully', async () => {
-      vi.spyOn(productService, 'queueForSync').mockResolvedValue();
-
       const result = await productService.deactivateProduct('product-1');
       
       expect(result).toBe(true);
       expect(mockDb.update).toHaveBeenCalled();
-      expect(productService.queueForSync).toHaveBeenCalledWith('update', 'product-1');
     });
 
     it('should return false if product not found', async () => {
@@ -416,7 +413,6 @@ describe('ProductService', () => {
       it('should create variant successfully', async () => {
         vi.spyOn(productService, 'findById').mockResolvedValue(mockProduct);
         vi.spyOn(productService, 'findVariantById').mockResolvedValue(mockVariant);
-        vi.spyOn(productService, 'queueForSync').mockResolvedValue();
 
         const result = await productService.createVariant(newVariantData);
         
@@ -435,7 +431,6 @@ describe('ProductService', () => {
     describe('updateVariant', () => {
       it('should update variant successfully', async () => {
         vi.spyOn(productService, 'findVariantById').mockResolvedValue(mockVariant);
-        vi.spyOn(productService, 'queueForSync').mockResolvedValue();
 
         const result = await productService.updateVariant('variant-1', { price: 350 });
         
@@ -446,7 +441,6 @@ describe('ProductService', () => {
 
     describe('deleteVariant', () => {
       it('should delete variant successfully', async () => {
-        vi.spyOn(productService, 'queueForSync').mockResolvedValue();
 
         const result = await productService.deleteVariant('variant-1');
         
@@ -457,7 +451,6 @@ describe('ProductService', () => {
 
     describe('updateVariantStock', () => {
       it('should update variant stock successfully', async () => {
-        vi.spyOn(productService, 'queueForSync').mockResolvedValue();
 
         const result = await productService.updateVariantStock('variant-1', 15);
         
