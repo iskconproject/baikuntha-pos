@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { withAuth } from '@/lib/auth/middleware';
 import { authService } from '@/services/auth/authService';
 import { getLocalDb } from '@/lib/db/connection';
 import { users } from '@/lib/db/schema';
-
-const changePinSchema = z.object({
-  currentPin: z.string().min(4, 'Current PIN is required'),
-  newPin: z.string().min(4, 'New PIN must be at least 4 digits').max(8, 'New PIN must not exceed 8 digits'),
-});
+import { changePinSchema } from '@/lib/validation/user';
 
 export async function PUT(request: NextRequest) {
   return withAuth(request, async (req, user) => {
@@ -30,15 +25,6 @@ export async function PUT(request: NextRequest) {
       }
 
       const { currentPin, newPin } = validation.data;
-
-      // Validate new PIN
-      const pinValidation = authService.validatePin(newPin);
-      if (!pinValidation.isValid) {
-        return NextResponse.json(
-          { error: pinValidation.message },
-          { status: 400 }
-        );
-      }
 
       // Get current user data
       const currentUser = await db
