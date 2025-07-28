@@ -18,7 +18,7 @@
   - Create database service layer with CRUD operations for all entities
   - _Requirements: 6.1, 6.2, 8.8_
 
-- [ ] 3. Build authentication system with PIN-based security
+- [x] 3. Build authentication system with PIN-based security
 
   - Implement PIN-based authentication with bcryptjs hashing
   - Create role-based access control system (Admin, Manager, Cashier)
