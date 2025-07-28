@@ -134,7 +134,7 @@ export abstract class BaseService<T, TInsert extends Record<string, any>> {
   protected async queueForSync(
     operation: "create" | "update" | "delete",
     recordId: string
-  ) {
+  ): Promise<void> {
     // This will be implemented in the sync service
     // For now, we'll just log the operation
     console.log(`Queued for sync: ${operation} ${this.table.name} ${recordId}`);
