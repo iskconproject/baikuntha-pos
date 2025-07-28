@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 22 100% 52%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 22 100% 52%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 22 100% 52%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 22 100% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  body {
+    @apply bg-white text-gray-900;
+  }
+}
+
+/* Custom temple-themed styles */
+@layer components {
+  .btn-temple {
+    @apply bg-saffron-500 hover:bg-saffron-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 shadow-temple;
+  }
+  
+  .btn-temple-outline {
+    @apply border-2 border-saffron-500 text-saffron-600 hover:bg-saffron-50 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .card-temple {
+    @apply bg-white rounded-xl shadow-temple border border-saffron-100 p-6;
+  }
+  
+  .input-temple {
+    @apply border border-saffron-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-saffron-500 focus:border-transparent;
+  }
+  
+  .text-temple-primary {
+    @apply text-saffron-600;
+  }
+  
+  .text-temple-secondary {
+    @apply text-saffron-500;
+  }
+  
+  .bg-temple-gradient {
+    @apply bg-gradient-to-br from-saffron-50 to-temple-cream;
+  }
+}
+
+/* Touch-optimized styles for mobile/tablet */
+@layer utilities {
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  .touch-large {
+    @apply min-h-[56px] min-w-[56px];
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* PWA specific styles */
+@media (display-mode: standalone) {
+  body {
+    @apply select-none;
+  }
+}
+
+/* Print styles for receipts */
+@media print {
+  body {
+    @apply text-black bg-white;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}

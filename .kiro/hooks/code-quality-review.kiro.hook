@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "name": "Code Quality Review & Commit",
+  "description": "Automatically reviews completed tasks to ensure code follows Single Responsibility Principle with loose coupling, has no TypeScript errors, and includes comprehensive testing (unit, integration, and end-to-end tests where applicable). Once everything is perfect, commit the changes.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "tests/**/*.ts",
+      "tests/**/*.tsx",
+      "*.ts",
+      "*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review the modified code files for:\n\n1. **Single Responsibility Principle & Loose Coupling**:\n   - Each function/class has one clear responsibility\n   - Components are properly separated and loosely coupled\n   - Services follow the repository pattern from structure.md\n   - Business logic is separated into services layer\n\n2. **TypeScript Compliance**:\n   - Run type checking to ensure no TypeScript errors\n   - Verify proper type definitions are used\n   - Check that imports follow the organization from structure.md\n\n3. **Comprehensive Testing**:\n   - Unit tests exist for new/modified functions using Vitest\n   - Integration tests cover service interactions\n   - E2E tests using Playwright for user workflows (where applicable)\n   - Test coverage is adequate for the changes\n\n4. **Code Quality Standards**:\n   - Follows Next.js 14 App Router patterns\n   - Uses proper Drizzle ORM patterns for database operations\n   - Implements offline-first architecture principles\n   - Follows the project structure from structure.md\n\nIf all checks pass, commit the changes with a descriptive commit message. If issues are found, provide specific feedback on what needs to be fixed before committing."
+  }
+}
