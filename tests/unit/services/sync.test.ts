@@ -25,7 +25,7 @@ describe('SyncService', () => {
       insert: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
-      all: vi.fn(),
+      all: vi.fn().mockReturnValue([]), // Default to empty array
       run: vi.fn(),
     };
 
@@ -34,7 +34,7 @@ describe('SyncService', () => {
       insert: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
-      all: vi.fn(),
+      all: vi.fn().mockReturnValue([]), // Default to empty array
       run: vi.fn(),
     };
 
@@ -258,8 +258,8 @@ describe('SyncService', () => {
         conflictCount: 0,
       } as any);
 
-      mockLocalDb.all.mockResolvedValue(mockModifiedRecords);
-      mockCloudDb.all.mockResolvedValue([]); // No existing records in cloud
+      mockLocalDb.all.mockReturnValue(mockModifiedRecords);
+      mockCloudDb.all.mockReturnValue([]); // No existing records in cloud
 
       vi.spyOn(service as any, 'insertCloudRecord').mockResolvedValue(undefined);
       vi.spyOn(service, 'updateSyncStatus').mockResolvedValue(undefined);
@@ -282,8 +282,8 @@ describe('SyncService', () => {
         conflictCount: 0,
       } as any);
 
-      mockLocalDb.all.mockResolvedValue([localRecord]);
-      mockCloudDb.all.mockResolvedValue([cloudRecord]);
+      mockLocalDb.all.mockReturnValue([localRecord]);
+      mockCloudDb.all.mockReturnValue([cloudRecord]);
 
       vi.spyOn(service, 'incrementConflictCount').mockResolvedValue(undefined);
       vi.spyOn(service, 'updateSyncStatus').mockResolvedValue(undefined);
@@ -307,8 +307,8 @@ describe('SyncService', () => {
         conflictCount: 0,
       } as any);
 
-      mockLocalDb.all.mockResolvedValue([localRecord]);
-      mockCloudDb.all.mockResolvedValue([cloudRecord]);
+      mockLocalDb.all.mockReturnValue([localRecord]);
+      mockCloudDb.all.mockReturnValue([cloudRecord]);
 
       vi.spyOn(service as any, 'updateCloudRecord').mockResolvedValue(undefined);
       vi.spyOn(service, 'updateSyncStatus').mockResolvedValue(undefined);
@@ -335,8 +335,8 @@ describe('SyncService', () => {
         conflictCount: 0,
       } as any);
 
-      mockCloudDb.all.mockResolvedValue(mockCloudRecords);
-      mockLocalDb.all.mockResolvedValue([]); // No existing records locally
+      mockCloudDb.all.mockReturnValue(mockCloudRecords);
+      mockLocalDb.all.mockReturnValue([]); // No existing records locally
 
       vi.spyOn(service as any, 'insertLocalRecord').mockResolvedValue(undefined);
       vi.spyOn(service, 'updateSyncStatus').mockResolvedValue(undefined);
@@ -359,8 +359,8 @@ describe('SyncService', () => {
         conflictCount: 0,
       } as any);
 
-      mockCloudDb.all.mockResolvedValue([cloudRecord]);
-      mockLocalDb.all.mockResolvedValue([localRecord]);
+      mockCloudDb.all.mockReturnValue([cloudRecord]);
+      mockLocalDb.all.mockReturnValue([localRecord]);
 
       vi.spyOn(service, 'incrementConflictCount').mockResolvedValue(undefined);
       vi.spyOn(service, 'updateSyncStatus').mockResolvedValue(undefined);
