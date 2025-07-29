@@ -203,20 +203,21 @@ describe('Product API Integration Tests', () => {
 
   describe('GET /api/products/[id]', () => {
     it('should return product with variants', async () => {
+      const productId = '550e8400-e29b-41d4-a716-446655440001';
       const mockProduct = {
-        id: 'prod-1',
+        id: productId,
         name: 'Test Product',
         basePrice: 100,
-        keywords: ['test', 'product'],
-        metadata: { author: 'Test Author' },
+        keywords: '["test", "product"]',
+        metadata: '{"author": "Test Author"}',
         variants: [
           {
-            id: 'var-1',
+            id: '550e8400-e29b-41d4-a716-446655440002',
             name: 'Small',
             price: 90,
             stockQuantity: 10,
-            attributes: { size: 'S' },
-            keywords: ['small'],
+            attributes: '{"size": "S"}',
+            keywords: '["small"]',
           },
         ],
         category: { id: '550e8400-e29b-41d4-a716-446655440000', name: 'Test Category' },
@@ -225,8 +226,8 @@ describe('Product API Integration Tests', () => {
       vi.mocked(productService.findProductsWithVariants).mockResolvedValue([mockProduct as any]);
 
       const response = await getProduct(
-        new NextRequest('http://localhost:3000/api/products/prod-1'),
-        { params: { id: 'prod-1' } }
+        new NextRequest(`http://localhost:3000/api/products/${productId}`),
+        { params: { id: productId } }
       );
       const data = await response.json();
 
@@ -267,13 +268,14 @@ describe('Product API Integration Tests', () => {
 
   describe('PUT /api/products/[id]', () => {
     it('should update product with valid data', async () => {
+      const productId = '550e8400-e29b-41d4-a716-446655440001';
       const updateData = {
         name: 'Updated Product',
         basePrice: 200,
       };
 
       const updatedProduct = {
-        id: 'prod-1',
+        id: productId,
         ...updateData,
         isActive: true,
         createdAt: new Date(),
@@ -283,12 +285,12 @@ describe('Product API Integration Tests', () => {
       vi.mocked(productService.updateProduct).mockResolvedValue(updatedProduct as any);
 
       const response = await updateProduct(
-        new NextRequest('http://localhost:3000/api/products/prod-1', {
+        new NextRequest(`http://localhost:3000/api/products/${productId}`, {
           method: 'PUT',
           body: JSON.stringify(updateData),
           headers: { 'Content-Type': 'application/json' },
         }),
-        { params: { id: 'prod-1' } }
+        { params: { id: productId } }
       );
       const data = await response.json();
 
@@ -319,11 +321,12 @@ describe('Product API Integration Tests', () => {
 
   describe('DELETE /api/products/[id]', () => {
     it('should deactivate product successfully', async () => {
+      const productId = '550e8400-e29b-41d4-a716-446655440001';
       vi.mocked(productService.deactivateProduct).mockResolvedValue(true);
 
       const response = await deleteProduct(
-        new NextRequest('http://localhost:3000/api/products/prod-1', { method: 'DELETE' }),
-        { params: { id: 'prod-1' } }
+        new NextRequest(`http://localhost:3000/api/products/${productId}`, { method: 'DELETE' }),
+        { params: { id: productId } }
       );
       const data = await response.json();
 
