@@ -1,275 +1,168 @@
-import { eq, and, desc, count, sql } from "drizzle-orm";
-import {
-  searchAnalytics,
-  type SearchAnalytics,
-  type NewSearchAnalytics,
-} from "@/lib/db/schema";
-import { BaseService } from "./base";
+import { getLocalDb } from '@/lib/db/connection';
+import { searchAnalytics } from '@/lib/db/schema';
+import { v4 as uuidv4 } from 'uuid';
+import { sql, desc, eq, and, gte } from 'drizzle-orm';
 
-export class SearchService extends BaseService<
-  SearchAnalytics,
-  NewSearchAnalytics
-> {
-  get table() {
-    return searchAnalytics;
-  }
+export class SearchService {
+  private db = getLocalDb();
 
-  generateId(): string {
-    return this.generateUUID();
-  }
-
-  // Search analytics methods
+  /**
+   * Record a search query for analytics
+   */
   async recordSearch(
     query: string,
     resultCount: number,
+    clickedProductId?: string,
     userId?: string
-  ): Promise<SearchAnalytics> {
+  ): Promise<void> {
     try {
-      const searchData = {
-        query: query.toLowerCase().trim(),
+      await this.db.insert(searchAnalytics).values({
+        id: uuidv4(),
+        query,
         resultCount,
-        userId,
+        clickedProductId: clickedProductId || null,
+        userId: userId || null,
         timestamp: new Date(),
-      } as Omit<NewSearchAnalytics, "id">;
-
-      return await this.create(searchData);
+      });
     } catch (error) {
-      console.error("Error recording search:", error);
-      throw error;
+      console.error('Failed to record search analytics:', error);
+      // Don't throw error to avoid breaking search functionality
     }
   }
 
-  async recordProductClick(
-    searchId: string,
-    productId: string
-  ): Promise<boolean> {
-    try {
-      const result = await this.localDb
-        .update(searchAnalytics)
-        .set({
-          clickedProductId: productId,
-          timestamp: new Date(),
-        })
-        .where(eq(searchAnalytics.id, searchId));
-
-      await this.queueForSync("update", searchId);
-
-      return result.changes > 0;
-    } catch (error) {
-      console.error("Error recording product click:", error);
-      throw error;
-    }
-  }
-
-  async getPopularSearches(
-    limit: number = 10,
-    days: number = 30
-  ): Promise<PopularSearch[]> {
+  /**
+   * Get popular search queries
+   */
+  async getPopularSearches(limit: number = 10, days: number = 30): Promise<any[]> {
     try {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - days);
-      const cutoffTimestamp = Math.floor(cutoffDate.getTime() / 1000);
 
-      const results = await this.localDb
+      const results = await this.db
         .select({
           query: searchAnalytics.query,
-          searchCount: count(searchAnalytics.id),
-          avgResultCount: sql<number>`AVG(${searchAnalytics.resultCount})`,
-          clickCount: sql<number>`SUM(CASE WHEN ${searchAnalytics.clickedProductId} IS NOT NULL THEN 1 ELSE 0 END)`,
+          count: sql<number>`COUNT(*)`,
+          avgResults: sql<number>`AVG(${searchAnalytics.resultCount})`,
         })
         .from(searchAnalytics)
-        .where(sql`${searchAnalytics.timestamp} >= ${cutoffTimestamp}`)
+        .where(gte(searchAnalytics.timestamp, cutoffDate))
         .groupBy(searchAnalytics.query)
-        .orderBy(desc(count(searchAnalytics.id)))
+        .orderBy(desc(sql`COUNT(*)`))
         .limit(limit);
 
-      return results.map((row) => ({
-        query: row.query,
-        searchCount: Number(row.searchCount),
-        avgResultCount: Number(row.avgResultCount || 0),
-        clickCount: Number(row.clickCount || 0),
-        clickThroughRate:
-          row.searchCount > 0
-            ? (Number(row.clickCount || 0) / Number(row.searchCount)) * 100
-            : 0,
+      return results.map(r => ({
+        query: r.query,
+        count: Number(r.count),
+        avgResults: Number(r.avgResults),
       }));
     } catch (error) {
-      console.error("Error getting popular searches:", error);
-      throw error;
+      console.error('Failed to get popular searches:', error);
+      return [];
     }
   }
 
-  async getSearchesWithNoResults(
-    limit: number = 10,
-    days: number = 30
-  ): Promise<NoResultSearch[]> {
+  /**
+   * Get searches that returned no results
+   */
+  async getNoResultSearches(limit: number = 10, days: number = 30): Promise<any[]> {
     try {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - days);
-      const cutoffTimestamp = Math.floor(cutoffDate.getTime() / 1000);
 
-      const results = await this.localDb
+      const results = await this.db
         .select({
           query: searchAnalytics.query,
-          searchCount: count(searchAnalytics.id),
-          lastSearched: sql<Date>`MAX(${searchAnalytics.timestamp})`,
+          count: sql<number>`COUNT(*)`,
         })
         .from(searchAnalytics)
         .where(
           and(
-            sql`${searchAnalytics.timestamp} >= ${cutoffTimestamp}`,
-            eq(searchAnalytics.resultCount, 0)
+            eq(searchAnalytics.resultCount, 0),
+            gte(searchAnalytics.timestamp, cutoffDate)
           )
         )
         .groupBy(searchAnalytics.query)
-        .orderBy(desc(count(searchAnalytics.id)))
+        .orderBy(desc(sql`COUNT(*)`))
         .limit(limit);
 
-      return results.map((row) => ({
-        query: row.query,
-        searchCount: Number(row.searchCount),
-        lastSearched: row.lastSearched,
+      return results.map(r => ({
+        query: r.query,
+        count: Number(r.count),
       }));
     } catch (error) {
-      console.error("Error getting searches with no results:", error);
-      throw error;
+      console.error('Failed to get no-result searches:', error);
+      return [];
     }
   }
 
-  async getUserSearchHistory(
-    userId: string,
-    limit: number = 20
-  ): Promise<SearchAnalytics[]> {
-    try {
-      return await this.localDb
-        .select()
-        .from(searchAnalytics)
-        .where(eq(searchAnalytics.userId, userId))
-        .orderBy(desc(searchAnalytics.timestamp))
-        .limit(limit);
-    } catch (error) {
-      console.error("Error getting user search history:", error);
-      throw error;
-    }
-  }
-
-  async getSearchTrends(days: number = 7): Promise<SearchTrend[]> {
+  /**
+   * Get search trends over time
+   */
+  async getSearchTrends(days: number = 7): Promise<any[]> {
     try {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - days);
-      const cutoffTimestamp = Math.floor(cutoffDate.getTime() / 1000);
 
-      const results = await this.localDb
+      const results = await this.db
         .select({
-          date: sql<string>`DATE(${searchAnalytics.timestamp}, 'unixepoch')`,
-          searchCount: count(searchAnalytics.id),
+          date: sql<string>`DATE(${searchAnalytics.timestamp})`,
+          count: sql<number>`COUNT(*)`,
           uniqueQueries: sql<number>`COUNT(DISTINCT ${searchAnalytics.query})`,
-          avgResultCount: sql<number>`AVG(${searchAnalytics.resultCount})`,
         })
         .from(searchAnalytics)
-        .where(sql`${searchAnalytics.timestamp} >= ${cutoffTimestamp}`)
-        .groupBy(sql`DATE(${searchAnalytics.timestamp}, 'unixepoch')`)
-        .orderBy(sql`DATE(${searchAnalytics.timestamp}, 'unixepoch')`);
+        .where(gte(searchAnalytics.timestamp, cutoffDate))
+        .groupBy(sql`DATE(${searchAnalytics.timestamp})`)
+        .orderBy(sql`DATE(${searchAnalytics.timestamp})`);
 
-      return results.map((row) => ({
-        date: row.date,
-        searchCount: Number(row.searchCount),
-        uniqueQueries: Number(row.uniqueQueries),
-        avgResultCount: Number(row.avgResultCount || 0),
+      return results.map(r => ({
+        date: r.date,
+        count: Number(r.count),
+        uniqueQueries: Number(r.uniqueQueries),
       }));
     } catch (error) {
-      console.error("Error getting search trends:", error);
-      throw error;
+      console.error('Failed to get search trends:', error);
+      return [];
     }
   }
 
-  async getClickThroughRates(
-    limit: number = 10,
-    days: number = 30
-  ): Promise<ClickThroughRate[]> {
+  /**
+   * Get click-through rates for searches
+   */
+  async getClickThroughRates(limit: number = 10, days: number = 30): Promise<any[]> {
     try {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - days);
-      const cutoffTimestamp = Math.floor(cutoffDate.getTime() / 1000);
 
-      const results = await this.localDb
+      const results = await this.db
         .select({
           query: searchAnalytics.query,
-          totalSearches: count(searchAnalytics.id),
-          totalClicks: sql<number>`SUM(CASE WHEN ${searchAnalytics.clickedProductId} IS NOT NULL THEN 1 ELSE 0 END)`,
-          avgResultCount: sql<number>`AVG(${searchAnalytics.resultCount})`,
+          totalSearches: sql<number>`COUNT(*)`,
+          clickedSearches: sql<number>`COUNT(CASE WHEN ${searchAnalytics.clickedProductId} IS NOT NULL THEN 1 END)`,
         })
         .from(searchAnalytics)
-        .where(sql`${searchAnalytics.timestamp} >= ${cutoffTimestamp}`)
+        .where(gte(searchAnalytics.timestamp, cutoffDate))
         .groupBy(searchAnalytics.query)
-        .having(sql`COUNT(${searchAnalytics.id}) >= 5`) // Only queries with at least 5 searches
-        .orderBy(desc(count(searchAnalytics.id)))
+        .having(sql`COUNT(*) >= 5`) // Only include queries with at least 5 searches
+        .orderBy(desc(sql`COUNT(*)`))
         .limit(limit);
 
-      return results.map((row) => ({
-        query: row.query,
-        totalSearches: Number(row.totalSearches),
-        totalClicks: Number(row.totalClicks || 0),
-        clickThroughRate:
-          row.totalSearches > 0
-            ? (Number(row.totalClicks || 0) / Number(row.totalSearches)) * 100
-            : 0,
-        avgResultCount: Number(row.avgResultCount || 0),
-      }));
+      return results.map(r => {
+        const totalSearches = Number(r.totalSearches);
+        const clickedSearches = Number(r.clickedSearches);
+        const clickThroughRate = totalSearches > 0 ? (clickedSearches / totalSearches) * 100 : 0;
+
+        return {
+          query: r.query,
+          totalSearches,
+          clickedSearches,
+          clickThroughRate: Math.round(clickThroughRate * 100) / 100,
+        };
+      });
     } catch (error) {
-      console.error("Error getting click-through rates:", error);
-      throw error;
-    }
-  }
-
-  async cleanupOldSearches(daysToKeep: number = 90): Promise<number> {
-    try {
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
-      const cutoffTimestamp = Math.floor(cutoffDate.getTime() / 1000);
-
-      const result = await this.localDb
-        .delete(searchAnalytics)
-        .where(sql`${searchAnalytics.timestamp} < ${cutoffTimestamp}`);
-
-      console.log(`Cleaned up ${result.changes} old search records`);
-      return result.changes;
-    } catch (error) {
-      console.error("Error cleaning up old searches:", error);
-      throw error;
+      console.error('Failed to get click-through rates:', error);
+      return [];
     }
   }
 }
 
-// Types
-export interface PopularSearch {
-  query: string;
-  searchCount: number;
-  avgResultCount: number;
-  clickCount: number;
-  clickThroughRate: number;
-}
-
-export interface NoResultSearch {
-  query: string;
-  searchCount: number;
-  lastSearched: Date;
-}
-
-export interface SearchTrend {
-  date: string;
-  searchCount: number;
-  uniqueQueries: number;
-  avgResultCount: number;
-}
-
-export interface ClickThroughRate {
-  query: string;
-  totalSearches: number;
-  totalClicks: number;
-  clickThroughRate: number;
-  avgResultCount: number;
-}
-
-// Export singleton instance
 export const searchService = new SearchService();

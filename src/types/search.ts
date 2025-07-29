@@ -1,41 +1,22 @@
-// Search-related type definitions
+export type SearchLanguage = 'en' | 'hi' | 'bn';
+
+export type SortBy = 'relevance' | 'price_asc' | 'price_desc' | 'name' | 'newest' | 'oldest' | 'popularity';
 
 export interface SearchQuery {
   query: string;
   categoryId?: string;
-  filters: SearchFilters;
-  sortBy?: SearchSortOption;
+  language?: SearchLanguage;
+  sortBy?: SortBy;
   limit?: number;
   offset?: number;
-  language?: SearchLanguage;
+  filters: SearchFilters;
 }
 
 export interface SearchFilters {
   priceMin?: number;
   priceMax?: number;
-  attributes?: Record<string, string[]>;
   inStock?: boolean;
-  categories?: string[];
-}
-
-export type SearchSortOption = 
-  | 'relevance' 
-  | 'price_asc' 
-  | 'price_desc' 
-  | 'name' 
-  | 'popularity' 
-  | 'newest' 
-  | 'oldest';
-
-export type SearchLanguage = 'en' | 'hi' | 'bn';
-
-export interface SearchResult {
-  products: ProductSearchResult[];
-  totalCount: number;
-  suggestions: string[];
-  filters: AvailableFilters;
-  searchTime: number;
-  query: string;
+  attributes?: Record<string, string[]>;
 }
 
 export interface ProductSearchResult {
@@ -46,33 +27,36 @@ export interface ProductSearchResult {
   categoryId: string;
   categoryName: string;
   keywords: string[];
-  metadata: ProductMetadata;
-  variants: ProductVariantResult[];
+  metadata: {
+    customAttributes: Record<string, any>;
+    [key: string]: any;
+  };
+  variants: Array<{
+    id: string;
+    name: string;
+    price: number;
+    stockQuantity: number;
+    attributes: Record<string, string>;
+    keywords: string[];
+  }>;
   relevanceScore: number;
   isActive: boolean;
   stockQuantity: number;
-  imageUrl?: string;
 }
 
-export interface ProductVariantResult {
-  id: string;
-  name: string;
-  price: number;
-  stockQuantity: number;
-  attributes: Record<string, string>;
-  keywords: string[];
+export interface SearchResult {
+  products: ProductSearchResult[];
+  totalCount: number;
+  suggestions: string[];
+  filters: AvailableFilters;
+  searchTime: number;
+  query: string;
 }
 
-export interface ProductMetadata {
-  author?: string;
-  publisher?: string;
-  language?: string;
-  isbn?: string;
-  material?: string;
-  dimensions?: string;
-  weight?: string;
-  color?: string;
-  customAttributes: Record<string, string>;
+export interface SearchSuggestion {
+  text: string;
+  type: 'product' | 'category' | 'keyword';
+  frequency: number;
 }
 
 export interface AvailableFilters {
@@ -95,37 +79,6 @@ export interface PriceRange {
   count: number;
 }
 
-export interface SearchSuggestion {
-  text: string;
-  type: 'product' | 'category' | 'keyword' | 'recent';
-  count?: number;
-  category?: string;
-}
-
-export interface SearchAnalyticsData {
-  query: string;
-  resultCount: number;
-  clickedProductId?: string;
-  userId?: string;
-  searchTime: number;
-  filters?: SearchFilters;
-  language?: SearchLanguage;
-}
-
-// Multi-language search support
-export interface LanguageMapping {
-  en: string;
-  hi?: string;
-  bn?: string;
-}
-
-export interface TransliterationResult {
-  original: string;
-  transliterated: string[];
-  language: SearchLanguage;
-}
-
-// Search ranking factors
 export interface RankingFactors {
   exactMatch: number;
   nameMatch: number;
@@ -137,7 +90,6 @@ export interface RankingFactors {
   priceRelevance: number;
 }
 
-// Search configuration
 export interface SearchConfig {
   maxResults: number;
   suggestionLimit: number;
@@ -148,17 +100,23 @@ export interface SearchConfig {
   rankingWeights: RankingFactors;
 }
 
-// FTS5 specific types
-export interface FTSDocument {
-  productId: string;
-  content: string;
-  language: SearchLanguage;
-  boost: number;
-}
-
 export interface FTSQuery {
   terms: string[];
   phrases: string[];
   excludeTerms: string[];
   language: SearchLanguage;
+}
+
+export interface TransliterationResult {
+  original: string;
+  transliterated: string;
+  confidence: number;
+}
+
+export interface LanguageMapping {
+  id: string;
+  englishTerm: string;
+  hindiTerm?: string;
+  bengaliTerm?: string;
+  type: 'product' | 'category' | 'attribute' | 'keyword';
 }

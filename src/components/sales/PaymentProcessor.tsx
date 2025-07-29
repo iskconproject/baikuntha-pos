@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { useCartStore } from '@/stores/cartStore';
+import { ReceiptPrinter } from './ReceiptPrinter';
 import type { Transaction } from '@/types';
+import type { ReceiptData, PrintResult } from '@/types/receipt';
 
 interface PaymentProcessorProps {
   onPaymentComplete: (transaction: Transaction) => void;
@@ -26,6 +28,9 @@ export function PaymentProcessor({ onPaymentComplete, onCancel, className = '' }
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [completedTransaction, setCompletedTransaction] = useState<Transaction | null>(null);
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
+  const [showReceiptPrinter, setShowReceiptPrinter] = useState(false);
 
   const handlePaymentMethodChange = (method: PaymentMethod) => {
     setFormData(prev => ({
@@ -114,9 +119,20 @@ export function PaymentProcessor({ onPaymentComplete, onCancel, className = '' }
 
       const transaction = await response.json();
       
-      // Clear cart and notify parent
-      clearCart();
-      onPaymentComplete(transaction.data);
+      // Store completed transaction
+      setCompletedTransaction(transaction.data);
+      
+      // Generate receipt data
+      const receiptResponse = await fetch(`/api/transactions/${transaction.data.id}/receipt`);
+      if (receiptResponse.ok) {
+        const receiptResult = await receiptResponse.json();
+        setReceiptData(receiptResult.data);
+        setShowReceiptPrinter(true);
+      } else {
+        // If receipt generation fails, still complete the transaction
+        clearCart();
+        onPaymentComplete(transaction.data);
+      }
       
     } catch (error) {
       console.error('Payment processing error:', error);
@@ -138,6 +154,45 @@ export function PaymentProcessor({ onPaymentComplete, onCancel, className = '' }
     }
     return 0;
   };
+
+  const handlePrintComplete = (result: PrintResult) => {
+    if (result.success && completedTransaction) {
+      // Clear cart and notify parent
+      clearCart();
+      onPaymentComplete(completedTransaction);
+      setShowReceiptPrinter(false);
+    }
+  };
+
+  const handleSkipPrint = () => {
+    if (completedTransaction) {
+      // Clear cart and notify parent without printing
+      clearCart();
+      onPaymentComplete(completedTransaction);
+      setShowReceiptPrinter(false);
+    }
+  };
+
+  // If showing receipt printer, render that instead
+  if (showReceiptPrinter && receiptData) {
+    return (
+      <div className={`space-y-4 ${className}`}>
+        <ReceiptPrinter
+          receiptData={receiptData}
+          onPrintComplete={handlePrintComplete}
+          onClose={handleSkipPrint}
+        />
+        <div className="flex justify-center">
+          <button
+            onClick={handleSkipPrint}
+            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 underline"
+          >
+            Skip printing and continue
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>

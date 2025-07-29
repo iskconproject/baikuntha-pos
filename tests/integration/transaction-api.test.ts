@@ -17,8 +17,8 @@ describe("Transaction API Integration", () => {
   beforeAll(async () => {
     await initTestDb();
     transactionService = new TransactionService();
-    // Override the localDb property to use testDb
-    (transactionService as any).localDb = testDb;
+    // Override the database connection to use testDb
+    transactionService.setDb(testDb);
   });
 
   beforeEach(async () => {
@@ -61,9 +61,12 @@ describe("Transaction API Integration", () => {
       expect(transaction.paymentMethod).toBe("cash");
       expect(transaction.status).toBe("completed");
       expect(transaction.syncStatus).toBe("pending");
-      expect(transaction.items).toHaveLength(1);
       expect(transaction.subtotal).toBe(testVariant.price * 2);
       expect(transaction.total).toBe(testVariant.price * 2);
+
+      // Fetch transaction with items to verify items were created
+      const transactionWithItems = await transactionService.findTransactionWithItems(transaction.id);
+      expect(transactionWithItems?.items).toHaveLength(1);
     });
 
     it("should create transaction with multiple items", async () => {
@@ -92,12 +95,15 @@ describe("Transaction API Integration", () => {
         userId: testUser.id,
       });
 
-      expect(transaction.items).toHaveLength(2);
       expect(transaction.subtotal).toBe(
         testVariant.price * 1 + testProduct.basePrice * 2
       );
       expect(transaction.paymentMethod).toBe("upi");
       expect(transaction.paymentReference).toBe("UPI-789012");
+
+      // Fetch transaction with items to verify items were created
+      const transactionWithItems = await transactionService.findTransactionWithItems(transaction.id);
+      expect(transactionWithItems?.items).toHaveLength(2);
     });
 
     it("should calculate totals correctly with tax and discount", async () => {
@@ -278,7 +284,7 @@ describe("Transaction API Integration", () => {
       expect(transactionWithItems!.items[0].product.name).toBe(
         testProduct.name
       );
-      expect(transactionWithItems!.items[0].variant.name).toBe(
+      expect(transactionWithItems!.items[0]?.variant?.name).toBe(
         testVariant.name
       );
     });

@@ -16,7 +16,13 @@ export interface ActivityLogEntry {
 }
 
 export class UserActivityService extends BaseService<UserActivity, NewUserActivity> {
-  public localDb: any;
+  get table() {
+    return userActivity;
+  }
+
+  generateId(): string {
+    return this.generateUUID();
+  }
 
   constructor() {
     super();

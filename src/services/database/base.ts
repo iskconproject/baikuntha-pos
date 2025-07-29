@@ -1,26 +1,12 @@
 import { eq, count } from "drizzle-orm";
-import {
-  getLocalDb,
-  getCloudDb,
-  type LocalDatabase,
-  type CloudDatabase,
-} from "@/lib/db/connection";
+import { getLocalDb } from "@/lib/db/connection";
 
 // Base database service class with common CRUD operations
 export abstract class BaseService<T, TInsert extends Record<string, any>> {
-  protected localDb: LocalDatabase;
-  protected cloudDb: CloudDatabase | null = null;
+  protected localDb: ReturnType<typeof getLocalDb>;
 
   constructor() {
     this.localDb = getLocalDb();
-    // Initialize cloud DB lazily to avoid connection errors during seeding
-  }
-
-  protected getCloudDb(): CloudDatabase {
-    if (!this.cloudDb) {
-      this.cloudDb = getCloudDb();
-    }
-    return this.cloudDb;
   }
 
   // Abstract methods to be implemented by child classes

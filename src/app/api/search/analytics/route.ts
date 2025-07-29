@@ -4,24 +4,28 @@ import { searchService } from '@/services/database/search';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { query, resultCount, clickedProductId, userId } = body;
-
-    if (!query) {
+    
+    if (!body.query) {
       return NextResponse.json(
         { error: 'Query is required' },
         { status: 400 }
       );
     }
 
-    if (clickedProductId) {
-      // Record product click
-      const searchRecord = await searchService.recordSearch(query, resultCount, userId);
-      await searchService.recordProductClick(searchRecord.id, clickedProductId);
-    } else {
-      // Record search only
-      await searchService.recordSearch(query, resultCount, userId);
+    if (typeof body.resultCount !== 'number') {
+      return NextResponse.json(
+        { error: 'Result count is required' },
+        { status: 400 }
+      );
     }
 
+    await searchService.recordSearch(
+      body.query,
+      body.resultCount,
+      body.clickedProductId,
+      body.userId
+    );
+    
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Search analytics API error:', error);
@@ -35,18 +39,25 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type') || 'popular';
+    const type = searchParams.get('type');
     const limit = parseInt(searchParams.get('limit') || '10');
     const days = parseInt(searchParams.get('days') || '30');
 
-    let data;
+    if (!type || !['popular', 'no-results', 'trends', 'click-through'].includes(type)) {
+      return NextResponse.json(
+        { error: 'Invalid analytics type' },
+        { status: 400 }
+      );
+    }
+
+    let data: any[] = [];
 
     switch (type) {
       case 'popular':
         data = await searchService.getPopularSearches(limit, days);
         break;
       case 'no-results':
-        data = await searchService.getSearchesWithNoResults(limit, days);
+        data = await searchService.getNoResultSearches(limit, days);
         break;
       case 'trends':
         data = await searchService.getSearchTrends(days);
@@ -54,14 +65,12 @@ export async function GET(request: NextRequest) {
       case 'click-through':
         data = await searchService.getClickThroughRates(limit, days);
         break;
-      default:
-        return NextResponse.json(
-          { error: 'Invalid analytics type' },
-          { status: 400 }
-        );
     }
-
-    return NextResponse.json({ data, type });
+    
+    return NextResponse.json({
+      type,
+      data
+    });
   } catch (error) {
     console.error('Search analytics API error:', error);
     return NextResponse.json(

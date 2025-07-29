@@ -6,32 +6,24 @@ export { productService, ProductService, type ProductWithVariants, type ProductS
 export { 
   transactionService, 
   TransactionService, 
-  type CreateTransactionData,
   type TransactionWithItems,
-  type TransactionItemWithDetails,
   type DailySalesReport,
   type TopSellingProduct
 } from './transactions';
 export { 
   searchService, 
-  SearchService,
-  type PopularSearch,
-  type NoResultSearch,
-  type SearchTrend,
-  type ClickThroughRate
+  SearchService
 } from './search';
 export { 
   syncService, 
-  SyncService,
-  type SyncResult,
-  type TableSyncStats
+  SyncService
 } from './sync';
 
 // Re-export database connection utilities
-export { getLocalDb, getCloudDb, checkLocalConnection, checkCloudConnection } from '@/lib/db/connection';
+export { getLocalDb } from '@/lib/db/connection';
 
 // Re-export migration utilities
-export { runMigrations, rebuildFTSIndex } from '@/lib/db/migrate';
+export { runMigrations } from '@/lib/db/migrate';
 
 // Re-export schema types
 export type * from '@/lib/db/schema';
