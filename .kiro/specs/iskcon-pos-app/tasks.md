@@ -49,7 +49,7 @@
   - Write Vitest unit tests for product management and inventory operations
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9_
 
-- [ ] 6. Build comprehensive search engine with multi-language support
+- [x] 6. Build comprehensive search engine with multi-language support
 
   - Implement FTS5 full-text search with SQLite virtual tables
   - Create keyword matching system for products and categories
