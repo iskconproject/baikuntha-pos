@@ -111,6 +111,46 @@ export async function initTestDb() {
       total_price REAL NOT NULL,
       created_at INTEGER DEFAULT (strftime('%s', 'now'))
     );
+
+    CREATE TABLE IF NOT EXISTS search_analytics (
+      id TEXT PRIMARY KEY,
+      query TEXT NOT NULL,
+      result_count INTEGER NOT NULL,
+      clicked_product_id TEXT,
+      user_id TEXT,
+      timestamp INTEGER DEFAULT (strftime('%s', 'now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS search_suggestions (
+      id TEXT PRIMARY KEY,
+      text TEXT NOT NULL,
+      type TEXT NOT NULL,
+      frequency INTEGER DEFAULT 1,
+      language TEXT DEFAULT 'en',
+      created_at INTEGER DEFAULT (strftime('%s', 'now')),
+      updated_at INTEGER DEFAULT (strftime('%s', 'now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS language_mappings (
+      id TEXT PRIMARY KEY,
+      english_term TEXT NOT NULL,
+      hindi_term TEXT,
+      bengali_term TEXT,
+      type TEXT NOT NULL,
+      created_at INTEGER DEFAULT (strftime('%s', 'now'))
+    );
+
+    CREATE VIRTUAL TABLE IF NOT EXISTS product_search_fts USING fts5(
+      product_id,
+      name,
+      description,
+      keywords,
+      category_name,
+      variant_names,
+      metadata_text,
+      language,
+      boost
+    );
   `);
 }
 
@@ -328,7 +368,8 @@ export async function createTestTransaction(
 }
 
 // Helper to get test database connection
-export function getTestDb() {
+export async function getTestDb() {
+  await initTestDb();
   return testDb;
 }
 
