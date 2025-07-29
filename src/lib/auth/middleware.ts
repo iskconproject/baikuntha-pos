@@ -151,3 +151,37 @@ export function getRoleLevel(role: UserRole): number {
 export function hasRoleLevel(userRole: UserRole, requiredRole: UserRole): boolean {
   return getRoleLevel(userRole) >= getRoleLevel(requiredRole);
 }
+
+/**
+ * Simple auth verification for API routes
+ */
+export async function verifyAuth(request: NextRequest): Promise<{
+  success: boolean;
+  user?: any;
+  error?: string;
+  status?: number;
+}> {
+  try {
+    const user = await getSessionFromRequest(request);
+    
+    if (!user) {
+      return {
+        success: false,
+        error: 'Authentication required',
+        status: 401,
+      };
+    }
+
+    return {
+      success: true,
+      user,
+    };
+  } catch (error) {
+    console.error('Auth verification error:', error);
+    return {
+      success: false,
+      error: 'Internal server error',
+      status: 500,
+    };
+  }
+}
