@@ -42,12 +42,17 @@ export class ProductService extends BaseService<Product, NewProduct> {
     if (input.categoryId !== undefined) result.categoryId = input.categoryId;
     if (input.isActive !== undefined) result.isActive = input.isActive;
     
-    // Transform complex fields to JSON strings
+    // Transform complex fields to JSON strings, with defaults
     if (input.keywords !== undefined) {
-      result.keywords = input.keywords ? JSON.stringify(input.keywords) : null;
+      result.keywords = input.keywords && input.keywords.length > 0 ? JSON.stringify(input.keywords) : JSON.stringify([]);
+    } else {
+      result.keywords = JSON.stringify([]);
     }
+    
     if (input.metadata !== undefined) {
-      result.metadata = input.metadata ? JSON.stringify(input.metadata) : null;
+      result.metadata = input.metadata ? JSON.stringify(input.metadata) : JSON.stringify({ customAttributes: {} });
+    } else {
+      result.metadata = JSON.stringify({ customAttributes: {} });
     }
     
     return result;

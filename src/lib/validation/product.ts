@@ -43,9 +43,9 @@ export const createProductSchema = z.object({
   description: z.string().max(1000, 'Description too long').optional(),
   basePrice: z.number().min(0, 'Base price must be non-negative'),
   categoryId: z.string().uuid('Invalid category ID').optional(),
-  keywords: keywordsSchema,
-  metadata: productMetadataSchema.default({}),
-  isActive: z.boolean().default(true),
+  keywords: keywordsSchema.optional(),
+  metadata: productMetadataSchema.optional().default({}),
+  isActive: z.boolean().optional().default(true),
 });
 
 // Update product schema

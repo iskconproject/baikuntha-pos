@@ -27,9 +27,11 @@ export class CategoryService extends BaseService<Category, NewCategory> {
     if (input.parentId !== undefined) result.parentId = input.parentId;
     if (input.isActive !== undefined) result.isActive = input.isActive;
     
-    // Transform keywords array to JSON string
+    // Transform keywords array to JSON string, default to empty array if not provided
     if (input.keywords !== undefined) {
-      result.keywords = input.keywords ? JSON.stringify(input.keywords) : null;
+      result.keywords = input.keywords && input.keywords.length > 0 ? JSON.stringify(input.keywords) : JSON.stringify([]);
+    } else {
+      result.keywords = JSON.stringify([]);
     }
     
     return result;

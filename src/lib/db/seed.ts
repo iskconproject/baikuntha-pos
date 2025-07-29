@@ -12,186 +12,202 @@ async function seedDatabase() {
 
     // Create default admin user
     console.log("👤 Creating default admin user...");
-    const adminUser = await userService.createUser({
-      username: "admin",
-      pin: "1234",
-      role: "admin",
-      isActive: true,
-    });
-    console.log(`✅ Created admin user: ${adminUser.username}`);
+    let adminUser = await userService.findByUsername("admin");
+    if (!adminUser) {
+      adminUser = await userService.createUser({
+        username: "admin",
+        pin: "1234",
+        role: "admin",
+        isActive: true,
+      });
+      console.log(`✅ Created admin user: ${adminUser.username}`);
+    } else {
+      console.log(`✅ Admin user already exists: ${adminUser.username}`);
+    }
 
     // Create default manager user
     console.log("👤 Creating default manager user...");
-    const managerUser = await userService.createUser({
-      username: "manager",
-      pin: "5678",
-      role: "manager",
-      isActive: true,
-    });
-    console.log(`✅ Created manager user: ${managerUser.username}`);
+    let managerUser = await userService.findByUsername("manager");
+    if (!managerUser) {
+      managerUser = await userService.createUser({
+        username: "manager",
+        pin: "5678",
+        role: "manager",
+        isActive: true,
+      });
+      console.log(`✅ Created manager user: ${managerUser.username}`);
+    } else {
+      console.log(`✅ Manager user already exists: ${managerUser.username}`);
+    }
 
     // Create default cashier user
     console.log("👤 Creating default cashier user...");
-    const cashierUser = await userService.createUser({
-      username: "cashier",
-      pin: "9999",
-      role: "cashier",
-      isActive: true,
-    });
-    console.log(`✅ Created cashier user: ${cashierUser.username}`);
+    let cashierUser = await userService.findByUsername("cashier");
+    if (!cashierUser) {
+      cashierUser = await userService.createUser({
+        username: "cashier",
+        pin: "9999",
+        role: "cashier",
+        isActive: true,
+      });
+      console.log(`✅ Created cashier user: ${cashierUser.username}`);
+    } else {
+      console.log(`✅ Cashier user already exists: ${cashierUser.username}`);
+    }
 
     // Create root categories
     console.log("📂 Creating categories...");
 
-    const booksCategory = await categoryService.createCategory({
-      name: "Books",
-      description: "Spiritual and religious books",
-      keywords: [
-        "books",
-        "literature",
-        "spiritual",
-        "religious",
-        "reading",
-        "pustaka",
-        "kitab",
-      ],
-      isActive: true,
-    });
+    let booksCategory = await categoryService.findByName("Books");
+    if (!booksCategory) {
+      booksCategory = await categoryService.createCategory({
+        name: "Books",
+        description: "Spiritual and religious books",
+        keywords: [
+          "books",
+          "literature",
+          "spiritual",
+          "religious",
+          "reading",
+          "pustaka",
+          "kitab",
+        ],
+        isActive: true,
+      });
+    }
 
-    const accessoriesCategory = await categoryService.createCategory({
-      name: "Accessories",
-      description: "Religious accessories and items",
-      keywords: [
-        "accessories",
-        "items",
-        "religious",
-        "spiritual",
-        "upkaran",
-        "samagri",
-      ],
-      isActive: true,
-    });
+    let accessoriesCategory = await categoryService.findByName("Accessories");
+    if (!accessoriesCategory) {
+      accessoriesCategory = await categoryService.createCategory({
+        name: "Accessories",
+        description: "Religious accessories and items",
+        keywords: [
+          "accessories",
+          "items",
+          "religious",
+          "spiritual",
+          "upkaran",
+          "samagri",
+        ],
+        isActive: true,
+      });
+    }
 
-    const giftsCategory = await categoryService.createCategory({
-      name: "Gifts",
-      description: "Gift items and souvenirs",
-      keywords: [
-        "gifts",
-        "souvenirs",
-        "presents",
-        "uphar",
-        "tohfa",
-      ],
-      isActive: true,
-    });
+    let giftsCategory = await categoryService.findByName("Gifts");
+    if (!giftsCategory) {
+      giftsCategory = await categoryService.createCategory({
+        name: "Gifts",
+        description: "Gift items and souvenirs",
+        keywords: ["gifts", "souvenirs", "presents", "uphar", "tohfa"],
+        isActive: true,
+      });
+    }
 
     // Create subcategories for books
-    const srilaBooks = await categoryService.createCategory({
-      name: "Srila Prabhupada Books",
-      description:
-        "Books by His Divine Grace A.C. Bhaktivedanta Swami Prabhupada",
-      parentId: booksCategory.id,
-      keywords: [
-        "prabhupada",
-        "founder",
-        "acharya",
-        "bhaktivedanta",
-        "swami",
-      ],
-      isActive: true,
-    });
+    let srilaBooks = await categoryService.findByName("Srila Prabhupada Books");
+    if (!srilaBooks) {
+      srilaBooks = await categoryService.createCategory({
+        name: "Srila Prabhupada Books",
+        description:
+          "Books by His Divine Grace A.C. Bhaktivedanta Swami Prabhupada",
+        parentId: booksCategory.id,
+        keywords: ["prabhupada", "founder", "acharya", "bhaktivedanta", "swami"],
+        isActive: true,
+      });
+    }
 
-    const bhagavadGitaBooks = await categoryService.createCategory({
-      name: "Bhagavad Gita",
-      description: "Bhagavad Gita As It Is and related books",
-      parentId: booksCategory.id,
-      keywords: [
-        "bhagavad",
-        "gita",
-        "krishna",
-        "arjuna",
-        "philosophy",
-      ],
-      isActive: true,
-    });
+    let bhagavadGitaBooks = await categoryService.findByName("Bhagavad Gita");
+    if (!bhagavadGitaBooks) {
+      bhagavadGitaBooks = await categoryService.createCategory({
+        name: "Bhagavad Gita",
+        description: "Bhagavad Gita As It Is and related books",
+        parentId: booksCategory.id,
+        keywords: ["bhagavad", "gita", "krishna", "arjuna", "philosophy"],
+        isActive: true,
+      });
+    }
 
-    const srimadBhagavatamBooks = await categoryService.createCategory({
-      name: "Srimad Bhagavatam",
-      description: "Srimad Bhagavatam sets and individual cantos",
-      parentId: booksCategory.id,
-      keywords: [
-        "srimad",
-        "bhagavatam",
-        "purana",
-        "krishna",
-        "stories",
-      ],
-      isActive: true,
-    });
+    let srimadBhagavatamBooks = await categoryService.findByName("Srimad Bhagavatam");
+    if (!srimadBhagavatamBooks) {
+      srimadBhagavatamBooks = await categoryService.createCategory({
+        name: "Srimad Bhagavatam",
+        description: "Srimad Bhagavatam sets and individual cantos",
+        parentId: booksCategory.id,
+        keywords: ["srimad", "bhagavatam", "purana", "krishna", "stories"],
+        isActive: true,
+      });
+    }
 
     // Create subcategories for accessories
-    const japaAccessories = await categoryService.createCategory({
-      name: "Japa Accessories",
-      description: "Japa malas, bags, and related items",
-      parentId: accessoriesCategory.id,
-      keywords: [
-        "japa",
-        "mala",
-        "chanting",
-        "beads",
-        "bag",
-        "tulsi",
-      ],
-      isActive: true,
-    });
+    let japaAccessories = await categoryService.findByName("Japa Accessories");
+    if (!japaAccessories) {
+      japaAccessories = await categoryService.createCategory({
+        name: "Japa Accessories",
+        description: "Japa malas, bags, and related items",
+        parentId: accessoriesCategory.id,
+        keywords: ["japa", "mala", "chanting", "beads", "bag", "tulsi"],
+        isActive: true,
+      });
+    }
 
-    const deityAccessories = await categoryService.createCategory({
-      name: "Deity Accessories",
-      description: "Items for deity worship",
-      parentId: accessoriesCategory.id,
-      keywords: [
-        "deity",
-        "worship",
-        "puja",
-        "altar",
-        "murti",
-        "archana",
-      ],
-      isActive: true,
-    });
+    let deityAccessories = await categoryService.findByName("Deity Accessories");
+    if (!deityAccessories) {
+      deityAccessories = await categoryService.createCategory({
+        name: "Deity Accessories",
+        description: "Items for deity worship",
+        parentId: accessoriesCategory.id,
+        keywords: ["deity", "worship", "puja", "altar", "murti", "archana"],
+        isActive: true,
+      });
+    }
 
     console.log("✅ Created categories and subcategories");
 
     // Create sample products
     console.log("📦 Creating sample products...");
 
+    // Check if products already exist
+    const existingProducts = await productService.findAll(1);
+    if (existingProducts.length > 0) {
+      console.log("✅ Sample products already exist, skipping product creation");
+      console.log("🎉 Database seeding completed successfully!");
+      console.log("\n📋 Default Users Created:");
+      console.log("  Admin: username=admin, pin=1234");
+      console.log("  Manager: username=manager, pin=5678");
+      console.log("  Cashier: username=cashier, pin=9999");
+      return;
+    }
+
     // Bhagavad Gita products
-    const bgAsItIs = await productService.createProduct({
-      name: "Bhagavad Gita As It Is",
-      description:
-        "The complete edition with original Sanskrit verses, word-for-word meanings, translations, and elaborate purports by His Divine Grace A.C. Bhaktivedanta Swami Prabhupada",
-      basePrice: 350.0,
-      categoryId: bhagavadGitaBooks.id,
-      keywords: [
-        "bhagavad",
-        "gita",
-        "as it is",
-        "prabhupada",
-        "krishna",
-        "philosophy",
-        "complete",
-      ],
-      metadata: {
-        author: "A.C. Bhaktivedanta Swami Prabhupada",
-        publisher: "The Bhaktivedanta Book Trust",
-        language: "English",
-        isbn: "978-91-7149-781-5",
-        customAttributes: {
-          pages: "928",
+    let bgAsItIs = await productService.findByName("Bhagavad Gita As It Is");
+    if (!bgAsItIs) {
+      bgAsItIs = await productService.createProduct({
+        name: "Bhagavad Gita As It Is",
+        description:
+          "The complete edition with original Sanskrit verses, word-for-word meanings, translations, and elaborate purports by His Divine Grace A.C. Bhaktivedanta Swami Prabhupada",
+        basePrice: 350.0,
+        categoryId: bhagavadGitaBooks.id,
+        keywords: [
+          "bhagavad",
+          "gita",
+          "as it is",
+          "prabhupada",
+          "krishna",
+          "philosophy",
+          "complete",
+        ],
+        metadata: {
+          author: "A.C. Bhaktivedanta Swami Prabhupada",
+          publisher: "The Bhaktivedanta Book Trust",
+          language: "English",
+          isbn: "978-91-7149-781-5",
+          customAttributes: {
+            pages: "928",
+          },
         },
-      },
-      isActive: true,
-    });
+        isActive: true,
+      });
+    }
 
     // Create variants for Bhagavad Gita
     await productService.createVariant({
@@ -326,14 +342,7 @@ async function seedDatabase() {
         "Cotton japa bag with drawstring for carrying and protecting your japa mala",
       basePrice: 50.0,
       categoryId: japaAccessories.id,
-      keywords: [
-        "japa",
-        "bag",
-        "cotton",
-        "drawstring",
-        "protection",
-        "carry",
-      ],
+      keywords: ["japa", "bag", "cotton", "drawstring", "protection", "carry"],
       metadata: {
         material: "Cotton",
         customAttributes: {

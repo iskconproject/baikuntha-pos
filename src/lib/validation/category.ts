@@ -15,8 +15,8 @@ export const createCategorySchema = z.object({
   name: z.string().min(1, 'Category name is required').max(100, 'Category name too long'),
   description: z.string().max(500, 'Description too long').optional(),
   parentId: z.string().uuid('Invalid parent category ID').optional(),
-  keywords: keywordsSchema,
-  isActive: z.boolean().default(true),
+  keywords: keywordsSchema.optional(),
+  isActive: z.boolean().optional().default(true),
 });
 
 // Update category schema
