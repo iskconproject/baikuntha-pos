@@ -82,7 +82,15 @@ describe('ProductService', () => {
 
       expect(result).toBeDefined();
       expect(result.name).toBe(productData.name);
-      expect(productService.create).toHaveBeenCalledWith(productData);
+      expect(productService.create).toHaveBeenCalledWith({
+        name: productData.name,
+        description: productData.description,
+        basePrice: productData.basePrice,
+        categoryId: productData.categoryId,
+        isActive: productData.isActive,
+        keywords: JSON.stringify(productData.keywords),
+        metadata: JSON.stringify(productData.metadata),
+      });
     });
 
     it('should throw error if category does not exist', async () => {
