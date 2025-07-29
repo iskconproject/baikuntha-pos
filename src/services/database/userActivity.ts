@@ -16,6 +16,23 @@ export interface ActivityLogEntry {
 }
 
 export class UserActivityService extends BaseService<UserActivity, NewUserActivity> {
+  public localDb: any;
+
+  constructor() {
+    super();
+    // Will be set by test or loaded lazily
+    this.localDb = undefined;
+  }
+
+  private async getDb() {
+    if (typeof this.localDb === 'undefined') {
+      // Use relative import to avoid alias issues in test
+      const { getLocalDb } = await import('../../lib/db/connection');
+      this.localDb = getLocalDb();
+    }
+    return this.localDb;
+  }
+
   get table() {
     return userActivity;
   }
@@ -84,7 +101,8 @@ export class UserActivityService extends BaseService<UserActivity, NewUserActivi
       }
       
       // Build query
-      const baseQuery = this.localDb
+      const db = await this.getDb();
+      const baseQuery = db
         .select({
           id: userActivity.id,
           userId: userActivity.userId,
@@ -108,11 +126,12 @@ export class UserActivityService extends BaseService<UserActivity, NewUserActivi
       
       // For activities with target users, get target user details
       const activitiesWithTargets = await Promise.all(
-        results.map(async (activity) => {
+        results.map(async (activity: any) => {
           let targetUsername = null;
 
           if (activity.targetUserId) {
-            const targetUser = await this.localDb
+            const db = await this.getDb();
+            const targetUser = await db
               .select({ username: users.username })
               .from(users)
               .where(eq(users.id, activity.targetUserId))
@@ -176,9 +195,11 @@ export class UserActivityService extends BaseService<UserActivity, NewUserActivi
       if (endDate) {
         conditions.push(lte(userActivity.timestamp, endDate));
       }
+
+      const db = await this.getDb();
       
       // Get total activities
-      const totalQuery = this.localDb
+      const totalQuery = db
         .select({ count: sql<number>`count(*)` })
         .from(userActivity);
       
@@ -189,7 +210,7 @@ export class UserActivityService extends BaseService<UserActivity, NewUserActivi
       
       // Get login count
       const loginConditions = [eq(userActivity.action, 'login'), ...conditions];
-      const loginQuery = this.localDb
+      const loginQuery = db
         .select({ count: sql<number>`count(*)` })
         .from(userActivity);
       
@@ -201,7 +222,7 @@ export class UserActivityService extends BaseService<UserActivity, NewUserActivi
         sql`action IN ('create_user', 'update_user', 'deactivate_user', 'reactivate_user', 'change_pin')`,
         ...conditions
       ];
-      const userMgmtQuery = this.localDb
+      const userMgmtQuery = db
         .select({ count: sql<number>`count(*)` })
         .from(userActivity);
       
@@ -213,7 +234,7 @@ export class UserActivityService extends BaseService<UserActivity, NewUserActivi
         sql`action IN ('create_transaction', 'void_transaction')`,
         ...conditions
       ];
-      const transactionQuery = this.localDb
+      const transactionQuery = db
         .select({ count: sql<number>`count(*)` })
         .from(userActivity);
       
@@ -221,7 +242,7 @@ export class UserActivityService extends BaseService<UserActivity, NewUserActivi
       const transactionCount = transactionResult[0]?.count || 0;
       
       // Get top users by activity
-      const topUsersQuery = this.localDb
+      const topUsersQuery = db
         .select({
           userId: userActivity.userId,
           username: users.username,
@@ -246,7 +267,7 @@ export class UserActivityService extends BaseService<UserActivity, NewUserActivi
         loginCount,
         userManagementCount,
         transactionCount,
-        topUsers: topUsers.map(user => ({
+        topUsers: topUsers.map((user: { userId: string; username: string; count: number }) => ({
           userId: user.userId || '',
           username: user.username || 'Unknown',
           count: user.count,

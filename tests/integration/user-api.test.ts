@@ -130,52 +130,54 @@ describe('User API Endpoints', () => {
 
   describe('POST /api/users', () => {
     it('should create user for admin', async () => {
-const newUser = {
-  id: 'user_123',
-  username: 'testuser',
-  pinHash: '',
-  role: 'admin',
-  isActive: true,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  lastLoginAt: null,
+let createdUser: any = null;
+vi.mocked(getSessionUser).mockResolvedValue(mockAdminUser);
+vi.mocked(userService.createUser).mockImplementation(async (userData) => {
+  createdUser = {
+    id: 'user_123',
+    username: userData.username,
+    pinHash: '',
+    role: userData.role,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    lastLoginAt: null,
+  };
+  return createdUser;
+});
+
+const requestBody = {
+  username: 'newuser',
+  pin: '1357',
+  confirmPin: '1357',
+  role: 'cashier',
 };
 
-      vi.mocked(getSessionUser).mockResolvedValue(mockAdminUser);
-      vi.mocked(userService.createUser).mockResolvedValue(newUser);
+const request = new NextRequest('http://localhost/api/users', {
+  method: 'POST',
+  body: JSON.stringify(requestBody),
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-      const requestBody = {
-        username: 'newuser',
-        pin: '1357',
-        confirmPin: '1357',
-        role: 'cashier',
-      };
+const response = await createUserPOST(request);
+const data = await response.json();
 
-      const request = new NextRequest('http://localhost/api/users', {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const response = await createUserPOST(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(201);
-      expect(data.user.username).toBe('newuser');
-      expect(userService.createUser).toHaveBeenCalledWith(
-        {
-          username: 'newuser',
-          pin: '1357',
-          role: 'cashier',
-        },
-        'admin_123',
-        expect.objectContaining({
-          ipAddress: expect.any(String),
-          userAgent: expect.any(String),
-        })
-      );
+expect(response.status).toBe(201);
+expect(data.user.username).toBe('newuser');
+expect(userService.createUser).toHaveBeenCalledWith(
+  {
+    username: 'newuser',
+    pin: '1357',
+    role: 'cashier',
+  },
+  'admin_123',
+  expect.objectContaining({
+    ipAddress: expect.any(String),
+    userAgent: expect.any(String),
+  })
+);
     });
 
     it('should return 403 for manager role', async () => {

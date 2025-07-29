@@ -388,23 +388,28 @@ describe('UserService', () => {
 
       // Mock database queries
       const mockDb = {
-        select: vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            orderBy: vi.fn().mockReturnValue({
-              limit: vi.fn().mockReturnValue({
-                offset: vi.fn().mockReturnValue({
-                  where: vi.fn().mockResolvedValue(mockUsers),
-                }),
+        select: vi.fn(),
+      };
+
+      // 1st call: user list query (with orderBy/limit/offset/where and with where for fallback)
+      mockDb.select.mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          orderBy: vi.fn().mockReturnValue({
+            limit: vi.fn().mockReturnValue({
+              offset: vi.fn().mockReturnValue({
+                where: vi.fn().mockResolvedValue(mockUsers),
               }),
             }),
           }),
+          where: vi.fn().mockResolvedValue(mockUsers), // for select().from().where() fallback
         }),
-      };
+      });
 
-      // Mock count query
+      // 2nd call: count query (with where only)
       mockDb.select.mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockResolvedValue([{ count: 2 }]),
+          orderBy: vi.fn(), // for select().from().orderBy() chain, not used here
         }),
       });
 
