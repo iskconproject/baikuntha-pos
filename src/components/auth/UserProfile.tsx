@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
 import type { AuthUser } from "@/types/auth";
 import { cn } from "@/lib/utils";
@@ -188,11 +188,30 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     return `${remainingSeconds}s`;
   };
 
-  const formatDateTime = (date: Date): string => {
+  const formatDateTime = (date: Date | string | null | undefined): string => {
+    if (!date) {
+      return "Never";
+    }
+
+    let dateObj: Date;
+    
+    if (date instanceof Date) {
+      dateObj = date;
+    } else if (typeof date === 'string') {
+      dateObj = new Date(date);
+    } else {
+      return "Invalid date";
+    }
+
+    // Check if the date is valid
+    if (isNaN(dateObj.getTime())) {
+      return "Invalid date";
+    }
+
     return new Intl.DateTimeFormat("en-IN", {
       dateStyle: "medium",
       timeStyle: "short",
-    }).format(date);
+    }).format(dateObj);
   };
 
   const handleLogout = () => {
@@ -259,16 +278,14 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 </dd>
               </div>
 
-              {user.lastLoginAt && (
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Last Login
-                  </dt>
-                  <dd className="text-sm text-gray-900">
-                    {formatDateTime(user.lastLoginAt)}
-                  </dd>
-                </div>
-              )}
+              <div>
+                <dt className="text-sm font-medium text-gray-500">
+                  Last Login
+                </dt>
+                <dd className="text-sm text-gray-900">
+                  {formatDateTime(user.lastLoginAt)}
+                </dd>
+              </div>
 
               {timeUntilLogout && timeUntilLogout > 0 && (
                 <div>

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Home() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function Home() {
         router.replace(dashboardPath);
       } else {
         // Redirect to login
-        router.replace('/login');
+        router.replace("/login");
       }
     }
   }, [user, isLoading, router]);
@@ -35,9 +35,7 @@ export default function Home() {
           <div className="inline-block bg-white rounded-lg shadow-lg p-6">
             <div className="flex items-center space-x-3">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-saffron-600"></div>
-              <p className="text-gray-600">
-                Loading...
-              </p>
+              <p className="text-gray-600">Loading...</p>
             </div>
           </div>
         </div>
@@ -51,13 +49,13 @@ export default function Home() {
  */
 function getDashboardPath(role: string): string {
   switch (role) {
-    case 'admin':
-      return '/dashboard/admin';
-    case 'manager':
-      return '/dashboard/manager';
-    case 'cashier':
-      return '/dashboard/cashier';
+    case "admin":
+      return "/dashboard/admin";
+    case "manager":
+      return "/dashboard/manager";
+    case "cashier":
+      return "/dashboard/cashier";
     default:
-      return '/dashboard';
+      return "/dashboard";
   }
 }
