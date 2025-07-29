@@ -348,12 +348,12 @@ export class ProductService extends BaseService<Product, NewProduct> {
       return searchResult.products.map((p): ProductSearchResultItem => ({
         id: p.id,
         name: p.name,
-        description: p.description,
+        description: p.description || null,
         basePrice: p.basePrice,
-        categoryId: p.categoryId,
-        isActive: p.isActive,
-        createdAt: p.createdAt,
-        updatedAt: p.updatedAt,
+        categoryId: p.categoryId || null,
+        isActive: p.isActive || null,
+        createdAt: p.createdAt || null,
+        updatedAt: p.updatedAt || null,
         keywords: JSON.stringify(p.keywords),
         metadata: JSON.stringify(p.metadata),
         rank: 0,
@@ -714,7 +714,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
         .leftJoin(categories, eq(products.categoryId, categories.id));
 
       if (conditions.length > 0) {
-        query = query.where(and(...conditions));
+        query = query.where(and(...conditions)) as any;
       }
 
       // Add sorting
@@ -724,19 +724,18 @@ export class ProductService extends BaseService<Product, NewProduct> {
                         sortBy === 'updated' ? products.updatedAt :
                         products.name;
 
-      query = query.orderBy(sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn));
+      query = query.orderBy(sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn)) as any;
 
       // Get total count
       const countQuery = this.localDb
         .select({ count: sql<number>`count(*)` })
         .from(products);
       
-      let finalCountQuery = countQuery;
       if (conditions.length > 0) {
-        finalCountQuery = countQuery.where(and(...conditions));
+        countQuery = countQuery.where(and(...conditions)) as any;
       }
 
-      const [{ count: totalCount }] = await finalCountQuery;
+      const [{ count: totalCount }] = await countQuery;
 
       // Get paginated results
       const results = await query.limit(limit).offset(offset);

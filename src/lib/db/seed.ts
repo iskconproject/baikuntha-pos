@@ -48,7 +48,7 @@ async function seedDatabase() {
     const booksCategory = await categoryService.createCategory({
       name: "Books",
       description: "Spiritual and religious books",
-      keywords: JSON.stringify([
+      keywords: [
         "books",
         "literature",
         "spiritual",
@@ -56,32 +56,32 @@ async function seedDatabase() {
         "reading",
         "pustaka",
         "kitab",
-      ]),
+      ],
     });
 
     const accessoriesCategory = await categoryService.createCategory({
       name: "Accessories",
       description: "Religious accessories and items",
-      keywords: JSON.stringify([
+      keywords: [
         "accessories",
         "items",
         "religious",
         "spiritual",
         "upkaran",
         "samagri",
-      ]),
+      ],
     });
 
     const giftsCategory = await categoryService.createCategory({
       name: "Gifts",
       description: "Gift items and souvenirs",
-      keywords: JSON.stringify([
+      keywords: [
         "gifts",
         "souvenirs",
         "presents",
         "uphar",
         "tohfa",
-      ]),
+      ],
     });
 
     // Create subcategories for books
@@ -90,39 +90,39 @@ async function seedDatabase() {
       description:
         "Books by His Divine Grace A.C. Bhaktivedanta Swami Prabhupada",
       parentId: booksCategory.id,
-      keywords: JSON.stringify([
+      keywords: [
         "prabhupada",
         "founder",
         "acharya",
         "bhaktivedanta",
         "swami",
-      ]),
+      ],
     });
 
     const bhagavadGitaBooks = await categoryService.createCategory({
       name: "Bhagavad Gita",
       description: "Bhagavad Gita As It Is and related books",
       parentId: booksCategory.id,
-      keywords: JSON.stringify([
+      keywords: [
         "bhagavad",
         "gita",
         "krishna",
         "arjuna",
         "philosophy",
-      ]),
+      ],
     });
 
     const srimadBhagavatamBooks = await categoryService.createCategory({
       name: "Srimad Bhagavatam",
       description: "Srimad Bhagavatam sets and individual cantos",
       parentId: booksCategory.id,
-      keywords: JSON.stringify([
+      keywords: [
         "srimad",
         "bhagavatam",
         "purana",
         "krishna",
         "stories",
-      ]),
+      ],
     });
 
     // Create subcategories for accessories
@@ -130,28 +130,28 @@ async function seedDatabase() {
       name: "Japa Accessories",
       description: "Japa malas, bags, and related items",
       parentId: accessoriesCategory.id,
-      keywords: JSON.stringify([
+      keywords: [
         "japa",
         "mala",
         "chanting",
         "beads",
         "bag",
         "tulsi",
-      ]),
+      ],
     });
 
     const deityAccessories = await categoryService.createCategory({
       name: "Deity Accessories",
       description: "Items for deity worship",
       parentId: accessoriesCategory.id,
-      keywords: JSON.stringify([
+      keywords: [
         "deity",
         "worship",
         "puja",
         "altar",
         "murti",
         "archana",
-      ]),
+      ],
     });
 
     console.log("✅ Created categories and subcategories");
@@ -166,7 +166,7 @@ async function seedDatabase() {
         "The complete edition with original Sanskrit verses, word-for-word meanings, translations, and elaborate purports by His Divine Grace A.C. Bhaktivedanta Swami Prabhupada",
       basePrice: 350.0,
       categoryId: bhagavadGitaBooks.id,
-      keywords: JSON.stringify([
+      keywords: [
         "bhagavad",
         "gita",
         "as it is",
@@ -174,14 +174,17 @@ async function seedDatabase() {
         "krishna",
         "philosophy",
         "complete",
-      ]),
-      metadata: JSON.stringify({
+      ],
+      metadata: {
         author: "A.C. Bhaktivedanta Swami Prabhupada",
         publisher: "The Bhaktivedanta Book Trust",
         language: "English",
-        pages: 928,
         isbn: "978-91-7149-781-5",
-      }),
+        customAttributes: {
+          pages: "928",
+        },
+      },
+      isActive: true,
     });
 
     // Create variants for Bhagavad Gita
@@ -190,12 +193,12 @@ async function seedDatabase() {
       name: "Hardcover English",
       price: 350.0,
       stockQuantity: 50,
-      attributes: JSON.stringify({
+      attributes: {
         binding: "hardcover",
         language: "english",
         size: "regular",
-      }),
-      keywords: JSON.stringify(["hardcover", "english", "durable"]),
+      },
+      keywords: ["hardcover", "english", "durable"],
     });
 
     await productService.createVariant({
@@ -203,12 +206,12 @@ async function seedDatabase() {
       name: "Paperback English",
       price: 250.0,
       stockQuantity: 100,
-      attributes: JSON.stringify({
+      attributes: {
         binding: "paperback",
         language: "english",
         size: "regular",
-      }),
-      keywords: JSON.stringify(["paperback", "english", "affordable"]),
+      },
+      keywords: ["paperback", "english", "affordable"],
     });
 
     await productService.createVariant({
@@ -216,12 +219,12 @@ async function seedDatabase() {
       name: "Hindi Translation",
       price: 300.0,
       stockQuantity: 30,
-      attributes: JSON.stringify({
+      attributes: {
         binding: "paperback",
         language: "hindi",
         size: "regular",
-      }),
-      keywords: JSON.stringify(["hindi", "translation", "bhasha"]),
+      },
+      keywords: ["hindi", "translation", "bhasha"],
     });
 
     // Srimad Bhagavatam set
@@ -231,7 +234,7 @@ async function seedDatabase() {
         "Complete 12 Canto set of Srimad Bhagavatam with original Sanskrit verses, translations, and purports",
       basePrice: 4500.0,
       categoryId: srimadBhagavatamBooks.id,
-      keywords: JSON.stringify([
+      keywords: [
         "srimad",
         "bhagavatam",
         "complete",
@@ -239,13 +242,16 @@ async function seedDatabase() {
         "12",
         "canto",
         "purana",
-      ]),
-      metadata: JSON.stringify({
+      ],
+      metadata: {
         author: "A.C. Bhaktivedanta Swami Prabhupada",
         publisher: "The Bhaktivedanta Book Trust",
-        volumes: 12,
-        totalPages: 4800,
-      }),
+        customAttributes: {
+          volumes: "12",
+          totalPages: "4800",
+        },
+      },
+      isActive: true,
     });
 
     await productService.createVariant({
@@ -253,12 +259,12 @@ async function seedDatabase() {
       name: "Hardcover Set",
       price: 4500.0,
       stockQuantity: 10,
-      attributes: JSON.stringify({
+      attributes: {
         binding: "hardcover",
-        volumes: 12,
+        volumes: "12",
         language: "english",
-      }),
-      keywords: JSON.stringify(["hardcover", "complete", "set", "premium"]),
+      },
+      keywords: ["hardcover", "complete", "set", "premium"],
     });
 
     // Japa Mala
@@ -268,7 +274,7 @@ async function seedDatabase() {
         "Hand-crafted Tulsi wood japa mala with 108 beads for chanting the holy names",
       basePrice: 150.0,
       categoryId: japaAccessories.id,
-      keywords: JSON.stringify([
+      keywords: [
         "tulsi",
         "japa",
         "mala",
@@ -277,13 +283,16 @@ async function seedDatabase() {
         "108",
         "holy",
         "names",
-      ]),
-      metadata: JSON.stringify({
+      ],
+      metadata: {
         material: "Tulsi wood",
-        beadCount: 108,
-        origin: "Vrindavan",
-        blessed: true,
-      }),
+        customAttributes: {
+          beadCount: "108",
+          origin: "Vrindavan",
+          blessed: "true",
+        },
+      },
+      isActive: true,
     });
 
     await productService.createVariant({

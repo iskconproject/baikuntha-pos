@@ -16,6 +16,39 @@ export class CategoryService extends BaseService<Category, NewCategory> {
   generateId(): string {
     return this.generateUUID();
   }
+
+  // Helper method to transform validation input to database format
+  private transformCategoryInput(input: CreateCategoryInput | UpdateCategoryInput): Partial<NewCategory> {
+    const result: Partial<NewCategory> = {};
+    
+    // Copy primitive fields
+    if (input.name !== undefined) result.name = input.name;
+    if (input.description !== undefined) result.description = input.description;
+    if (input.parentId !== undefined) result.parentId = input.parentId;
+    if (input.isActive !== undefined) result.isActive = input.isActive;
+    
+    // Transform keywords array to JSON string
+    if (input.keywords !== undefined) {
+      result.keywords = input.keywords ? JSON.stringify(input.keywords) : null;
+    }
+    
+    return result;
+  }
+
+  // Helper method to transform database output to enhanced format
+  private transformCategoryOutput(category: Category, productCount: number = 0): EnhancedCategory {
+    return {
+      id: category.id,
+      name: category.name,
+      description: category.description,
+      parentId: category.parentId,
+      isActive: category.isActive,
+      createdAt: category.createdAt,
+      updatedAt: category.updatedAt,
+      keywords: category.keywords ? JSON.parse(category.keywords) : [],
+      productCount,
+    };
+  }
   
   // Category-specific methods
   async findByName(name: string): Promise<Category | null> {
@@ -100,7 +133,7 @@ export class CategoryService extends BaseService<Category, NewCategory> {
     }
   }
   
-  async createCategory(categoryData: Omit<NewCategory, 'id'>): Promise<Category> {
+  async createCategory(categoryData: CreateCategoryInput): Promise<Category> {
     try {
       // Validate parent category exists if parentId is provided
       if (categoryData.parentId) {
@@ -116,14 +149,20 @@ export class CategoryService extends BaseService<Category, NewCategory> {
         throw new Error('Category with this name already exists');
       }
       
-      return await this.create(categoryData);
+      // Transform input to database format
+      const dbData = this.transformCategoryInput(categoryData);
+      // Ensure required fields are present
+      if (!dbData.name) {
+        throw new Error('Category name is required');
+      }
+      return await this.create(dbData as Omit<NewCategory, 'id'>);
     } catch (error) {
       console.error('Error creating category:', error);
       throw error;
     }
   }
   
-  async updateCategory(id: string, categoryData: Partial<Omit<NewCategory, 'id'>>): Promise<Category | null> {
+  async updateCategory(id: string, categoryData: UpdateCategoryInput): Promise<Category | null> {
     try {
       // Validate parent category exists if parentId is being updated
       if (categoryData.parentId) {
@@ -146,7 +185,9 @@ export class CategoryService extends BaseService<Category, NewCategory> {
         }
       }
       
-      return await this.update(id, categoryData);
+      // Transform input to database format
+      const dbData = this.transformCategoryInput(categoryData);
+      return await this.update(id, dbData);
     } catch (error) {
       console.error('Error updating category:', error);
       throw error;
@@ -178,7 +219,7 @@ export class CategoryService extends BaseService<Category, NewCategory> {
     }
   }
   
-  async getCategoryHierarchy(options: CategoryHierarchyInput = {}): Promise<CategoryHierarchy[]> {
+  async getCategoryHierarchy(options: CategoryHierarchyInput = { maxDepth: 5, includeProductCount: false, activeOnly: true }): Promise<CategoryHierarchy[]> {
     try {
       const { maxDepth = 5, includeProductCount = false, activeOnly = true } = options;
       
@@ -200,18 +241,14 @@ export class CategoryService extends BaseService<Category, NewCategory> {
           .groupBy(categories.id)
           .orderBy(categories.name);
 
-        allCategories = categoriesWithCounts.map(row => ({
-          ...row.category,
-          keywords: row.category.keywords ? JSON.parse(row.category.keywords) : [],
-          productCount: row.productCount,
-        }));
+        allCategories = categoriesWithCounts.map(row => 
+          this.transformCategoryOutput(row.category, row.productCount)
+        );
       } else {
         const cats = await this.findActiveCategories();
-        allCategories = cats.map(cat => ({
-          ...cat,
-          keywords: cat.keywords ? JSON.parse(cat.keywords) : [],
-          productCount: 0,
-        }));
+        allCategories = cats.map(cat => 
+          this.transformCategoryOutput(cat, 0)
+        );
       }
       
       return this.buildHierarchy(allCategories, null, 0, maxDepth);
@@ -277,7 +314,7 @@ export class CategoryService extends BaseService<Category, NewCategory> {
         .groupBy(categories.id);
 
       if (conditions.length > 0) {
-        query = query.where(and(...conditions));
+        query = query.where(and(...conditions)) as any;
       }
 
       // Add sorting
@@ -285,7 +322,7 @@ export class CategoryService extends BaseService<Category, NewCategory> {
                         sortBy === 'updated' ? categories.updatedAt :
                         categories.name;
 
-      query = query.orderBy(sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn));
+      query = query.orderBy(sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn)) as any;
 
       // Get total count
       const countQuery = this.localDb
@@ -303,20 +340,16 @@ export class CategoryService extends BaseService<Category, NewCategory> {
 
       // Enhance with parsed data and hierarchy if requested
       let enhancedCategories = results.map(row => ({
-        ...row.category,
-        keywords: row.category.keywords ? JSON.parse(row.category.keywords) : [],
-        productCount: row.productCount,
+        ...this.transformCategoryOutput(row.category, row.productCount),
         children: [] as CategoryHierarchy[],
       }));
 
       if (includeHierarchy) {
         // Build hierarchy for each category
         const allCategories = await this.findActiveCategories();
-        const allEnhanced = allCategories.map(cat => ({
-          ...cat,
-          keywords: cat.keywords ? JSON.parse(cat.keywords) : [],
-          productCount: 0,
-        }));
+        const allEnhanced = allCategories.map(cat => 
+          this.transformCategoryOutput(cat, 0)
+        );
 
         enhancedCategories = enhancedCategories.map(category => ({
           ...category,
@@ -353,17 +386,15 @@ export class CategoryService extends BaseService<Category, NewCategory> {
         throw new Error('Category with this name already exists');
       }
 
-      // Create the category
-      const created = await this.create({
-        ...categoryData,
-        keywords: JSON.stringify(categoryData.keywords || []),
-      });
+      // Transform input to database format
+      const dbData = this.transformCategoryInput(categoryData);
+      // Ensure required fields are present
+      if (!dbData.name) {
+        throw new Error('Category name is required');
+      }
+      const created = await this.create(dbData as Omit<NewCategory, 'id'>);
 
-      return {
-        ...created,
-        keywords: categoryData.keywords || [],
-        productCount: 0,
-      };
+      return this.transformCategoryOutput(created, 0);
     } catch (error) {
       console.error('Error creating category with validation:', error);
       throw error;
@@ -393,20 +424,12 @@ export class CategoryService extends BaseService<Category, NewCategory> {
         }
       }
 
-      // Update the category
-      const updateData = {
-        ...categoryData,
-        keywords: categoryData.keywords ? JSON.stringify(categoryData.keywords) : undefined,
-      };
-
-      const updated = await this.update(id, updateData);
+      // Transform input to database format
+      const dbData = this.transformCategoryInput(categoryData);
+      const updated = await this.update(id, dbData);
       if (!updated) return null;
 
-      return {
-        ...updated,
-        keywords: categoryData.keywords || (updated.keywords ? JSON.parse(updated.keywords) : []),
-        productCount: 0,
-      };
+      return this.transformCategoryOutput(updated, 0);
     } catch (error) {
       console.error('Error updating category with validation:', error);
       throw error;
@@ -479,13 +502,27 @@ export class CategoryService extends BaseService<Category, NewCategory> {
 }
 
 // Types
-export interface CategoryHierarchy extends Category {
+export interface CategoryHierarchy {
+  id: string;
+  name: string;
+  description: string | null;
+  parentId: string | null;
+  isActive: boolean | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
   children: CategoryHierarchy[];
   keywords: string[];
   productCount: number;
 }
 
-export interface EnhancedCategory extends Category {
+export interface EnhancedCategory {
+  id: string;
+  name: string;
+  description: string | null;
+  parentId: string | null;
+  isActive: boolean | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
   keywords: string[];
   productCount: number;
 }
