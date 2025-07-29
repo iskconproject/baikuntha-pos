@@ -128,7 +128,13 @@ export interface ApiResponse<T = any> {
 
 // Auth types
 export interface AuthSession {
-  user: User
+  user: {
+    id: string
+    username: string
+    role: 'admin' | 'manager' | 'cashier'
+    isActive: boolean
+    lastLoginAt?: Date
+  }
   token: string
   expiresAt: Date
 }

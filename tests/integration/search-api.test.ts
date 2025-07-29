@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { testDb, setupTestDb, cleanupTestDb } from '../utils/test-db';
+import { testDb, getTestDb, cleanupTestDb } from '../utils/test-db';
 
 describe('Search API Integration Tests', () => {
   beforeAll(async () => {
-    await setupTestDb();
+    await getTestDb();
   });
 
   afterAll(async () => {

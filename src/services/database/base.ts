@@ -65,7 +65,13 @@ export abstract class BaseService<T, TInsert extends Record<string, any>> {
   async create(data: Omit<TInsert, "id">): Promise<T> {
     try {
       const id = this.generateId();
-      const insertData = { ...data, id } as any;
+      const now = new Date();
+      const insertData = { 
+        ...data, 
+        id,
+        createdAt: now,
+        updatedAt: now
+      } as any;
 
       await this.localDb.insert(this.table).values(insertData);
 
