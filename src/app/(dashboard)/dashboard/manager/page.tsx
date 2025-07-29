@@ -1,13 +1,56 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { DashboardWidget } from '@/components/dashboard/DashboardWidget';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { dashboardService, type DashboardMetrics } from '@/services/dashboard/dashboardService';
 import Link from 'next/link';
+
+// Icons
+const SalesIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" />
+  </svg>
+);
+
+const InventoryIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+  </svg>
+);
+
+const ReportsIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+  </svg>
+);
+
+const SearchIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+);
+
+const AlertIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+  </svg>
+);
+
+const StatsIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+  </svg>
+);
 
 export default function ManagerDashboard() {
   const { user } = useAuth();
+  const [metrics, setMetrics] = useState<Omit<DashboardMetrics, 'users'> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Redirect if not manager or admin
   if (user?.role !== 'manager' && user?.role !== 'admin') {
@@ -15,6 +58,33 @@ export default function ManagerDashboard() {
       <div className="text-center py-12">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
         <p className="text-gray-600">You don't have permission to access this page.</p>
+      </div>
+    );
+  }
+
+  // Load dashboard metrics
+  useEffect(() => {
+    const loadMetrics = async () => {
+      try {
+        setLoading(true);
+        const data = await dashboardService.getManagerMetrics();
+        setMetrics(data);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to load dashboard metrics:', err);
+        setError('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMetrics();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
@@ -31,155 +101,183 @@ export default function ManagerDashboard() {
         </p>
       </div>
 
+      {error && (
+        <div className="bg-error-50 border border-error-200 rounded-lg p-4">
+          <p className="text-error-700">{error}</p>
+        </div>
+      )}
+
+      {/* Key Metrics */}
+      {metrics && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <DashboardWidget
+            title="Today's Sales"
+            icon={SalesIcon}
+            iconColor="success"
+            value={`₹${metrics.todaySales.total.toLocaleString()}`}
+            subValue={`${metrics.todaySales.transactionCount} transactions`}
+            trend={{
+              ...metrics.todaySales.trend,
+              label: 'vs yesterday'
+            }}
+            size="lg"
+            className="md:col-span-2 lg:col-span-1"
+          />
+          
+          <DashboardWidget
+            title="Products"
+            icon={InventoryIcon}
+            iconColor="warning"
+            value={metrics.inventory.totalProducts}
+            subValue={`${metrics.inventory.lowStockCount} low stock`}
+            status={
+              metrics.inventory.lowStockCount > 0
+                ? { label: 'Attention Needed', type: 'warning' }
+                : { label: 'All Good', type: 'success' }
+            }
+          />
+          
+          <DashboardWidget
+            title="Avg. Transaction"
+            icon={StatsIcon}
+            iconColor="info"
+            value={`₹${Math.round(metrics.todaySales.averageTransaction)}`}
+          />
+        </div>
+      )}
+
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Sales Management */}
-        <Card variant="elevated" className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-success-100 rounded-lg">
-                <svg className="h-6 w-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Sales</h3>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4">
-              Process transactions and manage sales
-            </p>
-            <Link href="/sales">
-              <Button variant="primary" size="sm" className="w-full">
-                Go to Sales
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <DashboardWidget
+          title="Sales"
+          description="Process transactions and manage sales"
+          icon={SalesIcon}
+          iconColor="success"
+          action={{
+            label: "Go to Sales",
+            href: "/sales"
+          }}
+        />
 
-        {/* Inventory Management */}
-        <Card variant="elevated" className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-warning-100 rounded-lg">
-                <svg className="h-6 w-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Inventory</h3>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4">
-              Manage products, categories, and stock
-            </p>
-            <Link href="/inventory">
-              <Button variant="primary" size="sm" className="w-full">
-                Manage Inventory
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <DashboardWidget
+          title="Inventory"
+          description="Manage products, categories, and stock"
+          icon={InventoryIcon}
+          iconColor="warning"
+          action={{
+            label: "Manage Inventory",
+            href: "/inventory"
+          }}
+        />
 
-        {/* Reports */}
-        <Card variant="elevated" className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-primary-100 rounded-lg">
-                <svg className="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Reports</h3>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4">
-              View sales reports and analytics
-            </p>
-            <Link href="/reports">
-              <Button variant="primary" size="sm" className="w-full">
-                View Reports
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <DashboardWidget
+          title="Reports"
+          description="View sales reports and analytics"
+          icon={ReportsIcon}
+          iconColor="primary"
+          action={{
+            label: "View Reports",
+            href: "/reports"
+          }}
+        />
 
-        {/* Product Search */}
-        <Card variant="elevated" className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Product Search</h3>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4">
-              Search and browse product catalog
-            </p>
-            <Button variant="outline" size="sm" className="w-full" disabled>
-              Coming Soon
-            </Button>
-          </CardContent>
-        </Card>
+        <DashboardWidget
+          title="Product Search"
+          description="Search and browse product catalog"
+          icon={SearchIcon}
+          iconColor="info"
+          action={{
+            label: "Coming Soon",
+            disabled: true
+          }}
+        />
 
-        {/* Stock Alerts */}
-        <Card variant="elevated" className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-error-100 rounded-lg">
-                <svg className="h-6 w-6 text-error-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Stock Alerts</h3>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4">
-              Monitor low stock and inventory alerts
-            </p>
-            <div className="flex items-center space-x-2">
-              <div className="h-2 w-2 bg-success-500 rounded-full"></div>
-              <span className="text-sm text-success-600 font-medium">All Stock Levels OK</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardWidget
+          title="Stock Alerts"
+          description="Monitor low stock and inventory alerts"
+          icon={AlertIcon}
+          iconColor="error"
+          status={{
+            label: metrics?.inventory.lowStockCount === 0 ? "All Stock Levels OK" : `${metrics?.inventory.lowStockCount} Items Low`,
+            type: metrics?.inventory.lowStockCount === 0 ? "success" : "warning"
+          }}
+        />
 
-        {/* Quick Stats */}
-        <Card variant="elevated" className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Today's Stats</h3>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Sales:</span>
-                <span className="text-sm font-medium">₹0</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Transactions:</span>
-                <span className="text-sm font-medium">0</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Products:</span>
-                <span className="text-sm font-medium">-</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardWidget
+          title="Categories"
+          description="Manage product categories"
+          icon={InventoryIcon}
+          iconColor="gray"
+          value={metrics?.inventory.totalCategories}
+        />
       </div>
+
+      {/* Recent Activity */}
+      {metrics && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Transactions */}
+          <Card variant="elevated">
+            <CardHeader>
+              <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
+            </CardHeader>
+            <CardContent>
+              {metrics.recentTransactions.length > 0 ? (
+                <div className="space-y-3">
+                  {metrics.recentTransactions.map((transaction) => (
+                    <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-gray-900">₹{transaction.total.toLocaleString()}</p>
+                        <p className="text-sm text-gray-600">
+                          {transaction.itemCount} items • {transaction.userName}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600 capitalize">{transaction.paymentMethod}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(transaction.createdAt).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">No recent transactions</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Top Products */}
+          <Card variant="elevated">
+            <CardHeader>
+              <h3 className="text-lg font-semibold text-gray-900">Top Products</h3>
+            </CardHeader>
+            <CardContent>
+              {metrics.topProducts.length > 0 ? (
+                <div className="space-y-3">
+                  {metrics.topProducts.map((product, index) => (
+                    <div key={product.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-medium text-primary-600">#{index + 1}</span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 truncate">{product.name}</p>
+                          <p className="text-sm text-gray-600">{product.salesCount} sales</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-gray-900">₹{product.revenue.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">No sales data available</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

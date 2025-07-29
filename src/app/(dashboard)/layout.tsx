@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -45,13 +46,53 @@ export default function DashboardLayout({
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center">
+            {/* Logo and Navigation */}
+            <div className="flex items-center space-x-8">
               <div className="flex-shrink-0">
                 <h1 className="text-xl font-bold text-saffron-600">
                   VaikunthaPOS
                 </h1>
               </div>
+              
+              {/* Role-based Navigation Menu */}
+              <nav className="hidden md:flex space-x-6">
+                <Link 
+                  href="/dashboard" 
+                  className="text-gray-700 hover:text-saffron-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Dashboard
+                </Link>
+                <Link 
+                  href="/sales" 
+                  className="text-gray-700 hover:text-saffron-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Sales
+                </Link>
+                {(user.role === 'admin' || user.role === 'manager') && (
+                  <>
+                    <Link 
+                      href="/inventory" 
+                      className="text-gray-700 hover:text-saffron-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                    >
+                      Inventory
+                    </Link>
+                    <Link 
+                      href="/reports" 
+                      className="text-gray-700 hover:text-saffron-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                    >
+                      Reports
+                    </Link>
+                  </>
+                )}
+                {user.role === 'admin' && (
+                  <Link 
+                    href="/users" 
+                    className="text-gray-700 hover:text-saffron-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Users
+                  </Link>
+                )}
+              </nav>
             </div>
 
             {/* User Profile */}
