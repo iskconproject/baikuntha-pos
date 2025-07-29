@@ -60,9 +60,20 @@ describe('PaymentProcessor', () => {
       clearCart: mockClearCart,
     });
 
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ success: true, data: mockTransaction }),
+    (global.fetch as any).mockImplementation((url: string) => {
+      if (url === '/api/transactions') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ success: true, data: mockTransaction }),
+        });
+      }
+      if (url.startsWith('/api/transactions/') && url.endsWith('/receipt')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ success: true, data: { id: 'receipt-1', items: [], total: 500 } }),
+        });
+      }
+      return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Not found' }) });
     });
   });
 

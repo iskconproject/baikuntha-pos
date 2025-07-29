@@ -110,7 +110,7 @@ export interface FTSQuery {
 
 export interface TransliterationResult {
   original: string;
-  transliterated: string;
+  transliterated: string[];
   confidence: number;
 }
 

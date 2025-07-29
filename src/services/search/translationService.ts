@@ -135,7 +135,7 @@ export class TranslationService {
 
     return {
       original,
-      transliterated: Array.from(new Set(transliterated)).join(', '), // Remove duplicates
+      transliterated: Array.from(new Set(transliterated)), // Remove duplicates, keep as array
       confidence: 1,
     };
   }
