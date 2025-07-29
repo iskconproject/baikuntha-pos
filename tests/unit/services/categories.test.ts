@@ -222,7 +222,11 @@ describe('CategoryService', () => {
     });
 
     it('should include product counts when requested', async () => {
-      const options = { includeProductCount: true };
+      const options = { 
+        includeProductCount: true,
+        maxDepth: 5,
+        activeOnly: true
+      };
 
       const mockCategoriesWithCounts = [
         {
@@ -258,7 +262,11 @@ describe('CategoryService', () => {
     });
 
     it('should respect max depth limit', async () => {
-      const options = { maxDepth: 2 };
+      const options = { 
+        maxDepth: 2,
+        includeProductCount: false,
+        activeOnly: true
+      };
 
       const mockCategories = [
         { id: 'cat-1', name: 'Level 1', parentId: null, keywords: '[]', isActive: true },
@@ -282,6 +290,9 @@ describe('CategoryService', () => {
         search: 'book',
         page: 1,
         limit: 10,
+        includeHierarchy: false,
+        sortBy: 'name',
+        sortOrder: 'asc',
       };
 
       const mockCategories = [
@@ -308,16 +319,19 @@ describe('CategoryService', () => {
         offset: vi.fn().mockResolvedValue(mockCategories),
       };
 
-      // Mock count query
-      const mockCountDb = {
-        select: vi.fn().mockReturnThis(),
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue([{ count: 1 }]),
-      };
-
       Object.defineProperty(categoryService, 'localDb', {
-        value: { ...mockDb, ...mockCountDb },
+        value: mockDb,
         writable: true,
+      });
+
+      // Mock the count query separately
+      vi.spyOn(categoryService as any, 'localDb').mockReturnValue({
+        ...mockDb,
+        select: vi.fn(() => ({
+          from: vi.fn(() => ({
+            where: vi.fn().mockResolvedValue([{ count: 1 }])
+          }))
+        }))
       });
 
       const result = await categoryService.getCategoriesByQuery(queryInput);
@@ -334,6 +348,9 @@ describe('CategoryService', () => {
         parentId: 'parent-cat',
         page: 1,
         limit: 10,
+        includeHierarchy: false,
+        sortBy: 'name',
+        sortOrder: 'asc',
       };
 
       const mockDb = {
@@ -363,6 +380,8 @@ describe('CategoryService', () => {
         includeHierarchy: true,
         page: 1,
         limit: 10,
+        sortBy: 'name',
+        sortOrder: 'asc',
       };
 
       const mockCategories = [
@@ -428,7 +447,7 @@ describe('CategoryService', () => {
         writable: true,
       });
 
-      vi.spyOn(categoryService, 'queueForSync').mockResolvedValue();
+      vi.spyOn(categoryService as any, 'queueForSync').mockResolvedValue(undefined);
 
       const result = await categoryService.moveCategory(categoryId, newParentId);
 
@@ -453,7 +472,7 @@ describe('CategoryService', () => {
         writable: true,
       });
 
-      vi.spyOn(categoryService, 'queueForSync').mockResolvedValue();
+      vi.spyOn(categoryService as any, 'queueForSync').mockResolvedValue(undefined);
 
       const result = await categoryService.moveCategory(categoryId);
 
@@ -512,7 +531,7 @@ describe('CategoryService', () => {
         writable: true,
       });
 
-      vi.spyOn(categoryService, 'queueForSync').mockResolvedValue();
+      vi.spyOn(categoryService as any, 'queueForSync').mockResolvedValue(undefined);
 
       const result = await categoryService.deactivateCategory(categoryId);
 

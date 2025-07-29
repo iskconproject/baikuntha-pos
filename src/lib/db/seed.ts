@@ -111,7 +111,13 @@ async function seedDatabase() {
         description:
           "Books by His Divine Grace A.C. Bhaktivedanta Swami Prabhupada",
         parentId: booksCategory.id,
-        keywords: ["prabhupada", "founder", "acharya", "bhaktivedanta", "swami"],
+        keywords: [
+          "prabhupada",
+          "founder",
+          "acharya",
+          "bhaktivedanta",
+          "swami",
+        ],
         isActive: true,
       });
     }
@@ -127,7 +133,9 @@ async function seedDatabase() {
       });
     }
 
-    let srimadBhagavatamBooks = await categoryService.findByName("Srimad Bhagavatam");
+    let srimadBhagavatamBooks = await categoryService.findByName(
+      "Srimad Bhagavatam"
+    );
     if (!srimadBhagavatamBooks) {
       srimadBhagavatamBooks = await categoryService.createCategory({
         name: "Srimad Bhagavatam",
@@ -150,7 +158,9 @@ async function seedDatabase() {
       });
     }
 
-    let deityAccessories = await categoryService.findByName("Deity Accessories");
+    let deityAccessories = await categoryService.findByName(
+      "Deity Accessories"
+    );
     if (!deityAccessories) {
       deityAccessories = await categoryService.createCategory({
         name: "Deity Accessories",
@@ -169,7 +179,9 @@ async function seedDatabase() {
     // Check if products already exist
     const existingProducts = await productService.findAll(1);
     if (existingProducts.length > 0) {
-      console.log("✅ Sample products already exist, skipping product creation");
+      console.log(
+        "✅ Sample products already exist, skipping product creation"
+      );
       console.log("🎉 Database seeding completed successfully!");
       console.log("\n📋 Default Users Created:");
       console.log("  Admin: username=admin, pin=1234");

@@ -253,7 +253,7 @@ describe('ProductService', () => {
         writable: true,
       });
 
-      vi.spyOn(productService, 'queueForSync').mockResolvedValue();
+      vi.spyOn(productService as any, 'queueForSync').mockResolvedValue(undefined);
 
       const result = await productService.updateVariantStock(variantId, newQuantity);
 
@@ -280,7 +280,7 @@ describe('ProductService', () => {
         writable: true,
       });
 
-      vi.spyOn(productService, 'queueForSync').mockResolvedValue();
+      vi.spyOn(productService as any, 'queueForSync').mockResolvedValue(undefined);
 
       const result = await productService.updateVariantStock(variantId, newQuantity);
 
@@ -430,7 +430,7 @@ describe('ProductService', () => {
         writable: true,
       });
 
-      vi.spyOn(productService, 'queueForSync').mockResolvedValue();
+      vi.spyOn(productService as any, 'queueForSync').mockResolvedValue(undefined);
       vi.spyOn(productService, 'findVariantById').mockResolvedValue({
         id: 'variant-1',
         ...variantData,

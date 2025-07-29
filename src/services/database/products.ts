@@ -232,20 +232,20 @@ export class ProductService extends BaseService<Product, NewProduct> {
       // Add sorting
       switch (sortBy) {
         case 'price_asc':
-          baseQuery = baseQuery.orderBy(asc(products.basePrice));
+          baseQuery = (baseQuery as any).orderBy(asc(products.basePrice));
           break;
         case 'price_desc':
-          baseQuery = baseQuery.orderBy(desc(products.basePrice));
+          baseQuery = (baseQuery as any).orderBy(desc(products.basePrice));
           break;
         case 'name':
-          baseQuery = baseQuery.orderBy(asc(products.name));
+          baseQuery = (baseQuery as any).orderBy(asc(products.name));
           break;
         case 'popularity':
           // TODO: Implement popularity sorting based on sales data
-          baseQuery = baseQuery.orderBy(asc(products.name));
+          baseQuery = (baseQuery as any).orderBy(asc(products.name));
           break;
         default: // relevance
-          baseQuery = baseQuery.orderBy(asc(products.name));
+          baseQuery = (baseQuery as any).orderBy(asc(products.name));
       }
       
       // Get total count
@@ -412,7 +412,11 @@ export class ProductService extends BaseService<Product, NewProduct> {
 
       // Transform input to database format
       const dbData = this.transformProductInput(productData);
-      return await this.create(dbData);
+      // Ensure required fields are present
+      if (!dbData.name) {
+        throw new Error('Product name is required');
+      }
+      return await this.create(dbData as Omit<NewProduct, 'id'>);
     } catch (error) {
       console.error("Error creating product:", error);
       throw error;

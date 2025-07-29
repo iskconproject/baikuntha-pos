@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createCategorySchema, type CreateCategoryInput } from '@/lib/validation/category';
+import { categoryFormSchema, createCategorySchema, type CategoryFormInput, type CreateCategoryInput } from '@/lib/validation/category';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -22,8 +22,8 @@ interface Category {
 
 interface CategoryManagerProps {
   categories: Category[];
-  onCreateCategory: (data: CreateCategoryInput) => Promise<void>;
-  onUpdateCategory: (id: string, data: Partial<CreateCategoryInput>) => Promise<void>;
+  onCreateCategory: (data: CategoryFormInput) => Promise<void>;
+  onUpdateCategory: (id: string, data: Partial<CategoryFormInput>) => Promise<void>;
   onDeleteCategory: (id: string) => Promise<void>;
   isLoading?: boolean;
 }
@@ -45,22 +45,21 @@ export function CategoryManager({
     handleSubmit,
     control,
     watch,
-    setValue,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
-  } = useForm<CreateCategoryInput>({
-    resolver: zodResolver(createCategorySchema),
+  } = useForm({
+    resolver: zodResolver(categoryFormSchema),
     defaultValues: {
+      name: '',
+      description: '',
+      parentId: '',
       keywords: [],
       isActive: true,
     },
   });
 
-  const {
-    fields: keywordFields,
-    append: appendKeyword,
-    remove: removeKeyword,
-  } = useFieldArray({
+  const { fields: keywordFields, append: appendKeyword, remove: removeKeyword } = useFieldArray({
     control,
     name: 'keywords',
   });
@@ -74,12 +73,15 @@ export function CategoryManager({
         name: category.name,
         description: category.description || '',
         parentId: category.parentId || '',
-        keywords: category.keywords,
+        keywords: category.keywords.map(k => ({ value: k })),
         isActive: category.isActive,
       });
     } else {
       setEditingCategory(null);
       reset({
+        name: '',
+        description: '',
+        parentId: '',
         keywords: [],
         isActive: true,
       });
@@ -96,8 +98,8 @@ export function CategoryManager({
   };
 
   const handleAddKeyword = () => {
-    if (keywordInput.trim() && !keywords?.includes(keywordInput.trim())) {
-      appendKeyword(keywordInput.trim());
+    if (keywordInput.trim() && !keywords?.some(k => k.value === keywordInput.trim())) {
+      appendKeyword({ value: keywordInput.trim() });
       setKeywordInput('');
     }
   };
@@ -109,12 +111,17 @@ export function CategoryManager({
     }
   };
 
-  const handleFormSubmit = async (data: CreateCategoryInput) => {
+  const handleFormSubmit = async (data: CategoryFormInput) => {
     try {
+      // Transform keywords back to string array
+      const transformedData = {
+        ...data,
+        keywords: data.keywords.map(k => k.value),
+      };
       if (editingCategory) {
-        await onUpdateCategory(editingCategory.id, data);
+        await onUpdateCategory(editingCategory.id, transformedData as any);
       } else {
-        await onCreateCategory(data);
+        await onCreateCategory(transformedData as any);
       }
       handleCloseModal();
     } catch (error) {
@@ -165,7 +172,7 @@ export function CategoryManager({
                 {expandedCategories.has(category.id) ? '▼' : '▶'}
               </button>
             )}
-            
+
             <div>
               <h3 className="font-medium text-gray-900">{category.name}</h3>
               {category.description && (
@@ -227,14 +234,14 @@ export function CategoryManager({
   // Get flat list of categories for parent selection
   const getFlatCategories = (categories: Category[], level: number = 0): Array<{ id: string; name: string; level: number }> => {
     const result: Array<{ id: string; name: string; level: number }> = [];
-    
+
     categories.forEach(category => {
       result.push({ id: category.id, name: category.name, level });
       if (category.children.length > 0) {
         result.push(...getFlatCategories(category.children, level + 1));
       }
     });
-    
+
     return result;
   };
 
@@ -340,7 +347,7 @@ export function CategoryManager({
                 <Input
                   value={keywordInput}
                   onChange={(e) => setKeywordInput(e.target.value)}
-                  onKeyPress={handleKeywordKeyPress}
+                  onKeyDown={handleKeywordKeyPress}
                   placeholder="Enter keyword and press Enter"
                   className="flex-1"
                 />
@@ -361,12 +368,12 @@ export function CategoryManager({
                   Keywords
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {keywordFields.map((field, index) => (
+                  {keywords.map((keyword, index) => (
                     <span
-                      key={field.id}
+                      key={index}
                       className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800"
                     >
-                      {keywords?.[index]}
+                      {keywords?.[index]?.value}
                       <button
                         type="button"
                         onClick={() => removeKeyword(index)}

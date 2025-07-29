@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createProductSchema, type CreateProductInput } from '@/lib/validation/product';
+import { productFormSchema, type ProductFormInput, type CreateProductInput } from '@/lib/validation/product';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -13,7 +13,7 @@ interface ProductFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateProductInput) => Promise<void>;
-  initialData?: Partial<CreateProductInput>;
+  initialData?: Partial<ProductFormInput>;
   categories: Array<{ id: string; name: string }>;
   isLoading?: boolean;
 }
@@ -37,11 +37,23 @@ export function ProductForm({
     setValue,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<CreateProductInput>({
-    resolver: zodResolver(createProductSchema),
+  } = useForm<ProductFormInput>({
+    resolver: zodResolver(productFormSchema),
     defaultValues: {
+      name: '',
+      description: '',
+      basePrice: 0,
+      categoryId: '',
       keywords: [],
       metadata: {
+        author: '',
+        publisher: '',
+        language: '',
+        isbn: '',
+        material: '',
+        dimensions: '',
+        weight: '',
+        color: '',
         customAttributes: {},
       },
       isActive: true,
@@ -49,33 +61,35 @@ export function ProductForm({
     },
   });
 
-  const {
-    fields: keywordFields,
-    append: appendKeyword,
-    remove: removeKeyword,
-  } = useFieldArray({
-    control,
-    name: 'keywords',
-  });
-
   const keywords = watch('keywords');
 
   useEffect(() => {
     if (initialData) {
       reset({
-        ...initialData,
-        keywords: initialData.keywords || [],
+        name: initialData.name ?? '',
+        description: initialData.description ?? '',
+        basePrice: initialData.basePrice ?? 0,
+        categoryId: initialData.categoryId ?? '',
+        keywords: initialData.keywords?.map(k => typeof k === 'string' ? { value: k } : k) ?? [],
         metadata: {
-          ...initialData.metadata,
-          customAttributes: initialData.metadata?.customAttributes || {},
+          author: initialData.metadata?.author ?? '',
+          publisher: initialData.metadata?.publisher ?? '',
+          language: initialData.metadata?.language ?? '',
+          isbn: initialData.metadata?.isbn ?? '',
+          material: initialData.metadata?.material ?? '',
+          dimensions: initialData.metadata?.dimensions ?? '',
+          weight: initialData.metadata?.weight ?? '',
+          color: initialData.metadata?.color ?? '',
+          customAttributes: initialData.metadata?.customAttributes ?? {},
         },
+        isActive: initialData.isActive ?? true,
       });
 
       // Set metadata fields for editing
       if (initialData.metadata?.customAttributes) {
         const fields = Object.entries(initialData.metadata.customAttributes).map(([key, value]) => ({
           key,
-          value,
+          value: String(value),
         }));
         setMetadataFields(fields);
       }
@@ -83,8 +97,8 @@ export function ProductForm({
   }, [initialData, reset]);
 
   const handleAddKeyword = () => {
-    if (keywordInput.trim() && !keywords?.includes(keywordInput.trim())) {
-      appendKeyword(keywordInput.trim());
+    if (keywordInput.trim() && !keywords?.some(k => k.value === keywordInput.trim())) {
+      setValue('keywords', [...(keywords || []), { value: keywordInput.trim() }]);
       setKeywordInput('');
     }
   };
@@ -124,9 +138,14 @@ export function ProductForm({
     setValue('metadata.customAttributes', customAttributes);
   };
 
-  const handleFormSubmit = async (data: CreateProductInput) => {
+  const handleFormSubmit = async (data: ProductFormInput) => {
     try {
-      await onSubmit(data);
+      // Transform keywords back to string array
+      const transformedData = {
+        ...data,
+        keywords: data.keywords.map(k => k.value),
+      };
+      await onSubmit(transformedData as any);
       reset();
       setKeywordInput('');
       setMetadataFields([]);
@@ -142,7 +161,7 @@ export function ProductForm({
         {/* Basic Information */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Product Name *
@@ -203,7 +222,7 @@ export function ProductForm({
         {/* Keywords */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-gray-900">Search Keywords</h3>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Add Keywords
@@ -212,7 +231,7 @@ export function ProductForm({
               <Input
                 value={keywordInput}
                 onChange={(e) => setKeywordInput(e.target.value)}
-                onKeyPress={handleKeywordKeyPress}
+                onKeyDown={handleKeywordKeyPress}
                 placeholder="Enter keyword and press Enter"
                 className="flex-1"
               />
@@ -227,21 +246,21 @@ export function ProductForm({
             </div>
           </div>
 
-          {keywordFields.length > 0 && (
+          {keywords?.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Keywords
               </label>
               <div className="flex flex-wrap gap-2">
-                {keywordFields.map((field, index) => (
+                {keywords.map((keyword, index) => (
                   <span
-                    key={field.id}
+                    key={index}
                     className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800"
                   >
-                    {keywords?.[index]}
+                    {keyword.value}
                     <button
                       type="button"
-                      onClick={() => removeKeyword(index)}
+                      onClick={() => setValue('keywords', keywords.filter((_, i) => i !== index))}
                       className="ml-2 text-orange-600 hover:text-orange-800"
                     >
                       ×
@@ -256,7 +275,7 @@ export function ProductForm({
         {/* Metadata */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-gray-900">Product Metadata</h3>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

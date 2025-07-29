@@ -57,9 +57,19 @@ export const categoryMoveSchema = z.object({
   newParentId: z.string().uuid('Invalid parent category ID').optional(),
 });
 
+// Form-specific schema for components (with required fields for better UX)
+export const categoryFormSchema = z.object({
+  name: z.string().min(1, 'Category name is required').max(100, 'Category name too long'),
+  description: z.string().optional(),
+  parentId: z.string().optional(),
+  keywords: z.array(z.object({ value: z.string() })),
+  isActive: z.boolean(),
+});
+
 // Export types
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
+export type CategoryFormInput = z.infer<typeof categoryFormSchema>;
 export type CategoryQueryInput = z.infer<typeof categoryQuerySchema>;
 export type CategoryHierarchyInput = z.infer<typeof categoryHierarchySchema>;
 export type CategoryImportInput = z.infer<typeof categoryImportSchema>;

@@ -76,13 +76,13 @@ describe('Product API Integration Tests', () => {
       vi.mocked(productService.getProductsByQuery).mockResolvedValue(mockProducts);
 
       const request = new NextRequest(
-        'http://localhost:3000/api/products?search=test&categoryId=cat-1&page=1&limit=10'
+        'http://localhost:3000/api/products?search=test&categoryId=550e8400-e29b-41d4-a716-446655440000&page=1&limit=10'
       );
       const response = await getProducts(request);
 
       expect(productService.getProductsByQuery).toHaveBeenCalledWith({
         search: 'test',
-        categoryId: 'cat-1',
+        categoryId: '550e8400-e29b-41d4-a716-446655440000',
         isActive: true,
         sortBy: 'name',
         sortOrder: 'asc',
@@ -120,7 +120,7 @@ describe('Product API Integration Tests', () => {
         name: 'New Product',
         description: 'Product description',
         basePrice: 150,
-        categoryId: 'cat-1',
+        categoryId: '550e8400-e29b-41d4-a716-446655440000',
         keywords: ['test', 'product'],
         metadata: {
           author: 'Test Author',
@@ -207,19 +207,19 @@ describe('Product API Integration Tests', () => {
         id: 'prod-1',
         name: 'Test Product',
         basePrice: 100,
-        keywords: '["test", "product"]',
-        metadata: '{"author": "Test Author"}',
+        keywords: ['test', 'product'],
+        metadata: { author: 'Test Author' },
         variants: [
           {
             id: 'var-1',
             name: 'Small',
             price: 90,
             stockQuantity: 10,
-            attributes: '{"size": "S"}',
-            keywords: '["small"]',
+            attributes: { size: 'S' },
+            keywords: ['small'],
           },
         ],
-        category: { id: 'cat-1', name: 'Test Category' },
+        category: { id: '550e8400-e29b-41d4-a716-446655440000', name: 'Test Category' },
       };
 
       vi.mocked(productService.findProductsWithVariants).mockResolvedValue([mockProduct as any]);

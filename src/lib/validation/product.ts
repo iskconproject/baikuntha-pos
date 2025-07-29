@@ -10,7 +10,7 @@ export const productMetadataSchema = z.object({
   dimensions: z.string().optional(),
   weight: z.string().optional(),
   color: z.string().optional(),
-  customAttributes: z.record(z.string(), z.string()).default({}),
+  customAttributes: z.record(z.string(), z.string()),
 });
 
 // Product variant attributes schema
@@ -43,13 +43,34 @@ export const createProductSchema = z.object({
   description: z.string().max(1000, 'Description too long').optional(),
   basePrice: z.number().min(0, 'Base price must be non-negative'),
   categoryId: z.string().uuid('Invalid category ID').optional(),
-  keywords: keywordsSchema.optional(),
-  metadata: productMetadataSchema.optional().default({}),
-  isActive: z.boolean().optional().default(true),
+  keywords: keywordsSchema.default([]),
+  metadata: productMetadataSchema.default({
+    author: '',
+    publisher: '',
+    language: '',
+    isbn: '',
+    material: '',
+    dimensions: '',
+    weight: '',
+    color: '',
+    customAttributes: {},
+  }),
+  isActive: z.boolean().default(true),
 });
 
 // Update product schema
 export const updateProductSchema = createProductSchema.partial();
+
+// Form-specific schema for components (with required fields for better UX)
+export const productFormSchema = z.object({
+  name: z.string().min(1, 'Product name is required').max(200, 'Product name too long'),
+  description: z.string().optional(),
+  basePrice: z.number().min(0, 'Base price must be non-negative'),
+  categoryId: z.string().optional(),
+  keywords: z.array(z.object({ value: z.string() })),
+  metadata: productMetadataSchema,
+  isActive: z.boolean(),
+});
 
 // Create product variant schema
 export const createProductVariantSchema = productVariantSchema.omit({ id: true, productId: true });
@@ -68,8 +89,8 @@ export const productSearchSchema = z.object({
     inStock: z.boolean().optional(),
   }).default({}),
   sortBy: z.enum(['relevance', 'price_asc', 'price_desc', 'name', 'popularity']).default('relevance'),
-  limit: z.number().int().min(1).max(100).default(20),
-  offset: z.number().int().min(0).default(0),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
 });
 
 // Stock update schema
@@ -92,7 +113,17 @@ export const productImportSchema = z.object({
     basePrice: z.number().min(0),
     categoryName: z.string().optional(), // Will be resolved to categoryId
     keywords: z.array(z.string()).default([]),
-    metadata: productMetadataSchema.default({}),
+    metadata: productMetadataSchema.default({
+      author: '',
+      publisher: '',
+      language: '',
+      isbn: '',
+      material: '',
+      dimensions: '',
+      weight: '',
+      color: '',
+      customAttributes: {},
+    }),
     variants: z.array(z.object({
       name: z.string().min(1),
       price: z.number().min(0),
@@ -105,7 +136,7 @@ export const productImportSchema = z.object({
 
 // Low stock alert schema
 export const lowStockAlertSchema = z.object({
-  threshold: z.number().int().min(0).default(5),
+  threshold: z.coerce.number().int().min(0).default(5),
   includeVariants: z.boolean().default(true),
 });
 
@@ -129,6 +160,7 @@ export type ProductMetadata = z.infer<typeof productMetadataSchema>;
 export type VariantAttributes = z.infer<typeof variantAttributesSchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
+export type ProductFormInput = z.infer<typeof productFormSchema>;
 export type CreateProductVariantInput = z.infer<typeof createProductVariantSchema>;
 export type UpdateProductVariantInput = z.infer<typeof updateProductVariantSchema>;
 export type ProductSearchInput = z.infer<typeof productSearchSchema>;
