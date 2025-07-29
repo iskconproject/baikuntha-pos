@@ -55,7 +55,6 @@ export class ThermalPrinter {
 
   // ESC/POS commands
   private static readonly ESC = "\x1B";
-  private static readonly GS = "\x1D";
 
   // Common thermal printer vendor/product IDs
   private static readonly COMMON_PRINTERS = [

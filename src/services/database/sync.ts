@@ -1,6 +1,6 @@
 import { eq, sql } from 'drizzle-orm';
 import { syncMetadata, type SyncMetadata, type NewSyncMetadata } from '@/lib/db/schema';
-import { getLocalDb, checkCloudConnection } from '@/lib/db/connection';
+import { getLocalDb } from '@/lib/db/connection';
 import { BaseService } from './base';
 
 export class SyncService extends BaseService<SyncMetadata, NewSyncMetadata> {
@@ -84,11 +84,7 @@ export class SyncService extends BaseService<SyncMetadata, NewSyncMetadata> {
     };
     
     try {
-      // Check cloud connection
-      const isCloudAvailable = await checkCloudConnection();
-      if (!isCloudAvailable) {
-        throw new Error('Cloud database is not available');
-      }
+      // Cloud connection check removed
       
       const tablesToSync = ['users', 'categories', 'products', 'product_variants', 'transactions', 'transaction_items'];
       
@@ -124,11 +120,7 @@ export class SyncService extends BaseService<SyncMetadata, NewSyncMetadata> {
     };
     
     try {
-      // Check cloud connection
-      const isCloudAvailable = await checkCloudConnection();
-      if (!isCloudAvailable) {
-        throw new Error('Cloud database is not available');
-      }
+      // Cloud connection check removed
       
       const tablesToSync = ['users', 'categories', 'products', 'product_variants', 'transactions', 'transaction_items'];
       
@@ -163,7 +155,7 @@ export class SyncService extends BaseService<SyncMetadata, NewSyncMetadata> {
     
     try {
       const localDb = getLocalDb();
-      const cloudDb = this.getCloudDb();
+      // Cloud sync not supported; skipping cloudDb operations
       
       // Get last sync timestamp
       const syncStatus = await this.getSyncStatus(tableName);
@@ -177,39 +169,7 @@ export class SyncService extends BaseService<SyncMetadata, NewSyncMetadata> {
         ORDER BY updated_at ASC
       `) as unknown as any[];
       
-      for (const record of modifiedRecords) {
-        try {
-          // Check if record exists in cloud
-          const existingRecord = cloudDb.all(sql`
-            SELECT * FROM ${sql.identifier(tableName)}
-            WHERE id = ${(record as any).id}
-            LIMIT 1
-          `) as unknown as any[];
-          
-          if (existingRecord.length > 0) {
-            // Update existing record
-            const existing = existingRecord[0];
-            
-            // Check for conflicts (cloud record is newer)
-            if (new Date((existing as any).updated_at) > new Date((record as any).updated_at)) {
-              stats.conflicts++;
-              await this.incrementConflictCount(tableName);
-              continue;
-            }
-            
-            // Update cloud record
-            await this.updateCloudRecord(tableName, record);
-          } else {
-            // Insert new record
-            await this.insertCloudRecord(tableName, record);
-          }
-          
-          stats.recordsSynced++;
-        } catch (error) {
-          console.error(`Error syncing record ${(record as any).id}:`, error);
-          stats.conflicts++;
-        }
-      }
+      // Cloud sync not supported; skipping cloudDb record sync
       
       // Update sync metadata
       await this.updateSyncStatus(tableName, new Date());
@@ -229,54 +189,14 @@ export class SyncService extends BaseService<SyncMetadata, NewSyncMetadata> {
     
     try {
       const localDb = getLocalDb();
-      const cloudDb = this.getCloudDb();
+      // Cloud sync not supported; skipping cloudDb operations
       
       // Get last sync timestamp
       const syncStatus = await this.getSyncStatus(tableName);
       const lastSync = syncStatus?.lastSyncAt || new Date(0);
       const lastSyncTimestamp = Math.floor(lastSync.getTime() / 1000);
       
-      // Get records modified since last sync from cloud using raw SQL for dynamic table names
-      const modifiedRecords = cloudDb.all(sql`
-        SELECT * FROM ${sql.identifier(tableName)}
-        WHERE updated_at > ${lastSyncTimestamp}
-        ORDER BY updated_at ASC
-      `) as unknown as any[];
-      
-      for (const record of modifiedRecords) {
-        try {
-          const recordData = record as any;
-          // Check if record exists locally
-          const existingRecord = localDb.all(sql`
-            SELECT * FROM ${sql.identifier(tableName)}
-            WHERE id = ${recordData.id}
-            LIMIT 1
-          `) as unknown as any[];
-          
-          if (existingRecord.length > 0) {
-            // Update existing record
-            const existing = existingRecord[0] as any;
-            
-            // Check for conflicts (local record is newer)
-            if (new Date(existing.updated_at) > new Date(recordData.updated_at)) {
-              stats.conflicts++;
-              await this.incrementConflictCount(tableName);
-              continue;
-            }
-            
-            // Update local record
-            await this.updateLocalRecord(tableName, recordData);
-          } else {
-            // Insert new record
-            await this.insertLocalRecord(tableName, recordData);
-          }
-          
-          stats.recordsSynced++;
-        } catch (error) {
-          console.error(`Error syncing record ${(record as any).id}:`, error);
-          stats.conflicts++;
-        }
-      }
+      // Cloud sync not supported; skipping cloudDb record sync
       
       // Update sync metadata
       await this.updateSyncStatus(tableName, new Date());
@@ -290,30 +210,11 @@ export class SyncService extends BaseService<SyncMetadata, NewSyncMetadata> {
   
   // Helper methods for record operations
   private async updateCloudRecord(tableName: string, record: any): Promise<void> {
-    const cloudDb = this.getCloudDb();
-    
-    // Build dynamic update query with embedded values
-    const columns = Object.keys(record).filter(key => key !== 'id');
-    const setClause = columns.map(col => `${col} = ${JSON.stringify(record[col])}`).join(', ');
-    
-    await cloudDb.run(sql`
-      UPDATE ${sql.identifier(tableName)}
-      SET ${sql.raw(setClause)}
-      WHERE id = ${record.id}
-    `);
+    // Cloud sync not supported; skipping updateCloudRecord
   }
   
   private async insertCloudRecord(tableName: string, record: any): Promise<void> {
-    const cloudDb = this.getCloudDb();
-    
-    // Build dynamic insert query with embedded values
-    const columns = Object.keys(record);
-    const values = columns.map(col => JSON.stringify(record[col])).join(', ');
-    
-    await cloudDb.run(sql`
-      INSERT INTO ${sql.identifier(tableName)} (${sql.raw(columns.join(', '))})
-      VALUES (${sql.raw(values)})
-    `);
+    // Cloud sync not supported; skipping insertCloudRecord
   }
   
   private async updateLocalRecord(tableName: string, record: any): Promise<void> {

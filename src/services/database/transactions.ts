@@ -179,13 +179,13 @@ export class TransactionService {
         ...transaction,
         items: items.map(item => ({
           id: item.id,
-          productId: item.productId,
+          productId: item.productId || '',
           variantId: item.variantId || undefined,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           totalPrice: item.totalPrice,
           product: {
-            id: item.productId,
+            id: item.productId || '',
             name: item.productName || 'Unknown Product',
             basePrice: item.productBasePrice || 0,
           },
@@ -209,16 +209,18 @@ export class TransactionService {
    */
   async findAll(limit?: number): Promise<Transaction[]> {
     try {
-      let query = this.db
-        .select()
-        .from(transactions)
-        .orderBy(desc(transactions.createdAt));
-
       if (limit) {
-        query = query.limit(limit);
+        return await this.db
+          .select()
+          .from(transactions)
+          .orderBy(desc(transactions.createdAt))
+          .limit(limit);
+      } else {
+        return await this.db
+          .select()
+          .from(transactions)
+          .orderBy(desc(transactions.createdAt));
       }
-
-      return await query;
     } catch (error) {
       console.error('Error finding all transactions:', error);
       throw error;
@@ -373,7 +375,7 @@ export class TransactionService {
         .limit(limit);
 
       return result.map(row => ({
-        productId: row.productId,
+        productId: row.productId || '',
         productName: row.productName || 'Unknown Product',
         totalQuantity: Number(row.totalQuantity),
         totalRevenue: Number(row.totalRevenue),

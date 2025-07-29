@@ -12,15 +12,17 @@ interface CartManagerProps {
 export function CartManager({ className = '', onCheckout }: CartManagerProps) {
   const {
     items,
-    subtotal,
-    tax,
-    discount,
     total,
     updateQuantity,
     removeItem,
     clearCart,
     getItemCount,
   } = useCartStore();
+
+  // Calculate subtotal, tax, discount locally if needed
+  const subtotal = total;
+  const tax = 0;
+  const discount = 0;
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -169,25 +171,6 @@ export function CartManager({ className = '', onCheckout }: CartManagerProps) {
       {/* Cart Summary */}
       <div className="p-4 border-t border-gray-200 bg-gray-50">
         <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Subtotal</span>
-            <span className="font-medium">{formatCurrency(subtotal)}</span>
-          </div>
-          
-          {tax > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Tax</span>
-              <span className="font-medium">{formatCurrency(tax)}</span>
-            </div>
-          )}
-          
-          {discount > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Discount</span>
-              <span className="font-medium text-green-600">-{formatCurrency(discount)}</span>
-            </div>
-          )}
-          
           <div className="flex justify-between text-lg font-semibold pt-2 border-t border-gray-300">
             <span>Total</span>
             <span>{formatCurrency(total)}</span>

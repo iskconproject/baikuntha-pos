@@ -2,33 +2,19 @@ import {
   userService, 
   categoryService, 
   productService, 
-  transactionService,
-  checkLocalConnection,
-  checkCloudConnection 
+  transactionService
 } from '@/services/database';
 
 async function checkDatabaseStatus() {
   try {
     console.log('🔍 Checking database status...\n');
     
-    // Check connections
-    console.log('🔌 Connection Status:');
-    const localConnected = await checkLocalConnection();
-    console.log(`  Local SQLite: ${localConnected ? '✅ Connected' : '❌ Failed'}`);
-    
-    try {
-      const cloudConnected = await checkCloudConnection();
-      console.log(`  Turso Cloud: ${cloudConnected ? '✅ Connected' : '❌ Failed'}`);
-    } catch (error) {
-      console.log(`  Turso Cloud: ⚠️  Not configured`);
-    }
-    
     // Check data counts
     console.log('\n📊 Data Summary:');
     const userCount = await userService.count();
     const categoryCount = await categoryService.count();
     const productCount = await productService.count();
-    const transactionCount = await transactionService.count();
+    const transactionCount = (await transactionService.findAll()).length;
     
     console.log(`  Users: ${userCount}`);
     console.log(`  Categories: ${categoryCount}`);

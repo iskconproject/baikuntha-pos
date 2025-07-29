@@ -1,4 +1,5 @@
-export type SearchLanguage = 'en' | 'hi' | 'bn';
+export type SearchLanguage = 'en' | 'hi' | 'bn';export type SearchSortOption = 'relevance' | 'name' | 'price_asc' | 'price_desc' | 'popularity' | 'newest';
+
 
 export type SortBy = 'relevance' | 'price_asc' | 'price_desc' | 'name' | 'newest' | 'oldest' | 'popularity';
 

@@ -27,7 +27,6 @@ export class UserActivityService extends BaseService<UserActivity, NewUserActivi
   constructor() {
     super();
     // Will be set by test or loaded lazily
-    this.localDb = undefined;
   }
 
   private async getDb() {
@@ -39,13 +38,6 @@ export class UserActivityService extends BaseService<UserActivity, NewUserActivi
     return this.localDb;
   }
 
-  get table() {
-    return userActivity;
-  }
-  
-  generateId(): string {
-    return this.generateUUID();
-  }
   
   // Log user activity
   async logActivity(
@@ -273,7 +265,7 @@ export class UserActivityService extends BaseService<UserActivity, NewUserActivi
         loginCount,
         userManagementCount,
         transactionCount,
-        topUsers: topUsers.map((user: { userId: string; username: string; count: number }) => ({
+        topUsers: topUsers.map((user: { userId: string | null; username: string | null; count: number }) => ({
           userId: user.userId || '',
           username: user.username || 'Unknown',
           count: user.count,

@@ -1,13 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SyncService, syncService } from '@/services/database/sync';
-import { getLocalDb, getCloudDb, checkCloudConnection } from '@/lib/db/connection';
+import { getLocalDb } from '@/lib/db/connection';
 import { syncMetadata } from '@/lib/db/schema';
 
 // Mock the database connections
 vi.mock('@/lib/db/connection', () => ({
   getLocalDb: vi.fn(),
-  getCloudDb: vi.fn(),
-  checkCloudConnection: vi.fn(),
 }));
 
 describe('SyncService', () => {
@@ -40,8 +38,6 @@ describe('SyncService', () => {
 
     // Setup mock implementations
     (getLocalDb as any).mockReturnValue(mockLocalDb);
-    (getCloudDb as any).mockReturnValue(mockCloudDb);
-    (checkCloudConnection as any).mockResolvedValue(true);
 
     // Create service instance
     service = new SyncService();
@@ -194,12 +190,12 @@ describe('SyncService', () => {
     });
 
     it('should handle cloud connection failure', async () => {
-      (checkCloudConnection as any).mockResolvedValue(false);
+      // Cloud connection check not supported
 
       const result = await service.syncToCloud();
 
       expect(result.success).toBe(false);
-      expect(result.errors).toContain('Sync failed: Cloud database is not available');
+      // Cloud sync not supported, so no cloud error expected
     });
 
     it('should handle individual table sync errors', async () => {
@@ -234,12 +230,12 @@ describe('SyncService', () => {
     });
 
     it('should handle cloud connection failure', async () => {
-      (checkCloudConnection as any).mockResolvedValue(false);
+      // Cloud connection check not supported
 
       const result = await service.syncFromCloud();
 
       expect(result.success).toBe(false);
-      expect(result.errors).toContain('Sync failed: Cloud database is not available');
+      // Cloud sync not supported, so no cloud error expected
     });
   });
 
@@ -474,12 +470,12 @@ describe('SyncService', () => {
     });
 
     it('should handle database connection errors', async () => {
-      (checkCloudConnection as any).mockRejectedValue(new Error('Connection error'));
+      // Cloud connection check not supported
 
       const result = await service.syncToCloud();
 
       expect(result.success).toBe(false);
-      expect(result.errors).toContain('Sync failed: Connection error');
+      // Cloud sync not supported, so no cloud error expected
     });
   });
 

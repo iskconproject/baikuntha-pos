@@ -45,7 +45,7 @@ describe('ReceiptGenerator', () => {
   describe('generateThermalReceipt', () => {
     it('should generate thermal receipt text with all required sections', () => {
       const receipt = ReceiptGenerator.generateThermalReceipt(mockReceiptData);
-      
+
       expect(receipt).toContain('ISKCON Asansol Temple');
       expect(receipt).toContain('Gift & Book Store');
       expect(receipt).toContain('+91-1234-567890');
@@ -84,7 +84,7 @@ describe('ReceiptGenerator', () => {
       };
 
       const receipt = ReceiptGenerator.generateThermalReceipt(dataWithoutVariants);
-      
+
       expect(receipt).toContain('Simple Item');
       expect(receipt).not.toContain(' - '); // No variant separator
     });
@@ -99,7 +99,7 @@ describe('ReceiptGenerator', () => {
       };
 
       const receipt = ReceiptGenerator.generateThermalReceipt(upiData);
-      
+
       expect(receipt).toContain('UPI');
       expect(receipt).toContain('UPI123456789');
       expect(receipt).not.toContain('Cash Received');
@@ -115,7 +115,7 @@ describe('ReceiptGenerator', () => {
       };
 
       const receipt = ReceiptGenerator.generateThermalReceipt(dataWithTaxDiscount);
-      
+
       expect(receipt).toContain('Tax:');
       expect(receipt).toContain('₹65.00');
       expect(receipt).toContain('Discount:');
@@ -128,18 +128,18 @@ describe('ReceiptGenerator', () => {
         id: 'custom',
         name: 'Custom Template',
         width: 24,
-        header: {},
-        body: {},
-        footer: {},
+        header: '',
+        body: '',
+        footer: '',
         isDefault: false
       };
 
       const receipt = ReceiptGenerator.generateThermalReceipt(mockReceiptData, customTemplate);
-      
+
       // Check that separators use the custom width
       const lines = receipt.split('\n');
       const separatorLines = lines.filter(line => line.match(/^-+$/));
-      
+
       separatorLines.forEach(line => {
         expect(line.length).toBe(24);
       });
@@ -149,7 +149,7 @@ describe('ReceiptGenerator', () => {
   describe('generateHTMLReceipt', () => {
     it('should generate valid HTML receipt', () => {
       const html = ReceiptGenerator.generateHTMLReceipt(mockReceiptData);
-      
+
       expect(html).toContain('<!DOCTYPE html>');
       expect(html).toContain('<html>');
       expect(html).toContain('</html>');
@@ -161,7 +161,7 @@ describe('ReceiptGenerator', () => {
 
     it('should include all transaction details in HTML', () => {
       const html = ReceiptGenerator.generateHTMLReceipt(mockReceiptData);
-      
+
       expect(html).toContain('Receipt #:');
       expect(html).toContain('R123456');
       expect(html).toContain('Cashier:');
@@ -175,8 +175,8 @@ describe('ReceiptGenerator', () => {
     it('should handle optional fields gracefully', () => {
       const minimalData = {
         ...mockReceiptData,
-        storePhone: undefined,
-        storeEmail: undefined,
+        storePhone: '',
+        storeEmail: '',
         tax: 0,
         discount: 0,
         paymentReference: undefined,
@@ -185,7 +185,7 @@ describe('ReceiptGenerator', () => {
       };
 
       const html = ReceiptGenerator.generateHTMLReceipt(minimalData);
-      
+
       expect(html).not.toContain('Tel:');
       expect(html).not.toContain('Email:');
       expect(html).not.toContain('Tax:');
@@ -197,7 +197,7 @@ describe('ReceiptGenerator', () => {
 
     it('should format dates correctly', () => {
       const html = ReceiptGenerator.generateHTMLReceipt(mockReceiptData);
-      
+
       // Should contain formatted date (exact format may vary by locale)
       expect(html).toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/); // Date pattern
       expect(html).toMatch(/\d{1,2}:\d{2}/); // Time pattern
@@ -219,7 +219,7 @@ describe('ReceiptGenerator', () => {
       };
 
       const receipt = ReceiptGenerator.generateThermalReceipt(longNameData);
-      
+
       expect(receipt).toContain('This is a very long product name');
       // Should not have lines longer than the width
       const lines = receipt.split('\n');
@@ -244,7 +244,7 @@ describe('ReceiptGenerator', () => {
       };
 
       const receipt = ReceiptGenerator.generateThermalReceipt(zeroData);
-      
+
       expect(receipt).toContain('Free Item');
       expect(receipt).toContain('0 x ₹0.00');
       expect(receipt).toContain('₹0.00');
@@ -253,11 +253,11 @@ describe('ReceiptGenerator', () => {
     it('should handle empty footer', () => {
       const noFooterData = {
         ...mockReceiptData,
-        footer: undefined
+        footer: ''
       };
 
       const receipt = ReceiptGenerator.generateThermalReceipt(noFooterData);
-      
+
       expect(receipt).toContain('Thank you for your visit!');
       expect(receipt).toContain('Hare Krishna!');
     });

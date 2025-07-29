@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     };
 
-    const transaction = await transactionService.createTransaction(transactionData, body.items);
+    const transaction = await transactionService.createTransaction({ ...transactionData, items: body.items });
     
     return NextResponse.json({
       success: true,
