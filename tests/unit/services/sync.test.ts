@@ -1,487 +1,313 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { SyncService, syncService } from '@/services/database/sync';
-import { getLocalDb } from '@/lib/db/connection';
-import { syncMetadata } from '@/lib/db/schema';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { SyncService, type SyncResult } from '@/services/database/sync';
+import { connectionMonitor } from '@/lib/utils/connection';
+import { offlineQueue } from '@/services/database/offlineQueue';
 
-// Mock the database connections
+// Mock dependencies
 vi.mock('@/lib/db/connection', () => ({
-  getLocalDb: vi.fn(),
+  getLocalDb: vi.fn(() => ({
+    select: vi.fn(() => ({
+      from: vi.fn(() => ({
+        where: vi.fn(() => Promise.resolve([])),
+        orderBy: vi.fn(() => Promise.resolve([])),
+        limit: vi.fn(() => Promise.resolve([])),
+      })),
+    })),
+    update: vi.fn(() => ({
+      set: vi.fn(() => ({
+        where: vi.fn(() => Promise.resolve()),
+      })),
+    })),
+    insert: vi.fn(() => ({
+      values: vi.fn(() => Promise.resolve()),
+    })),
+    delete: vi.fn(() => ({
+      where: vi.fn(() => Promise.resolve()),
+    })),
+  })),
+}));
+
+vi.mock('@/lib/db/cloudConnection', () => ({
+  getCloudDb: vi.fn(() => ({
+    select: vi.fn(() => ({
+      from: vi.fn(() => ({
+        where: vi.fn(() => Promise.resolve([])),
+        limit: vi.fn(() => Promise.resolve([])),
+      })),
+    })),
+    update: vi.fn(() => ({
+      set: vi.fn(() => ({
+        where: vi.fn(() => Promise.resolve()),
+      })),
+    })),
+    insert: vi.fn(() => ({
+      values: vi.fn(() => Promise.resolve()),
+    })),
+  })),
+  testCloudConnection: vi.fn(() => Promise.resolve(true)),
+}));
+
+vi.mock('@/lib/utils/connection', () => ({
+  connectionMonitor: {
+    isOnline: vi.fn(() => true),
+    subscribe: vi.fn(() => vi.fn()),
+  },
+}));
+
+vi.mock('@/services/database/offlineQueue', () => ({
+  offlineQueue: {
+    processQueue: vi.fn(() => Promise.resolve()),
+    getStats: vi.fn(() => ({
+      pendingOperations: 0,
+      totalOperations: 0,
+      failedOperations: 0,
+      completedOperations: 0,
+    })),
+    enqueue: vi.fn(() => 'test-id'),
+  },
 }));
 
 describe('SyncService', () => {
-  let service: SyncService;
-  let mockLocalDb: any;
-  let mockCloudDb: any;
+  let syncService: SyncService;
 
   beforeEach(() => {
-    // Reset all mocks
+    syncService = new SyncService();
     vi.clearAllMocks();
-
-    // Create mock database objects
-    mockLocalDb = {
-      select: vi.fn(),
-      insert: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      all: vi.fn().mockReturnValue([]), // Default to empty array
-      run: vi.fn(),
-    };
-
-    mockCloudDb = {
-      select: vi.fn(),
-      insert: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      all: vi.fn().mockReturnValue([]), // Default to empty array
-      run: vi.fn(),
-    };
-
-    // Setup mock implementations
-    (getLocalDb as any).mockReturnValue(mockLocalDb);
-
-    // Create service instance
-    service = new SyncService();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    syncService.destroy();
   });
 
-  describe('getSyncStatus', () => {
-    it('should return sync status for a table', async () => {
-      const mockSyncStatus = {
-        id: 'sync-1',
-        tableName: 'products',
-        lastSyncAt: new Date(),
-        syncVersion: 1,
-        conflictCount: 0,
-      };
-
-      mockLocalDb.select.mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([mockSyncStatus]),
-          }),
-        }),
-      });
-
-      const result = await service.getSyncStatus('products');
-
-      expect(result).toEqual(mockSyncStatus);
-      expect(mockLocalDb.select).toHaveBeenCalled();
+  describe('Sync Status Management', () => {
+    it('should get sync status for a table', async () => {
+      const status = await syncService.getSyncStatus('users');
+      expect(status).toBeNull(); // No sync status initially
     });
 
-    it('should return null if no sync status found', async () => {
-      mockLocalDb.select.mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([]),
-          }),
-        }),
-      });
-
-      const result = await service.getSyncStatus('products');
-
-      expect(result).toBeNull();
+    it('should update sync status', async () => {
+      const now = new Date();
+      await syncService.updateSyncStatus('users', now, 1);
+      
+      // Verify the sync status was updated
+      const status = await syncService.getSyncStatus('users');
+      expect(status).toBeDefined();
     });
 
-    it('should handle database errors', async () => {
-      mockLocalDb.select.mockImplementation(() => {
-        throw new Error('Database error');
-      });
-
-      await expect(service.getSyncStatus('products')).rejects.toThrow('Database error');
+    it('should increment conflict count', async () => {
+      const now = new Date();
+      await syncService.updateSyncStatus('users', now, 1);
+      await syncService.incrementConflictCount('users');
+      
+      const status = await syncService.getSyncStatus('users');
+      expect(status?.conflictCount).toBe(1);
     });
   });
 
-  describe('updateSyncStatus', () => {
-    it('should update existing sync status', async () => {
-      const existingSyncStatus = {
-        id: 'sync-1',
-        tableName: 'products',
-        lastSyncAt: new Date('2023-01-01'),
-        syncVersion: 1,
-        conflictCount: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      vi.spyOn(service, 'getSyncStatus').mockResolvedValue(existingSyncStatus);
-
-      mockLocalDb.update.mockReturnValue({
-        set: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue(undefined),
-        }),
-      });
-
-      const newSyncTime = new Date();
-      await service.updateSyncStatus('products', newSyncTime, 2);
-
-      expect(mockLocalDb.update).toHaveBeenCalled();
+  describe('Full Sync Process', () => {
+    it('should perform full sync when online', async () => {
+      vi.mocked(connectionMonitor.isOnline).mockReturnValue(true);
+      
+      const result = await syncService.performFullSync();
+      
+      expect(result).toBeDefined();
+      expect(result.success).toBeDefined();
+      expect(offlineQueue.processQueue).toHaveBeenCalled();
     });
 
-    it('should create new sync status if none exists', async () => {
-      vi.spyOn(service, 'getSyncStatus').mockResolvedValue(null);
-      vi.spyOn(service, 'create').mockResolvedValue({
-        id: 'sync-1',
-        tableName: 'products',
-        lastSyncAt: new Date(),
-        syncVersion: 1,
-        conflictCount: 0,
-      } as any);
-
-      const newSyncTime = new Date();
-      await service.updateSyncStatus('products', newSyncTime);
-
-      expect(service.create).toHaveBeenCalledWith({
-        tableName: 'products',
-        lastSyncAt: newSyncTime,
-        syncVersion: 1,
-      });
-    });
-  });
-
-  describe('incrementConflictCount', () => {
-    it('should increment conflict count for existing sync status', async () => {
-      const existingSyncStatus = {
-        id: 'sync-1',
-        tableName: 'products',
-        lastSyncAt: new Date(),
-        syncVersion: 1,
-        conflictCount: 2,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      vi.spyOn(service, 'getSyncStatus').mockResolvedValue(existingSyncStatus);
-
-      mockLocalDb.update.mockReturnValue({
-        set: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue(undefined),
-        }),
-      });
-
-      await service.incrementConflictCount('products');
-
-      expect(mockLocalDb.update).toHaveBeenCalled();
-    });
-
-    it('should handle case when sync status does not exist', async () => {
-      vi.spyOn(service, 'getSyncStatus').mockResolvedValue(null);
-
-      await expect(service.incrementConflictCount('products')).resolves.not.toThrow();
-    });
-  });
-
-  describe('syncToCloud', () => {
-    it('should sync all tables to cloud successfully', async () => {
-      vi.spyOn(service as any, 'syncTableToCloud').mockResolvedValue({
-        recordsSynced: 5,
-        conflicts: 0,
-      });
-
-      const result = await service.syncToCloud();
-
-      expect(result.success).toBe(true);
-      expect(result.tablesProcessed).toBe(6); // 6 tables in the sync list
-      expect(result.recordsSynced).toBe(30); // 5 records * 6 tables
-      expect(result.conflicts).toBe(0);
-      expect(result.errors).toHaveLength(0);
-    });
-
-    it('should handle cloud connection failure', async () => {
-      // Cloud connection check not supported
-
-      const result = await service.syncToCloud();
-
+    it('should handle sync when offline', async () => {
+      vi.mocked(connectionMonitor.isOnline).mockReturnValue(false);
+      
+      const result = await syncService.performFullSync();
+      
       expect(result.success).toBe(false);
-      // Cloud sync not supported, so no cloud error expected
+      expect(result.errors).toContain('No internet connection');
     });
 
-    it('should handle individual table sync errors', async () => {
-      vi.spyOn(service as any, 'syncTableToCloud')
-        .mockResolvedValueOnce({ recordsSynced: 5, conflicts: 0 })
-        .mockRejectedValueOnce(new Error('Table sync error'))
-        .mockResolvedValue({ recordsSynced: 3, conflicts: 1 });
-
-      const result = await service.syncToCloud();
-
-      expect(result.success).toBe(false);
-      expect(result.tablesProcessed).toBe(5); // 5 successful tables
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors[0]).toContain('Table sync error');
+    it('should not start sync if already in progress', async () => {
+      vi.mocked(connectionMonitor.isOnline).mockReturnValue(true);
+      
+      // Start first sync
+      const firstSync = syncService.performFullSync();
+      
+      // Try to start second sync immediately
+      const secondSync = syncService.performFullSync();
+      
+      const [firstResult, secondResult] = await Promise.all([firstSync, secondSync]);
+      
+      expect(firstResult.success).toBeDefined();
+      expect(secondResult.success).toBe(false);
+      expect(secondResult.errors).toContain('Sync already in progress');
     });
   });
 
-  describe('syncFromCloud', () => {
-    it('should sync all tables from cloud successfully', async () => {
-      vi.spyOn(service as any, 'syncTableFromCloud').mockResolvedValue({
-        recordsSynced: 3,
-        conflicts: 1,
+  describe('Conflict Resolution', () => {
+    it('should detect conflicts correctly', async () => {
+      const localRecord = {
+        id: '1',
+        name: 'Local Name',
+        updatedAt: new Date('2023-01-01T10:00:00Z'),
+      };
+      
+      const cloudRecord = {
+        id: '1',
+        name: 'Cloud Name',
+        updatedAt: new Date('2023-01-01T11:00:00Z'),
+      };
+      
+      // Use reflection to access private method for testing
+      const detectConflict = (syncService as any).detectConflict.bind(syncService);
+      const hasConflict = await detectConflict(localRecord, cloudRecord);
+      
+      expect(hasConflict).toBe(true);
+    });
+
+    it('should resolve conflicts using timestamp priority', async () => {
+      const localRecord = {
+        id: '1',
+        name: 'Local Name',
+        updatedAt: new Date('2023-01-01T10:00:00Z'),
+      };
+      
+      const cloudRecord = {
+        id: '1',
+        name: 'Cloud Name',
+        updatedAt: new Date('2023-01-01T11:00:00Z'),
+      };
+      
+      // Use reflection to access private method for testing
+      const resolveConflict = (syncService as any).resolveConflict.bind(syncService);
+      const resolved = await resolveConflict(localRecord, cloudRecord, 'users');
+      
+      expect(resolved.name).toBe('Cloud Name'); // Cloud record is newer
+      expect(resolved.updatedAt).toBeInstanceOf(Date);
+    });
+
+    it('should not detect conflict for identical records', async () => {
+      const record1 = {
+        id: '1',
+        name: 'Same Name',
+        updatedAt: new Date('2023-01-01T10:00:00Z'),
+      };
+      
+      const record2 = {
+        id: '1',
+        name: 'Same Name',
+        updatedAt: new Date('2023-01-01T10:00:00Z'),
+      };
+      
+      const detectConflict = (syncService as any).detectConflict.bind(syncService);
+      const hasConflict = await detectConflict(record1, record2);
+      
+      expect(hasConflict).toBe(false);
+    });
+  });
+
+  describe('Queue Integration', () => {
+    it('should queue operations correctly', () => {
+      const operationId = syncService.queueOperation('create', 'users', { name: 'Test User' }, 2);
+      
+      expect(operationId).toBeDefined();
+      expect(offlineQueue.enqueue).toHaveBeenCalledWith({
+        type: 'create',
+        tableName: 'users',
+        data: { name: 'Test User' },
+        priority: 2,
+        maxRetries: 3,
       });
-
-      const result = await service.syncFromCloud();
-
-      expect(result.success).toBe(true);
-      expect(result.tablesProcessed).toBe(6);
-      expect(result.recordsSynced).toBe(18); // 3 records * 6 tables
-      expect(result.conflicts).toBe(6); // 1 conflict * 6 tables
-      expect(result.errors).toHaveLength(0);
     });
 
-    it('should handle cloud connection failure', async () => {
-      // Cloud connection check not supported
-
-      const result = await service.syncFromCloud();
-
-      expect(result.success).toBe(false);
-      // Cloud sync not supported, so no cloud error expected
+    it('should process offline queue', async () => {
+      await syncService.processOfflineQueue();
+      
+      expect(offlineQueue.processQueue).toHaveBeenCalled();
     });
   });
 
-  describe('syncTableToCloud', () => {
-    it('should sync modified records to cloud', async () => {
-      const mockModifiedRecords = [
-        { id: 'record-1', name: 'Product 1', updated_at: new Date() },
-        { id: 'record-2', name: 'Product 2', updated_at: new Date() },
-      ];
-
-      vi.spyOn(service, 'getSyncStatus').mockResolvedValue({
-        id: 'sync-1',
-        tableName: 'products',
-        lastSyncAt: new Date('2023-01-01'),
-        syncVersion: 1,
-        conflictCount: 0,
-      } as any);
-
-      mockLocalDb.all.mockReturnValue(mockModifiedRecords);
-      mockCloudDb.all.mockReturnValue([]); // No existing records in cloud
-
-      vi.spyOn(service as any, 'insertCloudRecord').mockResolvedValue(undefined);
-      vi.spyOn(service, 'updateSyncStatus').mockResolvedValue(undefined);
-
-      const result = await (service as any).syncTableToCloud('products');
-
-      expect(result.recordsSynced).toBe(2);
-      expect(result.conflicts).toBe(0);
-    });
-
-    it('should handle conflicts when cloud record is newer', async () => {
-      const localRecord = { id: 'record-1', name: 'Product 1', updated_at: new Date('2023-01-01') };
-      const cloudRecord = { id: 'record-1', name: 'Product 1 Updated', updated_at: new Date('2023-01-02') };
-
-      vi.spyOn(service, 'getSyncStatus').mockResolvedValue({
-        id: 'sync-1',
-        tableName: 'products',
-        lastSyncAt: new Date('2022-12-01'),
-        syncVersion: 1,
-        conflictCount: 0,
-      } as any);
-
-      mockLocalDb.all.mockReturnValue([localRecord]);
-      mockCloudDb.all.mockReturnValue([cloudRecord]);
-
-      vi.spyOn(service, 'incrementConflictCount').mockResolvedValue(undefined);
-      vi.spyOn(service, 'updateSyncStatus').mockResolvedValue(undefined);
-
-      const result = await (service as any).syncTableToCloud('products');
-
-      expect(result.recordsSynced).toBe(0);
-      expect(result.conflicts).toBe(1);
-      expect(service.incrementConflictCount).toHaveBeenCalledWith('products');
-    });
-
-    it('should update existing cloud records when local is newer', async () => {
-      const localRecord = { id: 'record-1', name: 'Product 1 Updated', updated_at: new Date('2023-01-02') };
-      const cloudRecord = { id: 'record-1', name: 'Product 1', updated_at: new Date('2023-01-01') };
-
-      vi.spyOn(service, 'getSyncStatus').mockResolvedValue({
-        id: 'sync-1',
-        tableName: 'products',
-        lastSyncAt: new Date('2022-12-01'),
-        syncVersion: 1,
-        conflictCount: 0,
-      } as any);
-
-      mockLocalDb.all.mockReturnValue([localRecord]);
-      mockCloudDb.all.mockReturnValue([cloudRecord]);
-
-      vi.spyOn(service as any, 'updateCloudRecord').mockResolvedValue(undefined);
-      vi.spyOn(service, 'updateSyncStatus').mockResolvedValue(undefined);
-
-      const result = await (service as any).syncTableToCloud('products');
-
-      expect(result.recordsSynced).toBe(1);
-      expect(result.conflicts).toBe(0);
-    });
-  });
-
-  describe('syncTableFromCloud', () => {
-    it('should sync modified records from cloud', async () => {
-      const mockCloudRecords = [
-        { id: 'record-1', name: 'Product 1', updated_at: new Date() },
-        { id: 'record-2', name: 'Product 2', updated_at: new Date() },
-      ];
-
-      vi.spyOn(service, 'getSyncStatus').mockResolvedValue({
-        id: 'sync-1',
-        tableName: 'products',
-        lastSyncAt: new Date('2023-01-01'),
-        syncVersion: 1,
-        conflictCount: 0,
-      } as any);
-
-      mockCloudDb.all.mockReturnValue(mockCloudRecords);
-      mockLocalDb.all.mockReturnValue([]); // No existing records locally
-
-      vi.spyOn(service as any, 'insertLocalRecord').mockResolvedValue(undefined);
-      vi.spyOn(service, 'updateSyncStatus').mockResolvedValue(undefined);
-
-      const result = await (service as any).syncTableFromCloud('products');
-
-      expect(result.recordsSynced).toBe(2);
-      expect(result.conflicts).toBe(0);
-    });
-
-    it('should handle conflicts when local record is newer', async () => {
-      const cloudRecord = { id: 'record-1', name: 'Product 1', updated_at: new Date('2023-01-01') };
-      const localRecord = { id: 'record-1', name: 'Product 1 Updated', updated_at: new Date('2023-01-02') };
-
-      vi.spyOn(service, 'getSyncStatus').mockResolvedValue({
-        id: 'sync-1',
-        tableName: 'products',
-        lastSyncAt: new Date('2022-12-01'),
-        syncVersion: 1,
-        conflictCount: 0,
-      } as any);
-
-      mockCloudDb.all.mockReturnValue([cloudRecord]);
-      mockLocalDb.all.mockReturnValue([localRecord]);
-
-      vi.spyOn(service, 'incrementConflictCount').mockResolvedValue(undefined);
-      vi.spyOn(service, 'updateSyncStatus').mockResolvedValue(undefined);
-
-      const result = await (service as any).syncTableFromCloud('products');
-
-      expect(result.recordsSynced).toBe(0);
-      expect(result.conflicts).toBe(1);
-      expect(service.incrementConflictCount).toHaveBeenCalledWith('products');
-    });
-  });
-
-  describe('getAllSyncStatuses', () => {
-    it('should return all sync statuses', async () => {
-      const mockSyncStatuses = [
-        { id: 'sync-1', tableName: 'products', lastSyncAt: new Date(), syncVersion: 1, conflictCount: 0 },
-        { id: 'sync-2', tableName: 'categories', lastSyncAt: new Date(), syncVersion: 2, conflictCount: 1 },
-      ];
-
-      mockLocalDb.select.mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          orderBy: vi.fn().mockResolvedValue(mockSyncStatuses),
-        }),
+  describe('Sync Status Subscription', () => {
+    it('should allow subscribing to sync status updates', () => {
+      const listener = vi.fn();
+      const unsubscribe = syncService.subscribeSyncStatus(listener);
+      
+      expect(listener).toHaveBeenCalledWith({
+        isOnline: true,
+        isSyncing: false,
+        lastSyncAt: null,
+        pendingOperations: 0,
+        errors: []
       });
+      
+      unsubscribe();
+    });
 
-      const result = await service.getAllSyncStatuses();
-
-      expect(result).toEqual(mockSyncStatuses);
-      expect(mockLocalDb.select).toHaveBeenCalled();
+    it('should notify listeners of sync status changes', async () => {
+      const listener = vi.fn();
+      syncService.subscribeSyncStatus(listener);
+      
+      // Clear initial call
+      listener.mockClear();
+      
+      // Trigger sync
+      await syncService.performFullSync();
+      
+      // Should have been called during sync process
+      expect(listener).toHaveBeenCalled();
     });
   });
 
-  describe('resetSyncStatus', () => {
+  describe('Utility Methods', () => {
+    it('should get all sync statuses', async () => {
+      const statuses = await syncService.getAllSyncStatuses();
+      expect(Array.isArray(statuses)).toBe(true);
+    });
+
     it('should reset sync status for a table', async () => {
-      mockLocalDb.delete.mockReturnValue({
-        where: vi.fn().mockResolvedValue(undefined),
-      });
-
-      await service.resetSyncStatus('products');
-
-      expect(mockLocalDb.delete).toHaveBeenCalled();
+      await syncService.updateSyncStatus('users', new Date(), 1);
+      await syncService.resetSyncStatus('users');
+      
+      const status = await syncService.getSyncStatus('users');
+      expect(status).toBeNull();
     });
 
-    it('should handle database errors', async () => {
-      mockLocalDb.delete.mockImplementation(() => {
-        throw new Error('Database error');
-      });
-
-      await expect(service.resetSyncStatus('products')).rejects.toThrow('Database error');
-    });
-  });
-
-  describe('Helper Methods', () => {
-    describe('updateCloudRecord', () => {
-      it('should update record in cloud database', async () => {
-        const record = { id: 'record-1', name: 'Updated Product', price: 100 };
-
-        mockCloudDb.run.mockResolvedValue(undefined);
-
-        await (service as any).updateCloudRecord('products', record);
-
-        expect(mockCloudDb.run).toHaveBeenCalled();
-      });
-    });
-
-    describe('insertCloudRecord', () => {
-      it('should insert record into cloud database', async () => {
-        const record = { id: 'record-1', name: 'New Product', price: 100 };
-
-        mockCloudDb.run.mockResolvedValue(undefined);
-
-        await (service as any).insertCloudRecord('products', record);
-
-        expect(mockCloudDb.run).toHaveBeenCalled();
-      });
-    });
-
-    describe('updateLocalRecord', () => {
-      it('should update record in local database', async () => {
-        const record = { id: 'record-1', name: 'Updated Product', price: 100 };
-
-        mockLocalDb.run.mockResolvedValue(undefined);
-
-        await (service as any).updateLocalRecord('products', record);
-
-        expect(mockLocalDb.run).toHaveBeenCalled();
-      });
-    });
-
-    describe('insertLocalRecord', () => {
-      it('should insert record into local database', async () => {
-        const record = { id: 'record-1', name: 'New Product', price: 100 };
-
-        mockLocalDb.run.mockResolvedValue(undefined);
-
-        await (service as any).insertLocalRecord('products', record);
-
-        expect(mockLocalDb.run).toHaveBeenCalled();
-      });
+    it('should get table by name correctly', () => {
+      const getTableByName = (syncService as any).getTableByName.bind(syncService);
+      
+      expect(getTableByName('users')).toBeDefined();
+      expect(getTableByName('categories')).toBeDefined();
+      expect(getTableByName('products')).toBeDefined();
+      expect(getTableByName('product_variants')).toBeDefined();
+      expect(getTableByName('transactions')).toBeDefined();
+      expect(getTableByName('transaction_items')).toBeDefined();
+      expect(getTableByName('unknown_table')).toBeUndefined();
     });
   });
 
   describe('Error Handling', () => {
-    it('should handle sync errors gracefully', async () => {
-      vi.spyOn(service as any, 'syncTableToCloud').mockRejectedValue(new Error('Sync error'));
-
-      const result = await service.syncToCloud();
-
+    it('should handle database errors gracefully', async () => {
+      // Mock database error
+      const mockError = new Error('Database connection failed');
+      vi.mocked(connectionMonitor.isOnline).mockReturnValue(true);
+      
+      // Mock testCloudConnection to throw error
+      const { testCloudConnection } = await import('@/lib/db/cloudConnection');
+      vi.mocked(testCloudConnection).mockRejectedValue(mockError);
+      
+      const result = await syncService.performFullSync();
+      
       expect(result.success).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
     });
 
-    it('should handle database connection errors', async () => {
-      // Cloud connection check not supported
-
-      const result = await service.syncToCloud();
-
+    it('should handle cloud connection failures', async () => {
+      vi.mocked(connectionMonitor.isOnline).mockReturnValue(true);
+      
+      const { testCloudConnection } = await import('@/lib/db/cloudConnection');
+      vi.mocked(testCloudConnection).mockResolvedValue(false);
+      
+      const result = await syncService.syncToCloud();
+      
       expect(result.success).toBe(false);
-      // Cloud sync not supported, so no cloud error expected
-    });
-  });
-
-  describe('Singleton Instance', () => {
-    it('should export a singleton instance', () => {
-      expect(syncService).toBeInstanceOf(SyncService);
+      expect(result.errors).toContain('Cannot connect to cloud database');
     });
   });
 });

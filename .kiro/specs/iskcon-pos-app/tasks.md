@@ -82,7 +82,7 @@
   - Write Vitest unit tests for receipt generation and printing logic
   - _Requirements: 2.5, 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 9. Build offline-first sync system with conflict resolution
+- [x] 9. Build offline-first sync system with conflict resolution
 
   - Implement connection monitoring and offline detection
   - Create offline operation queue with automatic retry logic
