@@ -43,7 +43,7 @@ describe('Product API Integration Tests', () => {
             isActive: true,
             variants: [],
             keywords: [],
-            metadata: {},
+            metadata: { customAttributes: {} },
           },
         ],
         totalCount: 1,

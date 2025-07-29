@@ -498,10 +498,11 @@ export class ProductService extends BaseService<Product, NewProduct> {
   }
 
   async createVariant(
-    variantData: Omit<NewProductVariant, "id"> & { 
+    variantData: {
       productId: string;
       name: string;
       price: number;
+      stockQuantity?: number;
       attributes?: Record<string, string>;
       keywords?: string[];
     }
@@ -727,7 +728,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
       query = query.orderBy(sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn)) as any;
 
       // Get total count
-      const countQuery = this.localDb
+      let countQuery = this.localDb
         .select({ count: sql<number>`count(*)` })
         .from(products);
       

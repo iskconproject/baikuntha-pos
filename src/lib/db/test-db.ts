@@ -42,11 +42,17 @@ async function testDatabaseOperations() {
     
     // Test search operations
     console.log('\n🔍 Testing search operations...');
-    const searchResults = await productService.searchProducts('bhagavad');
-    console.log(`✅ Search for 'bhagavad' returned ${searchResults.length} results`);
+    const searchResults = await productService.searchProducts({
+      query: 'bhagavad',
+      filters: {},
+      sortBy: 'relevance',
+      limit: 20,
+      offset: 0
+    });
+    console.log(`✅ Search for 'bhagavad' returned ${searchResults.products.length} results`);
     
     // Record a search for analytics
-    await searchService.recordSearch('bhagavad gita', searchResults.length, adminUser?.id);
+    await searchService.recordSearch('bhagavad gita', searchResults.products.length, adminUser?.id);
     console.log('✅ Search analytics recorded');
     
     // Test full-text search

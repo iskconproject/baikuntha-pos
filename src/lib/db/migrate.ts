@@ -23,6 +23,14 @@ async function setupFTS5Table() {
   const db = getLocalDb();
   
   try {
+    // Drop existing triggers if they exist
+    await db.run(`DROP TRIGGER IF EXISTS products_fts_insert`);
+    await db.run(`DROP TRIGGER IF EXISTS products_fts_update`);
+    await db.run(`DROP TRIGGER IF EXISTS products_fts_delete`);
+    await db.run(`DROP TRIGGER IF EXISTS variants_fts_insert`);
+    await db.run(`DROP TRIGGER IF EXISTS variants_fts_update`);
+    await db.run(`DROP TRIGGER IF EXISTS variants_fts_delete`);
+    
     // Drop existing FTS table if it exists
     await db.run(`DROP TABLE IF EXISTS product_search_fts`);
     

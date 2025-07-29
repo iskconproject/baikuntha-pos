@@ -39,8 +39,6 @@ export async function POST(request: NextRequest) {
     const variant = await productService.createVariant({
       ...validatedData,
       productId,
-      keywords: JSON.stringify(validatedData.keywords || []),
-      attributes: JSON.stringify(validatedData.attributes || {}),
     });
     
     // Parse JSON fields for response

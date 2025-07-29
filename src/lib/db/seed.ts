@@ -1,8 +1,6 @@
-import {
-  userService,
-  categoryService,
-  productService,
-} from "@/services/database";
+import { userService } from "@/services/database/users";
+import { categoryService } from "@/services/database/categories";
+import { productService } from "@/services/database/products";
 import { runMigrations } from "./migrate";
 
 async function seedDatabase() {
@@ -57,6 +55,7 @@ async function seedDatabase() {
         "pustaka",
         "kitab",
       ],
+      isActive: true,
     });
 
     const accessoriesCategory = await categoryService.createCategory({
@@ -70,6 +69,7 @@ async function seedDatabase() {
         "upkaran",
         "samagri",
       ],
+      isActive: true,
     });
 
     const giftsCategory = await categoryService.createCategory({
@@ -82,6 +82,7 @@ async function seedDatabase() {
         "uphar",
         "tohfa",
       ],
+      isActive: true,
     });
 
     // Create subcategories for books
@@ -97,6 +98,7 @@ async function seedDatabase() {
         "bhaktivedanta",
         "swami",
       ],
+      isActive: true,
     });
 
     const bhagavadGitaBooks = await categoryService.createCategory({
@@ -110,6 +112,7 @@ async function seedDatabase() {
         "arjuna",
         "philosophy",
       ],
+      isActive: true,
     });
 
     const srimadBhagavatamBooks = await categoryService.createCategory({
@@ -123,6 +126,7 @@ async function seedDatabase() {
         "krishna",
         "stories",
       ],
+      isActive: true,
     });
 
     // Create subcategories for accessories
@@ -138,6 +142,7 @@ async function seedDatabase() {
         "bag",
         "tulsi",
       ],
+      isActive: true,
     });
 
     const deityAccessories = await categoryService.createCategory({
@@ -152,6 +157,7 @@ async function seedDatabase() {
         "murti",
         "archana",
       ],
+      isActive: true,
     });
 
     console.log("✅ Created categories and subcategories");
@@ -300,8 +306,8 @@ async function seedDatabase() {
       name: "Regular Size",
       price: 150.0,
       stockQuantity: 75,
-      attributes: JSON.stringify({ size: "regular", beadSize: "8mm" }),
-      keywords: JSON.stringify(["regular", "standard", "8mm"]),
+      attributes: { size: "regular", beadSize: "8mm" },
+      keywords: ["regular", "standard", "8mm"],
     });
 
     await productService.createVariant({
@@ -309,8 +315,8 @@ async function seedDatabase() {
       name: "Large Size",
       price: 200.0,
       stockQuantity: 25,
-      attributes: JSON.stringify({ size: "large", beadSize: "10mm" }),
-      keywords: JSON.stringify(["large", "big", "10mm"]),
+      attributes: { size: "large", beadSize: "10mm" },
+      keywords: ["large", "big", "10mm"],
     });
 
     // Japa Bag
@@ -320,19 +326,22 @@ async function seedDatabase() {
         "Cotton japa bag with drawstring for carrying and protecting your japa mala",
       basePrice: 50.0,
       categoryId: japaAccessories.id,
-      keywords: JSON.stringify([
+      keywords: [
         "japa",
         "bag",
         "cotton",
         "drawstring",
         "protection",
         "carry",
-      ]),
-      metadata: JSON.stringify({
+      ],
+      metadata: {
         material: "Cotton",
-        closure: "Drawstring",
-        washable: true,
-      }),
+        customAttributes: {
+          closure: "Drawstring",
+          washable: "true",
+        },
+      },
+      isActive: true,
     });
 
     await productService.createVariant({
@@ -340,8 +349,8 @@ async function seedDatabase() {
       name: "Saffron Color",
       price: 50.0,
       stockQuantity: 40,
-      attributes: JSON.stringify({ color: "saffron", material: "cotton" }),
-      keywords: JSON.stringify(["saffron", "orange", "traditional"]),
+      attributes: { color: "saffron", material: "cotton" },
+      keywords: ["saffron", "orange", "traditional"],
     });
 
     await productService.createVariant({
@@ -349,8 +358,8 @@ async function seedDatabase() {
       name: "White Color",
       price: 50.0,
       stockQuantity: 30,
-      attributes: JSON.stringify({ color: "white", material: "cotton" }),
-      keywords: JSON.stringify(["white", "pure", "clean"]),
+      attributes: { color: "white", material: "cotton" },
+      keywords: ["white", "pure", "clean"],
     });
 
     console.log("✅ Created sample products with variants");
