@@ -393,13 +393,10 @@ export class ProductService extends BaseService<Product, NewProduct> {
     try {
       // Validate category exists if provided
       if (productData.categoryId) {
-        const category = await this.localDb
-          .select()
-          .from(categories)
-          .where(eq(categories.id, productData.categoryId))
-          .limit(1);
-
-        if (!category.length) {
+        // Use a separate category service instance to check category existence
+        const { categoryService } = await import('./categories');
+        const category = await categoryService.findById(productData.categoryId);
+        if (!category) {
           throw new Error("Category not found");
         }
       }
@@ -430,13 +427,9 @@ export class ProductService extends BaseService<Product, NewProduct> {
     try {
       // Validate category exists if being updated
       if (productData.categoryId) {
-        const category = await this.localDb
-          .select()
-          .from(categories)
-          .where(eq(categories.id, productData.categoryId))
-          .limit(1);
-
-        if (!category.length) {
+        const { categoryService } = await import('./categories');
+        const category = await categoryService.findById(productData.categoryId);
+        if (!category) {
           throw new Error("Category not found");
         }
       }

@@ -303,12 +303,16 @@ describe('CategoryService', () => {
             description: 'Book category',
             keywords: '["books", "literature"]',
             isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            parentId: null,
           },
           productCount: 5,
         },
       ];
 
-      const mockDb = {
+      // Create a more comprehensive mock that handles both queries
+      const mockQueryBuilder = {
         select: vi.fn().mockReturnThis(),
         from: vi.fn().mockReturnThis(),
         leftJoin: vi.fn().mockReturnThis(),
@@ -319,19 +323,29 @@ describe('CategoryService', () => {
         offset: vi.fn().mockResolvedValue(mockCategories),
       };
 
+      const mockCountQueryBuilder = {
+        select: vi.fn().mockReturnThis(),
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([{ count: 1 }]),
+      };
+
+      let queryCallCount = 0;
+      const mockDb = {
+        select: vi.fn(() => {
+          queryCallCount++;
+          if (queryCallCount === 1) {
+            // First call is for the main query
+            return mockQueryBuilder;
+          } else {
+            // Second call is for the count query
+            return mockCountQueryBuilder;
+          }
+        }),
+      };
+
       Object.defineProperty(categoryService, 'localDb', {
         value: mockDb,
         writable: true,
-      });
-
-      // Mock the count query separately
-      vi.spyOn(categoryService as any, 'localDb').mockReturnValue({
-        ...mockDb,
-        select: vi.fn(() => ({
-          from: vi.fn(() => ({
-            where: vi.fn().mockResolvedValue([{ count: 1 }])
-          }))
-        }))
       });
 
       const result = await categoryService.getCategoriesByQuery(queryInput);
@@ -353,7 +367,8 @@ describe('CategoryService', () => {
         sortOrder: 'asc',
       };
 
-      const mockDb = {
+      // Create mock query builders
+      const mockQueryBuilder = {
         select: vi.fn().mockReturnThis(),
         from: vi.fn().mockReturnThis(),
         leftJoin: vi.fn().mockReturnThis(),
@@ -364,6 +379,24 @@ describe('CategoryService', () => {
         offset: vi.fn().mockResolvedValue([]),
       };
 
+      const mockCountQueryBuilder = {
+        select: vi.fn().mockReturnThis(),
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([{ count: 0 }]),
+      };
+
+      let queryCallCount = 0;
+      const mockDb = {
+        select: vi.fn(() => {
+          queryCallCount++;
+          if (queryCallCount === 1) {
+            return mockQueryBuilder;
+          } else {
+            return mockCountQueryBuilder;
+          }
+        }),
+      };
+
       Object.defineProperty(categoryService, 'localDb', {
         value: mockDb,
         writable: true,
@@ -371,8 +404,9 @@ describe('CategoryService', () => {
 
       const result = await categoryService.getCategoriesByQuery(queryInput);
 
-      expect(mockDb.where).toHaveBeenCalled();
+      expect(mockQueryBuilder.where).toHaveBeenCalled();
       expect(result.categories).toEqual([]);
+      expect(result.totalCount).toBe(0);
     });
 
     it('should include hierarchy when requested', async () => {
@@ -392,12 +426,16 @@ describe('CategoryService', () => {
             parentId: null,
             keywords: '[]',
             isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            description: null,
           },
           productCount: 0,
         },
       ];
 
-      const mockDb = {
+      // Create mock query builders
+      const mockQueryBuilder = {
         select: vi.fn().mockReturnThis(),
         from: vi.fn().mockReturnThis(),
         leftJoin: vi.fn().mockReturnThis(),
@@ -406,6 +444,24 @@ describe('CategoryService', () => {
         orderBy: vi.fn().mockReturnThis(),
         limit: vi.fn().mockReturnThis(),
         offset: vi.fn().mockResolvedValue(mockCategories),
+      };
+
+      const mockCountQueryBuilder = {
+        select: vi.fn().mockReturnThis(),
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([{ count: 1 }]),
+      };
+
+      let queryCallCount = 0;
+      const mockDb = {
+        select: vi.fn(() => {
+          queryCallCount++;
+          if (queryCallCount === 1) {
+            return mockQueryBuilder;
+          } else {
+            return mockCountQueryBuilder;
+          }
+        }),
       };
 
       Object.defineProperty(categoryService, 'localDb', {

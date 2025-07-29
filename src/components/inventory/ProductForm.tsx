@@ -32,7 +32,6 @@ export function ProductForm({
   const {
     register,
     handleSubmit,
-    control,
     watch,
     setValue,
     reset,

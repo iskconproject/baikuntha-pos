@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { categoryFormSchema, createCategorySchema, type CategoryFormInput, type CreateCategoryInput } from '@/lib/validation/category';
+import { categoryFormSchema, type CategoryFormInput } from '@/lib/validation/category';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -46,7 +46,6 @@ export function CategoryManager({
     control,
     watch,
     reset,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(categoryFormSchema),
@@ -373,7 +372,7 @@ export function CategoryManager({
                       key={index}
                       className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800"
                     >
-                      {keywords?.[index]?.value}
+                      {keyword?.value}
                       <button
                         type="button"
                         onClick={() => removeKeyword(index)}

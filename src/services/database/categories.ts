@@ -115,6 +115,10 @@ export class CategoryService extends BaseService<Category, NewCategory> {
   
   async searchCategories(query: string): Promise<Category[]> {
     try {
+      if (!query || query.trim().length === 0) {
+        return [];
+      }
+      
       const searchTerm = `%${query.toLowerCase()}%`;
       
       return await this.localDb
@@ -327,15 +331,16 @@ export class CategoryService extends BaseService<Category, NewCategory> {
       query = query.orderBy(sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn)) as any;
 
       // Get total count
-      const countQuery = this.localDb
+      let countQuery = this.localDb
         .select({ count: sql<number>`count(*)` })
         .from(categories);
       
       if (conditions.length > 0) {
-        countQuery.where(and(...conditions));
+        countQuery = countQuery.where(and(...conditions)) as any;
       }
 
-      const [{ count: totalCount }] = await countQuery;
+      const countResult = await countQuery;
+      const totalCount = countResult[0]?.count || 0;
 
       // Get paginated results
       const results = await query.limit(limit).offset(offset);

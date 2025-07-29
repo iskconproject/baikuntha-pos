@@ -150,23 +150,36 @@ describe('ProductService', () => {
         },
       ];
 
-      // Mock database queries
-      const mockDb = {
+      // Create mock query builders
+      const mockMainQueryBuilder = {
         select: vi.fn().mockReturnThis(),
         from: vi.fn().mockReturnThis(),
         leftJoin: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
         orderBy: vi.fn().mockReturnThis(),
         limit: vi.fn().mockReturnThis(),
-        offset: vi.fn().mockReturnThis(),
+        offset: vi.fn().mockResolvedValue(
+          mockProducts.map(p => ({ product: p, category: mockCategories[0] }))
+        ),
       };
 
-      // Mock the count query
-      mockDb.select.mockReturnValueOnce([{ count: 1 }]);
-      // Mock the main query
-      mockDb.offset.mockResolvedValueOnce(
-        mockProducts.map(p => ({ product: p, category: mockCategories[0] }))
-      );
+      const mockCountQueryBuilder = {
+        select: vi.fn().mockReturnThis(),
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([{ count: 1 }]),
+      };
+
+      let queryCallCount = 0;
+      const mockDb = {
+        select: vi.fn(() => {
+          queryCallCount++;
+          if (queryCallCount === 1) {
+            return mockMainQueryBuilder;
+          } else {
+            return mockCountQueryBuilder;
+          }
+        }),
+      };
 
       vi.spyOn(productService, 'findVariantsByProduct').mockResolvedValue([]);
       vi.spyOn(productService, 'generateSearchSuggestions').mockResolvedValue(['gita', 'scripture']);
