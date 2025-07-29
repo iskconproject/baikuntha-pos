@@ -115,7 +115,7 @@
   - Write Vitest component tests for UI behavior and accessibility
   - _Requirements: 9.1, 9.2, 9.3_
 
-- [ ] 12. Build authentication UI and login workflow
+- [x] 12. Build authentication UI and login workflow
 
   - Create PIN-based login page with secure input handling
   - Implement role-based dashboard routing after authentication

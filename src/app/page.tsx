@@ -1,4 +1,27 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+
 export default function Home() {
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (user) {
+        // Redirect to appropriate dashboard based on role
+        const dashboardPath = getDashboardPath(user.role);
+        router.replace(dashboardPath);
+      } else {
+        // Redirect to login
+        router.replace('/login');
+      }
+    }
+  }, [user, isLoading, router]);
+
+  // Show loading state
   return (
     <main className="min-h-screen bg-gradient-to-br from-saffron-50 to-saffron-100 flex items-center justify-center">
       <div className="text-center">
@@ -10,12 +33,31 @@ export default function Home() {
         </p>
         <div className="mt-8">
           <div className="inline-block bg-white rounded-lg shadow-lg p-6">
-            <p className="text-gray-600">
-              System is being initialized...
-            </p>
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-saffron-600"></div>
+              <p className="text-gray-600">
+                Loading...
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </main>
-  )
+  );
+}
+
+/**
+ * Get dashboard path based on user role
+ */
+function getDashboardPath(role: string): string {
+  switch (role) {
+    case 'admin':
+      return '/dashboard/admin';
+    case 'manager':
+      return '/dashboard/manager';
+    case 'cashier':
+      return '/dashboard/cashier';
+    default:
+      return '/dashboard';
+  }
 }
