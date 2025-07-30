@@ -4,40 +4,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  basePrice: number;
-  category?: {
-    id: string;
-    name: string;
-  };
-  keywords: string[];
-  metadata: {
-    author?: string;
-    publisher?: string;
-    language?: string;
-    material?: string;
-    customAttributes: Record<string, string>;
-  };
-  variants: Array<{
-    id: string;
-    name: string;
-    price: number;
-    stockQuantity: number;
-    attributes: Record<string, string>;
-  }>;
-  isActive: boolean;
-  createdAt: string;
-}
+import type { Category } from '@/types';
+import type { EnhancedProduct } from '@/services/database/products';
 
 interface ProductListProps {
-  products: Product[];
-  categories: Array<{ id: string; name: string }>;
-  onProductSelect: (product: Product) => void;
-  onProductEdit: (product: Product) => void;
+  products: EnhancedProduct[];
+  categories: Category[];
+  onProductSelect: (product: EnhancedProduct) => void;
+  onProductEdit: (product: EnhancedProduct) => void;
   onProductDelete: (productId: string) => void;
   onCreateProduct: () => void;
   isLoading?: boolean;

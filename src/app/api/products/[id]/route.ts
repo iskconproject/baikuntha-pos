@@ -3,90 +3,16 @@ import { productService } from '@/services/database/products';
 import { updateProductSchema } from '@/lib/validation/product';
 import { z } from 'zod';
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id } = params;
+    const productId = params.id;
     
-    // Validate UUID format
-    if (!z.string().uuid().safeParse(id).success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid product ID format',
-        },
-        { status: 400 }
-      );
-    }
-    
-    const products = await productService.findProductsWithVariants(id);
-    const product = products[0];
-    
-    if (!product) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Product not found',
-        },
-        { status: 404 }
-      );
-    }
-    
-    // Parse JSON fields
-    const enhancedProduct = {
-      ...product,
-      keywords: product.keywords ? JSON.parse(product.keywords) : [],
-      metadata: product.metadata ? JSON.parse(product.metadata) : {},
-      variants: product.variants.map(variant => ({
-        ...variant,
-        attributes: variant.attributes ? JSON.parse(variant.attributes) : {},
-        keywords: variant.keywords ? JSON.parse(variant.keywords) : [],
-      })),
-    };
-    
-    return NextResponse.json({
-      success: true,
-      data: enhancedProduct,
-    });
-  } catch (error) {
-    console.error('Error fetching product:', error);
-    
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch product',
-      },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(request: NextRequest, { params }: RouteParams) {
-  try {
-    const { id } = params;
-    const body = await request.json();
-    
-    // Validate UUID format
-    if (!z.string().uuid().safeParse(id).success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid product ID format',
-        },
-        { status: 400 }
-      );
-    }
-    
-    // Validate request body
-    const validatedData = updateProductSchema.parse(body);
-    
-    // Update the product
-    const product = await productService.updateProduct(id, validatedData);
+    // Get product with variants
+    const productsWithVariants = await productService.findProductsWithVariants(productId);
+    const product = productsWithVariants[0];
     
     if (!product) {
       return NextResponse.json(
@@ -101,6 +27,47 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({
       success: true,
       data: product,
+    });
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to fetch product',
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const productId = params.id;
+    const body = await request.json();
+    
+    // Validate request body
+    const validatedData = updateProductSchema.parse(body);
+    
+    // Update the product
+    const updatedProduct = await productService.updateProduct(productId, validatedData);
+    
+    if (!updatedProduct) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Product not found',
+        },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json({
+      success: true,
+      data: updatedProduct,
       message: 'Product updated successfully',
     });
   } catch (error) {
@@ -137,25 +104,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id } = params;
+    const productId = params.id;
     
-    // Validate UUID format
-    if (!z.string().uuid().safeParse(id).success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid product ID format',
-        },
-        { status: 400 }
-      );
-    }
-    
-    // Deactivate the product instead of hard delete
-    const success = await productService.deactivateProduct(id);
-    
-    if (!success) {
+    // Check if product exists
+    const product = await productService.findById(productId);
+    if (!product) {
       return NextResponse.json(
         {
           success: false,
@@ -165,17 +123,40 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
     
+    // Deactivate the product instead of hard delete
+    const success = await productService.deactivateProduct(productId);
+    
+    if (!success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to delete product',
+        },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json({
       success: true,
-      message: 'Product deactivated successfully',
+      message: 'Product deleted successfully',
     });
   } catch (error) {
-    console.error('Error deactivating product:', error);
+    console.error('Error deleting product:', error);
+    
+    if (error instanceof Error) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message,
+        },
+        { status: 400 }
+      );
+    }
     
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to deactivate product',
+        error: 'Failed to delete product',
       },
       { status: 500 }
     );

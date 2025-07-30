@@ -6,6 +6,7 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  title?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
@@ -14,6 +15,7 @@ export function Modal({
   isOpen, 
   onClose, 
   children, 
+  title,
   size = 'md', 
   className = '' 
 }: ModalProps) {
@@ -55,7 +57,14 @@ export function Modal({
 
         {/* Modal */}
         <div className={`inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:w-full ${sizeClasses[size]} ${className}`}>
-          {children}
+          {title && (
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+            </div>
+          )}
+          <div className={title ? 'px-6 py-4' : ''}>
+            {children}
+          </div>
         </div>
       </div>
     </div>

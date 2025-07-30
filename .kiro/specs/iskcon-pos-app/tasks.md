@@ -161,7 +161,7 @@
   - Write Vitest component tests for search functionality and product display
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 16. Create inventory management interface for managers
+- [x] 16. Create inventory management interface for managers
 
   - Build product management pages with CRUD operations
   - Create product creation and editing forms with keyword and metadata inputs
@@ -173,7 +173,7 @@
   - Write Vitest component tests for inventory management workflows
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9_
 
-- [ ] 17. Build user management interface for administrators
+- [-] 17. Build user management interface for administrators
 
   - Create user listing page with role indicators and activity status
   - Build user creation form with PIN validation and role assignment

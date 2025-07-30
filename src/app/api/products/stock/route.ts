@@ -1,67 +1,79 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { productService } from '@/services/database/products';
-import { stockUpdateSchema, bulkStockUpdateSchema, lowStockAlertSchema } from '@/lib/validation/product';
 import { z } from 'zod';
+
+const stockUpdateSchema = z.object({
+  updates: z.array(z.object({
+    variantId: z.string(),
+    quantity: z.number().min(0),
+    operation: z.enum(['set', 'add', 'subtract']).default('set'),
+    reason: z.string().optional(),
+  })),
+});
 
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Check if it's a bulk update or single update
-    if (Array.isArray(body.updates)) {
-      // Bulk update
-      const validatedData = bulkStockUpdateSchema.parse(body);
-      const success = await productService.bulkUpdateStock(validatedData.updates);
-      
-      return NextResponse.json({
-        success,
-        message: success ? 'Stock updated successfully' : 'Failed to update stock',
-      });
-    } else {
-      // Single update
-      const validatedData = stockUpdateSchema.parse(body);
-      
-      let newQuantity = validatedData.quantity;
-      
-      if (validatedData.operation !== 'set') {
-        const variant = await productService.findVariantById(validatedData.variantId);
-        if (!variant) {
-          return NextResponse.json(
-            {
+    // Validate request body
+    const validatedData = stockUpdateSchema.parse(body);
+    
+    // Process stock updates
+    const results = [];
+    
+    for (const update of validatedData.updates) {
+      try {
+        let newQuantity = update.quantity;
+        
+        if (update.operation !== 'set') {
+          // Get current stock for add/subtract operations
+          const variant = await productService.findVariantById(update.variantId);
+          if (!variant) {
+            results.push({
+              variantId: update.variantId,
               success: false,
-              error: 'Product variant not found',
-            },
-            { status: 404 }
-          );
+              error: 'Variant not found',
+            });
+            continue;
+          }
+          
+          const currentStock = variant.stockQuantity || 0;
+          
+          if (update.operation === 'add') {
+            newQuantity = currentStock + update.quantity;
+          } else if (update.operation === 'subtract') {
+            newQuantity = Math.max(0, currentStock - update.quantity);
+          }
         }
         
-        if (validatedData.operation === 'add') {
-          newQuantity = (variant.stockQuantity || 0) + validatedData.quantity;
-        } else if (validatedData.operation === 'subtract') {
-          newQuantity = Math.max(0, (variant.stockQuantity || 0) - validatedData.quantity);
-        }
+        // Update the stock
+        const success = await productService.updateVariantStock(update.variantId, newQuantity);
+        
+        results.push({
+          variantId: update.variantId,
+          success,
+          newQuantity,
+          operation: update.operation,
+          reason: update.reason,
+        });
+      } catch (error) {
+        console.error(`Error updating stock for variant ${update.variantId}:`, error);
+        results.push({
+          variantId: update.variantId,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
       }
-      
-      const success = await productService.updateVariantStock(
-        validatedData.variantId,
-        newQuantity
-      );
-      
-      if (!success) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Failed to update stock',
-          },
-          { status: 400 }
-        );
-      }
-      
-      return NextResponse.json({
-        success: true,
-        message: 'Stock updated successfully',
-      });
     }
+    
+    const successCount = results.filter(r => r.success).length;
+    const failureCount = results.length - successCount;
+    
+    return NextResponse.json({
+      success: true,
+      message: `Stock updated for ${successCount} items${failureCount > 0 ? `, ${failureCount} failed` : ''}`,
+      results,
+    });
   } catch (error) {
     console.error('Error updating stock:', error);
     
@@ -69,7 +81,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Invalid stock update data',
+          error: 'Invalid request data',
           details: error.errors,
         },
         { status: 400 }
@@ -89,46 +101,27 @@ export async function PUT(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action');
+    const threshold = parseInt(searchParams.get('threshold') || '5');
+    const includeVariants = searchParams.get('includeVariants') !== 'false';
     
-    if (action === 'low-stock') {
-      // Get low stock items
-      const queryParams = Object.fromEntries(searchParams.entries());
-      const validatedQuery = lowStockAlertSchema.parse(queryParams);
-      
-      const lowStockItems = await productService.getLowStockItems(validatedQuery);
-      
-      return NextResponse.json({
-        success: true,
-        data: lowStockItems,
-      });
-    }
+    // Get low stock items
+    const lowStockItems = await productService.getLowStockItems({
+      threshold,
+      includeVariants,
+    });
     
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Invalid action parameter',
-      },
-      { status: 400 }
-    );
+    return NextResponse.json({
+      success: true,
+      data: lowStockItems,
+      threshold,
+    });
   } catch (error) {
-    console.error('Error fetching stock data:', error);
-    
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid query parameters',
-          details: error.errors,
-        },
-        { status: 400 }
-      );
-    }
+    console.error('Error fetching low stock items:', error);
     
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch stock data',
+        error: 'Failed to fetch low stock items',
       },
       { status: 500 }
     );

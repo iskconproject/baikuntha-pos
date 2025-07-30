@@ -1,0 +1,341 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/Button';
+import { ProductList } from '@/components/inventory/ProductList';
+import { ProductForm } from '@/components/inventory/ProductForm';
+import { CategoryManager } from '@/components/inventory/CategoryManager';
+import { StockManager } from '@/components/inventory/StockManager';
+import { BulkOperations } from '@/components/inventory/BulkOperations';
+import { InventoryReports } from '@/components/inventory/InventoryReports';
+import { ProductDetailModal } from '@/components/inventory/ProductDetailModal';
+import { useAuth } from '@/hooks/useAuth';
+import type { Category } from '@/types';
+import type { EnhancedProduct } from '@/services/database/products';
+
+export default function InventoryPage() {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'stock' | 'bulk' | 'reports'>('products');
+  const [products, setProducts] = useState<EnhancedProduct[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Product form state
+  const [isProductFormOpen, setIsProductFormOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<EnhancedProduct | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<EnhancedProduct | null>(null);
+
+  // Check if user has manager or admin role
+  const canManageInventory = user?.role === 'manager' || user?.role === 'admin';
+
+  useEffect(() => {
+    if (!canManageInventory) {
+      setError('You do not have permission to access inventory management.');
+      setIsLoading(false);
+      return;
+    }
+
+    loadData();
+  }, [canManageInventory]);
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Load products and categories in parallel
+      const [productsResponse, categoriesResponse] = await Promise.all([
+        fetch('/api/products?limit=1000'),
+        fetch('/api/categories'),
+      ]);
+
+      if (!productsResponse.ok || !categoriesResponse.ok) {
+        throw new Error('Failed to load inventory data');
+      }
+
+      const productsData = await productsResponse.json();
+      const categoriesData = await categoriesResponse.json();
+
+      setProducts(productsData.data?.products || []);
+      setCategories(categoriesData.categories || []);
+    } catch (error) {
+      console.error('Error loading inventory data:', error);
+      setError('Failed to load inventory data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateProduct = () => {
+    setEditingProduct(null);
+    setIsProductFormOpen(true);
+  };
+
+  const handleEditProduct = (product: EnhancedProduct) => {
+    setEditingProduct(product);
+    setIsProductFormOpen(true);
+  };
+
+  const handleProductSelect = (product: EnhancedProduct) => {
+    setSelectedProduct(product);
+  };
+
+  const handleProductSubmit = async (productData: any) => {
+    try {
+      const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
+      const method = editingProduct ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save product');
+      }
+
+      // Reload products
+      await loadData();
+      setIsProductFormOpen(false);
+      setEditingProduct(null);
+    } catch (error) {
+      console.error('Error saving product:', error);
+      throw error; // Re-throw to let the form handle the error
+    }
+  };
+
+  const handleProductDelete = async (productId: string) => {
+    if (!confirm('Are you sure you want to delete this product?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete product');
+      }
+
+      // Reload products
+      await loadData();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Failed to delete product. Please try again.');
+    }
+  };
+
+  const handleCategoryCreate = async (categoryData: any) => {
+    try {
+      const response = await fetch('/api/categories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(categoryData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create category');
+      }
+
+      // Reload categories
+      await loadData();
+    } catch (error) {
+      console.error('Error creating category:', error);
+      throw error;
+    }
+  };
+
+  const handleCategoryUpdate = async (categoryId: string, categoryData: any) => {
+    try {
+      const response = await fetch(`/api/categories/${categoryId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(categoryData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update category');
+      }
+
+      // Reload categories
+      await loadData();
+    } catch (error) {
+      console.error('Error updating category:', error);
+      throw error;
+    }
+  };
+
+  const handleCategoryDelete = async (categoryId: string) => {
+    try {
+      const response = await fetch(`/api/categories/${categoryId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete category');
+      }
+
+      // Reload categories
+      await loadData();
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      throw error;
+    }
+  };
+
+  if (!canManageInventory) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+          <p className="text-gray-600">You do not have permission to access inventory management.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Error</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={loadData} className="bg-orange-600 hover:bg-orange-700">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const tabs = [
+    { id: 'products', label: 'Products', icon: '📦' },
+    { id: 'categories', label: 'Categories', icon: '📁' },
+    { id: 'stock', label: 'Stock Management', icon: '📊' },
+    { id: 'bulk', label: 'Bulk Operations', icon: '⚡' },
+    { id: 'reports', label: 'Reports', icon: '📈' },
+  ] as const;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Inventory Management</h1>
+          <p className="text-gray-600 mt-2">
+            Manage products, categories, stock levels, and inventory operations
+          </p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-lg shadow-sm border mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6" aria-label="Tabs">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? 'border-orange-500 text-orange-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <span className="mr-2">{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* Tab Content */}
+          <div className="p-6">
+            {activeTab === 'products' && (
+              <ProductList
+                products={products}
+                categories={categories}
+                onProductSelect={handleProductSelect}
+                onProductEdit={handleEditProduct}
+                onProductDelete={handleProductDelete}
+                onCreateProduct={handleCreateProduct}
+                isLoading={isLoading}
+              />
+            )}
+
+            {activeTab === 'categories' && (
+              <CategoryManager
+                categories={categories}
+                onCreateCategory={handleCategoryCreate}
+                onUpdateCategory={handleCategoryUpdate}
+                onDeleteCategory={handleCategoryDelete}
+                isLoading={isLoading}
+              />
+            )}
+
+            {activeTab === 'stock' && (
+              <StockManager
+                products={products}
+                onStockUpdate={loadData}
+                isLoading={isLoading}
+              />
+            )}
+
+            {activeTab === 'bulk' && (
+              <BulkOperations
+                products={products}
+                categories={categories}
+                onOperationComplete={loadData}
+                isLoading={isLoading}
+              />
+            )}
+
+            {activeTab === 'reports' && (
+              <InventoryReports
+                products={products}
+                categories={categories}
+                isLoading={isLoading}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Product Form Modal */}
+      <ProductForm
+        isOpen={isProductFormOpen}
+        onClose={() => {
+          setIsProductFormOpen(false);
+          setEditingProduct(null);
+        }}
+        onSubmit={handleProductSubmit}
+        initialData={editingProduct || undefined}
+        categories={categories}
+        isLoading={false}
+      />
+
+      {/* Product Detail Modal */}
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onEdit={handleEditProduct}
+          onDelete={handleProductDelete}
+        />
+      )}
+    </div>
+  );
+}
