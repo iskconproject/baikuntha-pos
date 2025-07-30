@@ -1,15 +1,15 @@
-const withPWA = require('next-pwa')({
-  dest: 'public',
+const withPWA = require("next-pwa")({
+  dest: "public",
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
+  disable: process.env.NODE_ENV === "development",
   buildExcludes: [/middleware-manifest\.json$/],
   runtimeCaching: [
     {
       urlPattern: /^https?.*/,
-      handler: 'NetworkFirst',
+      handler: "NetworkFirst",
       options: {
-        cacheName: 'offlineCache',
+        cacheName: "offlineCache",
         expiration: {
           maxEntries: 200,
           maxAgeSeconds: 24 * 60 * 60, // 24 hours
@@ -17,12 +17,12 @@ const withPWA = require('next-pwa')({
       },
     },
   ],
-})
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['better-sqlite3'],
+    serverComponentsExternalPackages: ["better-sqlite3"],
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -31,13 +31,13 @@ const nextConfig = {
         fs: false,
         net: false,
         tls: false,
-      }
+      };
     }
-    return config
+    return config;
   },
   env: {
     ANALYZE: process.env.ANALYZE,
   },
-}
+};
 
-module.exports = withPWA(nextConfig)
+module.exports = withPWA(nextConfig);

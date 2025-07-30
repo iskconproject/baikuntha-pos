@@ -49,7 +49,7 @@ export function SyncSettings({ settings, onChange }: SyncSettingsProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField
           label="Sync Mode"
-          description="How data synchronization should be handled"
+          helperText="How data synchronization should be handled"
         >
           <Select
             value={settings.sync.mode}
@@ -60,7 +60,7 @@ export function SyncSettings({ settings, onChange }: SyncSettingsProps) {
 
         <FormField
           label="Sync Interval"
-          description="How often automatic sync should occur"
+          helperText="How often automatic sync should occur"
         >
           <Select
             value={settings.sync.interval.toString()}
@@ -72,7 +72,7 @@ export function SyncSettings({ settings, onChange }: SyncSettingsProps) {
 
         <FormField
           label="Auto Retry"
-          description="Automatically retry failed sync operations"
+          helperText="Automatically retry failed sync operations"
         >
           <label className="flex items-center space-x-2">
             <input
@@ -87,7 +87,7 @@ export function SyncSettings({ settings, onChange }: SyncSettingsProps) {
 
         <FormField
           label="Max Retries"
-          description="Maximum number of retry attempts"
+          helperText="Maximum number of retry attempts"
         >
           <Input
             type="number"
@@ -101,7 +101,7 @@ export function SyncSettings({ settings, onChange }: SyncSettingsProps) {
 
         <FormField
           label="Conflict Resolution"
-          description="How to handle data conflicts during sync"
+          helperText="How to handle data conflicts during sync"
         >
           <Select
             value={settings.sync.conflictResolution}

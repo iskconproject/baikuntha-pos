@@ -38,10 +38,16 @@ export class SettingsService {
     // Deep merge stored settings with defaults
     Object.keys(stored).forEach(key => {
       const typedKey = key as keyof SystemSettings;
-      if (typeof stored[typedKey] === 'object' && stored[typedKey] !== null) {
-        merged[typedKey] = { ...merged[typedKey], ...stored[typedKey] } as any;
-      } else {
-        (merged as any)[typedKey] = stored[typedKey];
+      const storedValue = stored[typedKey];
+      const defaultValue = merged[typedKey];
+      
+      if (storedValue !== undefined) {
+        if (typeof storedValue === 'object' && storedValue !== null && 
+            typeof defaultValue === 'object' && defaultValue !== null) {
+          (merged as any)[typedKey] = { ...defaultValue, ...storedValue };
+        } else {
+          (merged as any)[typedKey] = storedValue;
+        }
       }
     });
     
@@ -75,7 +81,12 @@ export class SettingsService {
     category: T,
     updates: Partial<SystemSettings[T]>
   ): void {
-    this.settings[category] = { ...this.settings[category], ...updates } as SystemSettings[T];
+    const currentValue = this.settings[category];
+    if (typeof currentValue === 'object' && currentValue !== null) {
+      this.settings[category] = { ...currentValue, ...updates } as SystemSettings[T];
+    } else {
+      this.settings[category] = updates as SystemSettings[T];
+    }
     this.saveSettings();
   }
 
@@ -85,7 +96,12 @@ export class SettingsService {
   }
 
   resetCategory<T extends keyof SystemSettings>(category: T): void {
-    this.settings[category] = { ...DEFAULT_SETTINGS[category] };
+    const defaultValue = DEFAULT_SETTINGS[category];
+    if (typeof defaultValue === 'object' && defaultValue !== null) {
+      this.settings[category] = { ...defaultValue } as SystemSettings[T];
+    } else {
+      this.settings[category] = defaultValue;
+    }
     this.saveSettings();
   }
 
@@ -146,8 +162,8 @@ export class SettingsService {
       }
 
       // Import thermal printer service
-      const { ThermalPrinterService } = await import('@/services/printer/thermalPrinter');
-      const printer = new ThermalPrinterService();
+      const { ThermalPrinter } = await import('@/services/printer/thermalPrinter');
+      const printer = new ThermalPrinter();
       
       return await printer.testConnection();
     } catch (error) {

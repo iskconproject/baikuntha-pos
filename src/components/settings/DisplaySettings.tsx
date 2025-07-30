@@ -55,7 +55,7 @@ export function DisplaySettings({ settings, onChange }: DisplaySettingsProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Theme"
-            description="Choose your preferred color scheme"
+            helperText="Choose your preferred color scheme"
           >
             <Select
               value={settings.display.theme}
@@ -66,7 +66,7 @@ export function DisplaySettings({ settings, onChange }: DisplaySettingsProps) {
 
           <FormField
             label="Font Size"
-            description="Adjust text size for better readability"
+            helperText="Adjust text size for better readability"
           >
             <Select
               value={settings.display.fontSize}
@@ -77,7 +77,7 @@ export function DisplaySettings({ settings, onChange }: DisplaySettingsProps) {
 
           <FormField
             label="High Contrast"
-            description="Increase contrast for better visibility"
+            helperText="Increase contrast for better visibility"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -92,7 +92,7 @@ export function DisplaySettings({ settings, onChange }: DisplaySettingsProps) {
 
           <FormField
             label="Color Blind Mode"
-            description="Adjust colors for color vision deficiency"
+            helperText="Adjust colors for color vision deficiency"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -115,7 +115,7 @@ export function DisplaySettings({ settings, onChange }: DisplaySettingsProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Touch Sensitivity"
-            description="Adjust touch responsiveness for your device"
+            helperText="Adjust touch responsiveness for your device"
           >
             <Select
               value={settings.display.touchSensitivity}
@@ -126,7 +126,7 @@ export function DisplaySettings({ settings, onChange }: DisplaySettingsProps) {
 
           <FormField
             label="Animations"
-            description="Enable or disable interface animations"
+            helperText="Enable or disable interface animations"
           >
             <label className="flex items-center space-x-2">
               <input

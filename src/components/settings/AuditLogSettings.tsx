@@ -121,7 +121,7 @@ export function AuditLogSettings({ settings, onChange }: AuditLogSettingsProps) 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Enable Audit Logging"
-            description="Track user actions and system events"
+            helperText="Track user actions and system events"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -136,7 +136,7 @@ export function AuditLogSettings({ settings, onChange }: AuditLogSettingsProps) 
 
           <FormField
             label="Log Level"
-            description="Amount of detail to capture in logs"
+            helperText="Amount of detail to capture in logs"
           >
             <Select
               value={settings.auditLog.logLevel}
@@ -148,7 +148,7 @@ export function AuditLogSettings({ settings, onChange }: AuditLogSettingsProps) 
 
           <FormField
             label="Retention Period"
-            description="Days to keep audit logs before automatic cleanup"
+            helperText="Days to keep audit logs before automatic cleanup"
           >
             <Input
               type="number"
@@ -162,7 +162,7 @@ export function AuditLogSettings({ settings, onChange }: AuditLogSettingsProps) 
 
           <FormField
             label="Auto Cleanup"
-            description="Automatically delete old logs based on retention period"
+            helperText="Automatically delete old logs based on retention period"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -186,7 +186,7 @@ export function AuditLogSettings({ settings, onChange }: AuditLogSettingsProps) 
         <div className="space-y-4">
           <FormField
             label="User Actions"
-            description="Log user login, logout, and activity"
+            helperText="Log user login, logout, and activity"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -202,7 +202,7 @@ export function AuditLogSettings({ settings, onChange }: AuditLogSettingsProps) 
 
           <FormField
             label="System Events"
-            description="Log system startup, errors, and configuration changes"
+            helperText="Log system startup, errors, and configuration changes"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -226,7 +226,7 @@ export function AuditLogSettings({ settings, onChange }: AuditLogSettingsProps) 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Export Logs"
-            description="Download audit logs as CSV file"
+            helperText="Download audit logs as CSV file"
           >
             <Button
               onClick={handleExportLogs}
@@ -239,7 +239,7 @@ export function AuditLogSettings({ settings, onChange }: AuditLogSettingsProps) 
 
           <FormField
             label="Clear Logs"
-            description="Permanently delete all audit logs"
+            helperText="Permanently delete all audit logs"
           >
             <Button
               onClick={handleClearLogs}

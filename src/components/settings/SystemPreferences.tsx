@@ -47,7 +47,7 @@ export function SystemPreferences({ settings, onChange }: SystemPreferencesProps
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField
           label="Language"
-          description="Select the primary language for the interface"
+          helperText="Select the primary language for the interface"
         >
           <Select
             value={settings.language}
@@ -58,7 +58,7 @@ export function SystemPreferences({ settings, onChange }: SystemPreferencesProps
 
         <FormField
           label="Currency"
-          description="Default currency for pricing and transactions"
+          helperText="Default currency for pricing and transactions"
         >
           <Select
             value={settings.currency}
@@ -69,7 +69,7 @@ export function SystemPreferences({ settings, onChange }: SystemPreferencesProps
 
         <FormField
           label="Timezone"
-          description="Timezone for timestamps and scheduling"
+          helperText="Timezone for timestamps and scheduling"
         >
           <Select
             value={settings.timezone}
@@ -80,7 +80,7 @@ export function SystemPreferences({ settings, onChange }: SystemPreferencesProps
 
         <FormField
           label="Date Format"
-          description="How dates are displayed throughout the application"
+          helperText="How dates are displayed throughout the application"
         >
           <Select
             value={settings.dateFormat}
@@ -91,7 +91,7 @@ export function SystemPreferences({ settings, onChange }: SystemPreferencesProps
 
         <FormField
           label="Time Format"
-          description="12-hour or 24-hour time display"
+          helperText="12-hour or 24-hour time display"
         >
           <Select
             value={settings.timeFormat}

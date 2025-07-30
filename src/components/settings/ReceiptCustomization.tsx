@@ -86,7 +86,7 @@ ${settings.receipt.contactInfo.website || ''}
         <div className="space-y-6">
           <FormField
             label="Receipt Header"
-            description="Text displayed at the top of receipts"
+            helperText="Text displayed at the top of receipts"
           >
             <textarea
               value={settings.receipt.header}
@@ -99,7 +99,7 @@ ${settings.receipt.contactInfo.website || ''}
 
           <FormField
             label="Receipt Footer"
-            description="Text displayed at the bottom of receipts"
+            helperText="Text displayed at the bottom of receipts"
           >
             <textarea
               value={settings.receipt.footer}
@@ -112,7 +112,7 @@ ${settings.receipt.contactInfo.website || ''}
 
           <FormField
             label="Logo"
-            description="Upload a logo image for receipts (optional)"
+            helperText="Upload a logo image for receipts (optional)"
           >
             <div className="space-y-2">
               <input

@@ -99,7 +99,7 @@ export function PrinterConfiguration({ settings, onChange }: PrinterConfiguratio
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField
           label="Printer Enabled"
-          description="Enable or disable receipt printing"
+          helperText="Enable or disable receipt printing"
         >
           <label className="flex items-center space-x-2">
             <input
@@ -114,7 +114,7 @@ export function PrinterConfiguration({ settings, onChange }: PrinterConfiguratio
 
         <FormField
           label="Printer Type"
-          description="Select the type of printer to use"
+          helperText="Select the type of printer to use"
         >
           <Select
             value={settings.printer.type}
@@ -126,7 +126,7 @@ export function PrinterConfiguration({ settings, onChange }: PrinterConfiguratio
 
         <FormField
           label="Paper Width"
-          description="Width of the thermal paper in millimeters"
+          helperText="Width of the thermal paper in millimeters"
         >
           <Select
             value={settings.printer.paperWidth.toString()}
@@ -138,7 +138,7 @@ export function PrinterConfiguration({ settings, onChange }: PrinterConfiguratio
 
         <FormField
           label="Character Width"
-          description="Number of characters per line"
+          helperText="Number of characters per line"
         >
           <Input
             type="number"
@@ -161,7 +161,7 @@ export function PrinterConfiguration({ settings, onChange }: PrinterConfiguratio
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="Connected Device"
-                description="Currently connected thermal printer"
+                helperText="Currently connected thermal printer"
               >
                 <div className="flex space-x-2">
                   <Input
@@ -181,7 +181,7 @@ export function PrinterConfiguration({ settings, onChange }: PrinterConfiguratio
 
               <FormField
                 label="Available Devices"
-                description="Scan for available USB devices"
+                helperText="Scan for available USB devices"
               >
                 <div className="flex space-x-2">
                   <Button
