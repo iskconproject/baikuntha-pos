@@ -149,7 +149,7 @@ export function ConflictResolver({
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
-                      size="xs"
+                      size="sm"
                       onClick={() => handleFieldMerge(field, "local")}
                       className={
                         mergedValue === localValue
@@ -161,7 +161,7 @@ export function ConflictResolver({
                     </Button>
                     <Button
                       variant="outline"
-                      size="xs"
+                      size="sm"
                       onClick={() => handleFieldMerge(field, "cloud")}
                       className={
                         mergedValue === cloudValue
