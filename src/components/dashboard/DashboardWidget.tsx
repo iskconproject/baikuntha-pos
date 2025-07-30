@@ -99,12 +99,19 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
   };
 
   return (
-    <Card variant="elevated" className={cn('hover:shadow-lg transition-shadow', className)}>
-      <CardHeader className={sizeClasses[size]}>
+    <Card 
+      variant="elevated" 
+      padding="none"
+      className={cn(
+        'hover:shadow-lg transition-shadow h-full flex flex-col', 
+        className
+      )}
+    >
+      <CardHeader className={cn('flex-shrink-0', sizeClasses[size])}>
         <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
             {Icon && (
-              <div className={cn('p-2 rounded-lg', iconColorClasses[iconColor])}>
+              <div className={cn('p-2 rounded-lg flex-shrink-0', iconColorClasses[iconColor])}>
                 <Icon className={cn('flex-shrink-0', size === 'lg' ? 'h-8 w-8' : 'h-6 w-6')} />
               </div>
             )}
@@ -117,7 +124,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
               </h3>
               {description && (
                 <p className={cn(
-                  'text-gray-600 mt-1',
+                  'text-gray-600 mt-1 line-clamp-2',
                   size === 'lg' ? 'text-base' : 'text-sm'
                 )}>
                   {description}
@@ -127,10 +134,10 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
           </div>
           
           {status && (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 flex-shrink-0 ml-2">
               <div className={cn('h-2 w-2 rounded-full', statusClasses[status.type])} />
               <span className={cn(
-                'font-medium',
+                'font-medium whitespace-nowrap',
                 size === 'lg' ? 'text-sm' : 'text-xs',
                 status.type === 'success' ? 'text-success-600' :
                 status.type === 'warning' ? 'text-warning-600' :
@@ -144,48 +151,50 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
         </div>
       </CardHeader>
       
-      <CardContent className={cn('pt-0', sizeClasses[size])}>
-        {value !== undefined && (
-          <div className="mb-4">
-            <div className={cn(
-              'font-bold text-gray-900',
-              size === 'lg' ? 'text-3xl' : size === 'md' ? 'text-2xl' : 'text-xl'
-            )}>
-              {value}
-            </div>
-            {subValue && (
+      <CardContent className={cn('pt-0 flex-1 flex flex-col', sizeClasses[size])}>
+        <div className="flex-1">
+          {value !== undefined && (
+            <div className="mb-4">
               <div className={cn(
-                'text-gray-600 mt-1',
-                size === 'lg' ? 'text-base' : 'text-sm'
+                'font-bold text-gray-900',
+                size === 'lg' ? 'text-3xl' : size === 'md' ? 'text-2xl' : 'text-xl'
               )}>
-                {subValue}
+                {value}
               </div>
-            )}
-            {trend && (
-              <div className={cn(
-                'flex items-center space-x-1 mt-2',
-                trendClasses[trend.direction]
-              )}>
-                <TrendIcon direction={trend.direction} />
-                <span className={cn(
-                  'font-medium',
-                  size === 'lg' ? 'text-sm' : 'text-xs'
+              {subValue && (
+                <div className={cn(
+                  'text-gray-600 mt-1',
+                  size === 'lg' ? 'text-base' : 'text-sm'
                 )}>
-                  {trend.value > 0 ? '+' : ''}{trend.value}% {trend.label}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {children && (
-          <div className="mb-4">
-            {children}
-          </div>
-        )}
+                  {subValue}
+                </div>
+              )}
+              {trend && (
+                <div className={cn(
+                  'flex items-center space-x-1 mt-2',
+                  trendClasses[trend.direction]
+                )}>
+                  <TrendIcon direction={trend.direction} />
+                  <span className={cn(
+                    'font-medium',
+                    size === 'lg' ? 'text-sm' : 'text-xs'
+                  )}>
+                    {trend.value > 0 ? '+' : ''}{trend.value}% {trend.label}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {children && (
+            <div className="mb-4">
+              {children}
+            </div>
+          )}
+        </div>
         
         {action && (
-          <div className="mt-4">
+          <div className="mt-auto pt-4">
             {action.href ? (
               <a
                 href={action.href}
@@ -193,7 +202,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
                   'inline-flex items-center justify-center rounded-lg font-medium w-full',
                   'transition-all duration-200 ease-in-out',
                   'focus:outline-none focus:ring-2 focus:ring-offset-2',
-                  'touch-manipulation min-h-[44px] px-3 py-2 text-sm gap-2',
+                  'touch-manipulation min-h-[44px] px-4 py-3 text-sm gap-2',
                   'bg-primary-600 text-white shadow-sm',
                   'hover:bg-primary-700 active:bg-primary-800',
                   'focus:ring-primary-500',
@@ -208,7 +217,7 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
               <Button
                 onClick={action.onClick}
                 variant="primary"
-                size="sm"
+                size="md"
                 className="w-full"
                 disabled={action.disabled}
               >

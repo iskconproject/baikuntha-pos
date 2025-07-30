@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardWidget } from '@/components/dashboard/DashboardWidget';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { dashboardService } from '@/services/dashboard/dashboardService';
 import Link from 'next/link';
@@ -137,7 +137,7 @@ export default function CashierDashboard() {
       )}
 
       {/* Quick Actions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
         {/* Sales - Primary Action */}
         <DashboardWidget
           title="Start Sale"
@@ -149,17 +149,6 @@ export default function CashierDashboard() {
           action={{
             label: "New Sale",
             href: "/sales"
-          }}
-        />
-
-        <DashboardWidget
-          title="Product Search"
-          description="Search and browse available products"
-          icon={SearchIcon}
-          iconColor="info"
-          action={{
-            label: "Coming Soon",
-            disabled: true
           }}
         />
 

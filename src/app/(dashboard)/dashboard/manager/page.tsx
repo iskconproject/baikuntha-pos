@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { DashboardWidget } from "@/components/dashboard/DashboardWidget";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { dashboardService } from "@/services/dashboard/dashboardService";
 import type { DashboardMetrics } from "@/types";
@@ -234,7 +234,7 @@ export default function ManagerDashboard() {
       )}
 
       {/* Quick Actions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
         <DashboardWidget
           title="Sales"
           description="Process transactions and manage sales"
@@ -265,17 +265,6 @@ export default function ManagerDashboard() {
           action={{
             label: "View Reports",
             href: "/reports",
-          }}
-        />
-
-        <DashboardWidget
-          title="Product Search"
-          description="Search and browse product catalog"
-          icon={SearchIcon}
-          iconColor="info"
-          action={{
-            label: "Coming Soon",
-            disabled: true,
           }}
         />
 

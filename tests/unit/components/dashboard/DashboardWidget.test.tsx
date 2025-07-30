@@ -317,4 +317,80 @@ describe('DashboardWidget', () => {
     // Should not crash and should render basic structure
     expect(screen.getByText('Minimal Widget').closest('div')).toBeInTheDocument();
   });
+
+  it('applies proper flexbox layout classes for full height', () => {
+    render(<DashboardWidget title="Layout Test Widget" />);
+    
+    const widget = screen.getByText('Layout Test Widget').closest('[class*="h-full"]');
+    expect(widget).toBeInTheDocument();
+    expect(widget).toHaveClass('h-full', 'flex', 'flex-col');
+  });
+
+  it('applies line-clamp to long descriptions', () => {
+    render(
+      <DashboardWidget 
+        title="Test Widget" 
+        description="This is a very long description that should be clamped to prevent layout issues and maintain consistent widget heights across the dashboard grid layout"
+      />
+    );
+    
+    const description = screen.getByText(/This is a very long description/);
+    expect(description).toHaveClass('line-clamp-2');
+  });
+
+  it('positions action buttons at bottom with mt-auto', () => {
+    render(
+      <DashboardWidget 
+        title="Action Widget" 
+        action={{
+          label: 'Test Action',
+          onClick: vi.fn()
+        }}
+      />
+    );
+    
+    const actionContainer = screen.getByRole('button', { name: 'Test Action' }).parentElement;
+    expect(actionContainer).toHaveClass('mt-auto', 'pt-4');
+  });
+
+  it('applies proper touch optimization for action links', () => {
+    render(
+      <DashboardWidget 
+        title="Link Widget" 
+        action={{
+          label: 'Go Somewhere',
+          href: '/test'
+        }}
+      />
+    );
+    
+    const actionLink = screen.getByRole('button', { name: 'Go Somewhere' });
+    expect(actionLink).toHaveClass('touch-manipulation', 'min-h-[44px]', 'px-4', 'py-3');
+  });
+
+  it('handles text truncation for long titles', () => {
+    render(
+      <DashboardWidget 
+        title="This is an extremely long widget title that should be truncated to prevent layout issues"
+      />
+    );
+    
+    const title = screen.getByText(/This is an extremely long widget title/);
+    expect(title).toHaveClass('truncate');
+  });
+
+  it('applies whitespace-nowrap to status labels', () => {
+    render(
+      <DashboardWidget 
+        title="Status Widget" 
+        status={{
+          label: 'Very Long Status Message',
+          type: 'success'
+        }}
+      />
+    );
+    
+    const statusLabel = screen.getByText('Very Long Status Message');
+    expect(statusLabel).toHaveClass('whitespace-nowrap');
+  });
 });
