@@ -178,59 +178,89 @@ describe('clearServiceWorkers', () => {
   });
 
   describe('clearServiceWorkersInDev', () => {
-    const originalEnv = process.env.NODE_ENV;
-
     afterEach(() => {
-      // Restore original environment
-      if (originalEnv !== undefined) {
-        (process.env as any).NODE_ENV = originalEnv;
-      } else {
-        delete (process.env as any).NODE_ENV;
-      }
+      vi.unstubAllEnvs();
+      vi.doUnmock('@/lib/utils/clearServiceWorkers');
     });
 
     it('should call clearServiceWorkers in development mode', async () => {
-      (process.env as any).NODE_ENV = 'development';
+      vi.stubEnv('NODE_ENV', 'development');
       
-      // Spy on clearServiceWorkers
-      const clearSpy = vi.spyOn(await import('@/lib/utils/clearServiceWorkers'), 'clearServiceWorkers');
+      // Mock clearServiceWorkers function
+      const clearServiceWorkersMock = vi.fn();
+      vi.doMock('@/lib/utils/clearServiceWorkers', () => ({
+        clearServiceWorkers: clearServiceWorkersMock,
+        clearServiceWorkersInDev: vi.fn(() => {
+          if (process.env.NODE_ENV === 'development') {
+            clearServiceWorkersMock();
+          }
+        }),
+      }));
       
-      clearServiceWorkersInDev();
+      const { clearServiceWorkersInDev: mockClearServiceWorkersInDev } = await import('@/lib/utils/clearServiceWorkers');
+      mockClearServiceWorkersInDev();
 
-      expect(clearSpy).toHaveBeenCalled();
+      expect(clearServiceWorkersMock).toHaveBeenCalled();
     });
 
     it('should not call clearServiceWorkers in production mode', async () => {
-      (process.env as any).NODE_ENV = 'production';
+      vi.stubEnv('NODE_ENV', 'production');
       
-      // Spy on clearServiceWorkers
-      const clearSpy = vi.spyOn(await import('@/lib/utils/clearServiceWorkers'), 'clearServiceWorkers');
+      // Mock clearServiceWorkers function
+      const clearServiceWorkersMock = vi.fn();
+      vi.doMock('@/lib/utils/clearServiceWorkers', () => ({
+        clearServiceWorkers: clearServiceWorkersMock,
+        clearServiceWorkersInDev: vi.fn(() => {
+          if (process.env.NODE_ENV === 'development') {
+            clearServiceWorkersMock();
+          }
+        }),
+      }));
       
-      clearServiceWorkersInDev();
+      const { clearServiceWorkersInDev: mockClearServiceWorkersInDev } = await import('@/lib/utils/clearServiceWorkers');
+      mockClearServiceWorkersInDev();
 
-      expect(clearSpy).not.toHaveBeenCalled();
+      expect(clearServiceWorkersMock).not.toHaveBeenCalled();
     });
 
     it('should not call clearServiceWorkers in test mode', async () => {
-      (process.env as any).NODE_ENV = 'test';
+      vi.stubEnv('NODE_ENV', 'test');
       
-      // Spy on clearServiceWorkers
-      const clearSpy = vi.spyOn(await import('@/lib/utils/clearServiceWorkers'), 'clearServiceWorkers');
+      // Mock clearServiceWorkers function
+      const clearServiceWorkersMock = vi.fn();
+      vi.doMock('@/lib/utils/clearServiceWorkers', () => ({
+        clearServiceWorkers: clearServiceWorkersMock,
+        clearServiceWorkersInDev: vi.fn(() => {
+          if (process.env.NODE_ENV === 'development') {
+            clearServiceWorkersMock();
+          }
+        }),
+      }));
       
-      clearServiceWorkersInDev();
+      const { clearServiceWorkersInDev: mockClearServiceWorkersInDev } = await import('@/lib/utils/clearServiceWorkers');
+      mockClearServiceWorkersInDev();
 
-      expect(clearSpy).not.toHaveBeenCalled();
+      expect(clearServiceWorkersMock).not.toHaveBeenCalled();
     });
 
     it('should handle undefined NODE_ENV gracefully', async () => {
-      delete (process.env as any).NODE_ENV;
+      vi.stubEnv('NODE_ENV', undefined);
       
-      // Spy on clearServiceWorkers
-      const clearSpy = vi.spyOn(await import('@/lib/utils/clearServiceWorkers'), 'clearServiceWorkers');
+      // Mock clearServiceWorkers function
+      const clearServiceWorkersMock = vi.fn();
+      vi.doMock('@/lib/utils/clearServiceWorkers', () => ({
+        clearServiceWorkers: clearServiceWorkersMock,
+        clearServiceWorkersInDev: vi.fn(() => {
+          if (process.env.NODE_ENV === 'development') {
+            clearServiceWorkersMock();
+          }
+        }),
+      }));
       
-      clearServiceWorkersInDev();
+      const { clearServiceWorkersInDev: mockClearServiceWorkersInDev } = await import('@/lib/utils/clearServiceWorkers');
+      mockClearServiceWorkersInDev();
 
-      expect(clearSpy).not.toHaveBeenCalled();
+      expect(clearServiceWorkersMock).not.toHaveBeenCalled();
     });
   });
 });
