@@ -19,7 +19,8 @@
     "test:coverage": "vitest run --coverage",
     "build:analyze": "ANALYZE=true next build",
     "pwa:install": "next build && next start",
-    "sw:update": "next build"
+    "sw:update": "next build",
+    "clear:cache": "node scripts/clear-dev-cache.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.0",

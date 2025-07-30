@@ -2,11 +2,15 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { clearServiceWorkersInDev } from "@/lib/utils/clearServiceWorkers";
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    // Clear service workers in development to prevent caching conflicts
+    clearServiceWorkersInDev();
+    
     // For now, just redirect to login
     router.replace("/login");
   }, [router]);
