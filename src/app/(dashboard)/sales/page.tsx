@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ProductSelection } from '@/components/sales/ProductSelection';
 import { CartManager } from '@/components/sales/CartManager';
 import { PaymentProcessor } from '@/components/sales/PaymentProcessor';
+import { TransactionHistory } from '@/components/sales/TransactionHistory';
 import type { Transaction } from '@/types';
 
 type SalesStep = 'selection' | 'payment' | 'receipt';
@@ -125,12 +126,19 @@ export default function SalesPage() {
 
         {/* Main Content */}
         {currentStep === 'selection' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <ProductSelection />
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <ProductSelection />
+              </div>
+              <div className="lg:col-span-1">
+                <CartManager onCheckout={handleCheckout} />
+              </div>
             </div>
-            <div className="lg:col-span-1">
-              <CartManager onCheckout={handleCheckout} />
+            
+            {/* Transaction History for Cashiers */}
+            <div className="border-t border-gray-200 pt-8">
+              <TransactionHistory limit={5} />
             </div>
           </div>
         )}

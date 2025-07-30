@@ -385,6 +385,110 @@ export class TransactionService {
       throw error;
     }
   }
+
+  /**
+   * Get transaction history with filters and pagination
+   */
+  async getTransactionHistory(filters: {
+    startDate?: Date;
+    endDate?: Date;
+    paymentMethod?: string;
+    userId?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{
+    transactions: Array<Transaction & { userName: string; itemCount: number }>;
+    totalCount: number;
+  }> {
+    try {
+      const conditions = [];
+      
+      if (filters.startDate) {
+        conditions.push(gte(transactions.createdAt, filters.startDate));
+      }
+      
+      if (filters.endDate) {
+        conditions.push(lte(transactions.createdAt, filters.endDate));
+      }
+      
+      if (filters.paymentMethod) {
+        conditions.push(eq(transactions.paymentMethod, filters.paymentMethod));
+      }
+      
+      if (filters.userId) {
+        conditions.push(eq(transactions.userId, filters.userId));
+      }
+
+      // Get total count
+      const countResult = await this.db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(transactions)
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+      const totalCount = Number(countResult[0]?.count || 0);
+
+      // Get transactions with user names and item counts
+      const result = await this.db
+        .select({
+          id: transactions.id,
+          userId: transactions.userId,
+          subtotal: transactions.subtotal,
+          tax: transactions.tax,
+          discount: transactions.discount,
+          total: transactions.total,
+          paymentMethod: transactions.paymentMethod,
+          paymentReference: transactions.paymentReference,
+          status: transactions.status,
+          syncStatus: transactions.syncStatus,
+          createdAt: transactions.createdAt,
+          updatedAt: transactions.updatedAt,
+          userName: users.username,
+          itemCount: sql<number>`(
+            SELECT COUNT(*) 
+            FROM ${transactionItems} 
+            WHERE ${transactionItems.transactionId} = ${transactions.id}
+          )`,
+        })
+        .from(transactions)
+        .leftJoin(users, eq(transactions.userId, users.id))
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(desc(transactions.createdAt))
+        .limit(filters.limit || 50)
+        .offset(filters.offset || 0);
+
+      // Get items for each transaction
+      const transactionsWithItems = await Promise.all(
+        result.map(async (transaction) => {
+          const items = await this.db
+            .select({
+              id: transactionItems.id,
+              productId: transactionItems.productId,
+              variantId: transactionItems.variantId,
+              quantity: transactionItems.quantity,
+              unitPrice: transactionItems.unitPrice,
+              totalPrice: transactionItems.totalPrice,
+            })
+            .from(transactionItems)
+            .where(eq(transactionItems.transactionId, transaction.id));
+
+          return {
+            ...transaction,
+            userName: transaction.userName || 'Unknown User',
+            itemCount: Number(transaction.itemCount),
+            items,
+          };
+        })
+      );
+
+      return {
+        transactions: transactionsWithItems,
+        totalCount,
+      };
+    } catch (error) {
+      console.error('Error getting transaction history:', error);
+      throw error;
+    }
+  }
 }
 
 export const transactionService = new TransactionService();
