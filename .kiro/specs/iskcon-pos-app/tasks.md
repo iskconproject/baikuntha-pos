@@ -126,7 +126,7 @@
   - Write Vitest component tests for authentication UI components
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-- [-] 13. Create main dashboard and landing pages for each user role
+- [x] 13. Create main dashboard and landing pages for each user role
 
   - Build admin dashboard with user management, reports, and system overview
   - Create manager dashboard with inventory management, sales, and reports access

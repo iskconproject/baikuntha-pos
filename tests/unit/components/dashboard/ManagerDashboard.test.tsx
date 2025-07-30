@@ -1,53 +1,45 @@
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import ManagerDashboard from '@/app/(dashboard)/dashboard/manager/page';
-import { dashboardService } from '@/services/dashboard/dashboardService';
 
-// Mock the auth hook
+// Mock the useAuth hook
+const mockManagerUser = {
+  id: 'manager-1',
+  username: 'manager',
+  role: 'manager' as const,
+  isActive: true
+};
+
+const mockAdminUser = {
+  id: 'admin-1',
+  username: 'admin',
+  role: 'admin' as const,
+  isActive: true
+};
+
+const mockUseAuth = vi.fn();
 vi.mock('@/hooks/useAuth', () => ({
-  useAuth: vi.fn(() => ({
-    user: { id: '1', username: 'manager', role: 'manager' },
-    isLoading: false
-  }))
+  useAuth: mockUseAuth
 }));
 
-// Mock the dashboard service
+// Mock dashboard service
+const mockGetManagerMetrics = vi.fn();
 vi.mock('@/services/dashboard/dashboardService', () => ({
   dashboardService: {
-    getManagerMetrics: vi.fn()
+    getManagerMetrics: mockGetManagerMetrics
   }
 }));
 
-// Mock the DashboardWidget component
-vi.mock('@/components/dashboard/DashboardWidget', () => ({
-  DashboardWidget: ({ title, value, action, status }: any) => (
-    <div data-testid="dashboard-widget">
-      <h3>{title}</h3>
-      {value && <span data-testid="widget-value">{value}</span>}
-      {action && (
-        <button data-testid="widget-action">{action.label}</button>
-      )}
-      {status && (
-        <span data-testid="widget-status">{status.label}</span>
-      )}
-    </div>
-  )
-}));
-
-// Mock the LoadingSpinner component
-vi.mock('@/components/ui/LoadingSpinner', () => ({
-  LoadingSpinner: ({ size }: { size?: string }) => (
-    <div data-testid="loading-spinner" data-size={size}>Loading...</div>
-  )
-}));
-
-const mockMetrics = {
+// Mock dashboard metrics (without users data)
+const mockManagerMetrics = {
   todaySales: {
     total: 3500,
     transactionCount: 18,
     averageTransaction: 194,
-    trend: { value: 8, direction: 'up' as const }
+    trend: {
+      value: 8,
+      direction: 'up' as const
+    }
   },
   inventory: {
     totalProducts: 120,
@@ -57,17 +49,17 @@ const mockMetrics = {
   },
   recentTransactions: [
     {
-      id: '1',
+      id: 'txn-1',
       total: 180,
       itemCount: 2,
       paymentMethod: 'upi',
-      createdAt: new Date(),
+      createdAt: new Date('2024-01-15T10:30:00Z'),
       userName: 'cashier1'
     }
   ],
   topProducts: [
     {
-      id: '1',
+      id: 'prod-1',
       name: 'Srimad Bhagavatam',
       salesCount: 12,
       revenue: 2400
@@ -78,142 +70,192 @@ const mockMetrics = {
 describe('ManagerDashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetManagerMetrics.mockResolvedValue(mockManagerMetrics);
   });
 
   it('renders welcome message for manager user', async () => {
-    vi.mocked(dashboardService.getManagerMetrics).mockResolvedValue(mockMetrics);
-    
-    render(<ManagerDashboard />);
-    
-    expect(screen.getByText('Welcome back, manager!')).toBeInTheDocument();
-    expect(screen.getByText('Manager Dashboard - Inventory, sales, and reporting access')).toBeInTheDocument();
-  });
-
-  it('allows admin users to access manager dashboard', async () => {
-    // Mock admin user
-    vi.mocked(require('@/hooks/useAuth').useAuth).mockReturnValue({
-      user: { id: '1', username: 'admin', role: 'admin' },
+    mockUseAuth.mockReturnValue({
+      user: mockManagerUser,
       isLoading: false
     });
     
-    vi.mocked(dashboardService.getManagerMetrics).mockResolvedValue(mockMetrics);
-    
     render(<ManagerDashboard />);
     
-    expect(screen.getByText('Welcome back, admin!')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Welcome back, manager!')).toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('Manager Dashboard - Inventory, sales, and reporting access')).toBeInTheDocument();
   });
 
-  it('shows loading spinner while fetching metrics', () => {
-    vi.mocked(dashboardService.getManagerMetrics).mockImplementation(() => 
-      new Promise(() => {}) // Never resolves
-    );
-    
-    render(<ManagerDashboard />);
-    
-    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
-  });
-
-  it('displays key metrics widgets when data is loaded', async () => {
-    vi.mocked(dashboardService.getManagerMetrics).mockResolvedValue(mockMetrics);
+  it('renders welcome message for admin user', async () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockAdminUser,
+      isLoading: false
+    });
     
     render(<ManagerDashboard />);
     
     await waitFor(() => {
-      expect(screen.getByText("Today's Sales")).toBeInTheDocument();
-      expect(screen.getByText("Products")).toBeInTheDocument();
-      expect(screen.getByText("Avg. Transaction")).toBeInTheDocument();
+      expect(screen.getByText('Welcome back, admin!')).toBeInTheDocument();
     });
   });
 
-  it('displays manager-specific quick action widgets', async () => {
-    vi.mocked(dashboardService.getManagerMetrics).mockResolvedValue(mockMetrics);
+  it('displays manager-specific key metrics', async () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
     
     render(<ManagerDashboard />);
     
     await waitFor(() => {
-      expect(screen.getByText("Sales")).toBeInTheDocument();
-      expect(screen.getByText("Inventory")).toBeInTheDocument();
-      expect(screen.getByText("Reports")).toBeInTheDocument();
-      expect(screen.getByText("Product Search")).toBeInTheDocument();
-      expect(screen.getByText("Stock Alerts")).toBeInTheDocument();
-      expect(screen.getByText("Categories")).toBeInTheDocument();
+      expect(screen.getByText('Today\'s Sales')).toBeInTheDocument();
     });
+    
+    expect(screen.getByText('₹3,500')).toBeInTheDocument();
+    expect(screen.getByText('18 transactions')).toBeInTheDocument();
+    expect(screen.getByText('Products')).toBeInTheDocument();
+    expect(screen.getByText('120')).toBeInTheDocument();
+    expect(screen.getByText('3 low stock')).toBeInTheDocument();
+    expect(screen.getByText('Avg. Transaction')).toBeInTheDocument();
+    expect(screen.getByText('₹194')).toBeInTheDocument();
   });
 
-  it('does not display user management widget (admin only)', async () => {
-    vi.mocked(dashboardService.getManagerMetrics).mockResolvedValue(mockMetrics);
+  it('does not display user management metrics', async () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
     
     render(<ManagerDashboard />);
     
     await waitFor(() => {
-      expect(screen.queryByText("User Management")).not.toBeInTheDocument();
+      expect(screen.getByText('Today\'s Sales')).toBeInTheDocument();
     });
+    
+    // Should not show user-related metrics
+    expect(screen.queryByText('Active Users')).not.toBeInTheDocument();
+    expect(screen.queryByText('Total Users')).not.toBeInTheDocument();
   });
 
-  it('displays stock alert status correctly when no low stock', async () => {
-    const metricsWithGoodStock = {
-      ...mockMetrics,
+  it('displays manager-appropriate quick actions', async () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
+    
+    render(<ManagerDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Sales')).toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('Process transactions and manage sales')).toBeInTheDocument();
+    expect(screen.getByText('Inventory')).toBeInTheDocument();
+    expect(screen.getByText('Manage products, categories, and stock')).toBeInTheDocument();
+    expect(screen.getByText('Reports')).toBeInTheDocument();
+    expect(screen.getByText('View sales reports and analytics')).toBeInTheDocument();
+    expect(screen.getByText('Product Search')).toBeInTheDocument();
+    expect(screen.getByText('Stock Alerts')).toBeInTheDocument();
+    expect(screen.getByText('Categories')).toBeInTheDocument();
+  });
+
+  it('does not display user management action', async () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
+    
+    render(<ManagerDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Sales')).toBeInTheDocument();
+    });
+    
+    // Should not show user management
+    expect(screen.queryByText('User Management')).not.toBeInTheDocument();
+    expect(screen.queryByText('Manage user accounts, roles, and permissions')).not.toBeInTheDocument();
+  });
+
+  it('displays stock alert status correctly', async () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
+    
+    render(<ManagerDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Stock Alerts')).toBeInTheDocument();
+    });
+    
+    // Should show warning status for low stock items
+    expect(screen.getByText('3 Items Low')).toBeInTheDocument();
+  });
+
+  it('displays stock alert as OK when no low stock', async () => {
+    const metricsWithNoLowStock = {
+      ...mockManagerMetrics,
       inventory: {
-        ...mockMetrics.inventory,
+        ...mockManagerMetrics.inventory,
         lowStockCount: 0
       }
     };
     
-    vi.mocked(dashboardService.getManagerMetrics).mockResolvedValue(metricsWithGoodStock);
+    mockDashboardService.getManagerMetrics.mockResolvedValue(metricsWithNoLowStock);
+    
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
     
     render(<ManagerDashboard />);
     
     await waitFor(() => {
-      expect(screen.getByText("Stock Alerts")).toBeInTheDocument();
+      expect(screen.getByText('Stock Alerts')).toBeInTheDocument();
     });
+    
+    expect(screen.getByText('All Stock Levels OK')).toBeInTheDocument();
   });
 
-  it('displays stock alert status correctly when low stock exists', async () => {
-    const metricsWithLowStock = {
-      ...mockMetrics,
-      inventory: {
-        ...mockMetrics.inventory,
-        lowStockCount: 5
-      }
-    };
-    
-    vi.mocked(dashboardService.getManagerMetrics).mockResolvedValue(metricsWithLowStock);
+  it('shows access denied for cashier users', () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: { ...mockManagerUser, role: 'cashier' },
+      isLoading: false
+    });
     
     render(<ManagerDashboard />);
     
-    await waitFor(() => {
-      expect(screen.getByText("Stock Alerts")).toBeInTheDocument();
-    });
+    expect(screen.getByText('Access Denied')).toBeInTheDocument();
+    expect(screen.getByText('You don\'t have permission to access this page.')).toBeInTheDocument();
   });
 
-  it('displays recent transactions section', async () => {
-    vi.mocked(dashboardService.getManagerMetrics).mockResolvedValue(mockMetrics);
+  it('shows loading state initially', () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
+    
+    // Mock a delayed response
+    mockDashboardService.getManagerMetrics.mockImplementation(() => 
+      new Promise(resolve => {
+        setTimeout(() => resolve(mockManagerMetrics), 100);
+      })
+    );
     
     render(<ManagerDashboard />);
     
-    await waitFor(() => {
-      expect(screen.getByText("Recent Transactions")).toBeInTheDocument();
-      expect(screen.getByText("₹180")).toBeInTheDocument();
-      expect(screen.getByText("2 items • cashier1")).toBeInTheDocument();
-      expect(screen.getByText("upi")).toBeInTheDocument();
-    });
+    expect(screen.getByRole('status')).toBeInTheDocument(); // LoadingSpinner has role="status"
   });
 
-  it('displays top products section', async () => {
-    vi.mocked(dashboardService.getManagerMetrics).mockResolvedValue(mockMetrics);
-    
-    render(<ManagerDashboard />);
-    
-    await waitFor(() => {
-      expect(screen.getByText("Top Products")).toBeInTheDocument();
-      expect(screen.getByText("Srimad Bhagavatam")).toBeInTheDocument();
-      expect(screen.getByText("12 sales")).toBeInTheDocument();
-      expect(screen.getByText("₹2,400")).toBeInTheDocument();
+  it('handles service error gracefully', async () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
     });
-  });
-
-  it('shows error message when metrics fail to load', async () => {
-    vi.mocked(dashboardService.getManagerMetrics).mockRejectedValue(new Error('Failed to load'));
+    
+    mockDashboardService.getManagerMetrics.mockRejectedValue(new Error('Service error'));
     
     render(<ManagerDashboard />);
     
@@ -222,46 +264,125 @@ describe('ManagerDashboard', () => {
     });
   });
 
-  it('shows access denied for cashier users', () => {
-    // Mock cashier user
-    vi.mocked(require('@/hooks/useAuth').useAuth).mockReturnValue({
-      user: { id: '1', username: 'cashier', role: 'cashier' },
+  it('displays recent transactions', async () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
       isLoading: false
     });
     
     render(<ManagerDashboard />);
     
-    expect(screen.getByText('Access Denied')).toBeInTheDocument();
-    expect(screen.getByText("You don't have permission to access this page.")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Recent Transactions')).toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('₹180')).toBeInTheDocument();
+    expect(screen.getByText('2 items • cashier1')).toBeInTheDocument();
+    expect(screen.getByText('upi')).toBeInTheDocument();
   });
 
-  it('displays empty state for no recent transactions', async () => {
-    const metricsWithoutTransactions = {
-      ...mockMetrics,
+  it('displays top products', async () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
+    
+    render(<ManagerDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Top Products')).toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('Srimad Bhagavatam')).toBeInTheDocument();
+    expect(screen.getByText('12 sales')).toBeInTheDocument();
+    expect(screen.getByText('₹2,400')).toBeInTheDocument();
+  });
+
+  it('displays trend indicators correctly', async () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
+    
+    render(<ManagerDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Today\'s Sales')).toBeInTheDocument();
+    });
+    
+    // Should show upward trend
+    expect(screen.getByText('+8% vs yesterday')).toBeInTheDocument();
+  });
+
+  it('calls dashboard service with correct method', async () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
+    
+    render(<ManagerDashboard />);
+    
+    await waitFor(() => {
+      expect(mockDashboardService.getManagerMetrics).toHaveBeenCalledOnce();
+    });
+  });
+
+  it('displays categories count correctly', async () => {
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
+    
+    render(<ManagerDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Categories')).toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('8')).toBeInTheDocument();
+  });
+
+  it('handles empty recent transactions', async () => {
+    const emptyMetrics = {
+      ...mockManagerMetrics,
       recentTransactions: []
     };
     
-    vi.mocked(dashboardService.getManagerMetrics).mockResolvedValue(metricsWithoutTransactions);
+    mockDashboardService.getManagerMetrics.mockResolvedValue(emptyMetrics);
+    
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
     
     render(<ManagerDashboard />);
     
     await waitFor(() => {
-      expect(screen.getByText("No recent transactions")).toBeInTheDocument();
+      expect(screen.getByText('Recent Transactions')).toBeInTheDocument();
     });
+    
+    expect(screen.getByText('No recent transactions')).toBeInTheDocument();
   });
 
-  it('displays empty state for no top products', async () => {
-    const metricsWithoutProducts = {
-      ...mockMetrics,
+  it('handles empty top products', async () => {
+    const emptyMetrics = {
+      ...mockManagerMetrics,
       topProducts: []
     };
     
-    vi.mocked(dashboardService.getManagerMetrics).mockResolvedValue(metricsWithoutProducts);
+    mockDashboardService.getManagerMetrics.mockResolvedValue(emptyMetrics);
+    
+    vi.mocked(vi.importActual('@/hooks/useAuth')).useAuth.mockReturnValue({
+      user: mockManagerUser,
+      isLoading: false
+    });
     
     render(<ManagerDashboard />);
     
     await waitFor(() => {
-      expect(screen.getByText("No sales data available")).toBeInTheDocument();
+      expect(screen.getByText('Top Products')).toBeInTheDocument();
     });
+    
+    expect(screen.getByText('No sales data available')).toBeInTheDocument();
   });
 });

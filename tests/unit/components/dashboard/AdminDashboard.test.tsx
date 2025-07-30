@@ -1,50 +1,34 @@
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import AdminDashboard from '@/app/(dashboard)/dashboard/admin/page';
-import { dashboardService } from '@/services/dashboard/dashboardService';
 
-// Mock the auth hook
+// Mock the useAuth hook
+const mockUser = {
+  id: 'admin-1',
+  username: 'admin',
+  role: 'admin' as const,
+  isActive: true
+};
+
+const mockUseAuth = vi.fn();
 vi.mock('@/hooks/useAuth', () => ({
-  useAuth: vi.fn(() => ({
-    user: { id: '1', username: 'admin', role: 'admin' },
-    isLoading: false
-  }))
+  useAuth: mockUseAuth
 }));
 
-// Mock the dashboard service
-vi.mock('@/services/dashboard/dashboardService', () => ({
-  dashboardService: {
-    getAdminMetrics: vi.fn()
-  }
-}));
+// Mock fetch for API calls
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
 
-// Mock the DashboardWidget component
-vi.mock('@/components/dashboard/DashboardWidget', () => ({
-  DashboardWidget: ({ title, value, action }: any) => (
-    <div data-testid="dashboard-widget">
-      <h3>{title}</h3>
-      {value && <span data-testid="widget-value">{value}</span>}
-      {action && (
-        <button data-testid="widget-action">{action.label}</button>
-      )}
-    </div>
-  )
-}));
-
-// Mock the LoadingSpinner component
-vi.mock('@/components/ui/LoadingSpinner', () => ({
-  LoadingSpinner: ({ size }: { size?: string }) => (
-    <div data-testid="loading-spinner" data-size={size}>Loading...</div>
-  )
-}));
-
-const mockMetrics = {
+// Mock dashboard metrics
+const mockDashboardMetrics = {
   todaySales: {
     total: 5000,
     transactionCount: 25,
     averageTransaction: 200,
-    trend: { value: 15, direction: 'up' as const }
+    trend: {
+      value: 15,
+      direction: 'up' as const
+    }
   },
   inventory: {
     totalProducts: 150,
@@ -59,20 +43,34 @@ const mockMetrics = {
   },
   recentTransactions: [
     {
-      id: '1',
+      id: 'txn-1',
       total: 250,
       itemCount: 3,
       paymentMethod: 'cash',
-      createdAt: new Date(),
+      createdAt: new Date('2024-01-15T10:30:00Z'),
       userName: 'cashier1'
+    },
+    {
+      id: 'txn-2',
+      total: 180,
+      itemCount: 2,
+      paymentMethod: 'upi',
+      createdAt: new Date('2024-01-15T11:15:00Z'),
+      userName: 'cashier2'
     }
   ],
   topProducts: [
     {
-      id: '1',
+      id: 'prod-1',
       name: 'Bhagavad Gita',
       salesCount: 15,
       revenue: 3750
+    },
+    {
+      id: 'prod-2',
+      name: 'Srimad Bhagavatam',
+      salesCount: 12,
+      revenue: 2400
     }
   ]
 };
@@ -80,82 +78,122 @@ const mockMetrics = {
 describe('AdminDashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      isLoading: false
+    });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockDashboardMetrics)
+    });
   });
 
-  it('renders welcome message for admin user', async () => {
-    vi.mocked(dashboardService.getAdminMetrics).mockResolvedValue(mockMetrics);
-    
+  it('renders welcome message with admin username', async () => {
     render(<AdminDashboard />);
     
-    expect(screen.getByText('Welcome back, admin!')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Welcome back, admin!')).toBeInTheDocument();
+    });
+    
     expect(screen.getByText('Administrator Dashboard - Full system access and management')).toBeInTheDocument();
   });
 
-  it('shows loading spinner while fetching metrics', () => {
-    vi.mocked(dashboardService.getAdminMetrics).mockImplementation(() => 
-      new Promise(() => {}) // Never resolves
-    );
-    
-    render(<AdminDashboard />);
-    
-    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
-  });
-
-  it('displays metrics widgets when data is loaded', async () => {
-    vi.mocked(dashboardService.getAdminMetrics).mockResolvedValue(mockMetrics);
-    
+  it('displays key metrics widgets', async () => {
     render(<AdminDashboard />);
     
     await waitFor(() => {
-      expect(screen.getByText("Today's Sales")).toBeInTheDocument();
-      expect(screen.getByText("Total Products")).toBeInTheDocument();
-      expect(screen.getByText("Active Users")).toBeInTheDocument();
-      expect(screen.getByText("Categories")).toBeInTheDocument();
+      expect(screen.getByText('Today\'s Sales')).toBeInTheDocument();
     });
+    
+    expect(screen.getByText('₹5,000')).toBeInTheDocument();
+    expect(screen.getByText('25 transactions')).toBeInTheDocument();
+    expect(screen.getByText('Total Products')).toBeInTheDocument();
+    expect(screen.getByText('150')).toBeInTheDocument();
+    expect(screen.getByText('5 low stock')).toBeInTheDocument();
+    expect(screen.getByText('Active Users')).toBeInTheDocument();
+    expect(screen.getByText('6')).toBeInTheDocument();
+    expect(screen.getByText('of 8 total')).toBeInTheDocument();
+    expect(screen.getByText('Categories')).toBeInTheDocument();
+    expect(screen.getByText('10')).toBeInTheDocument();
   });
 
   it('displays quick action widgets', async () => {
-    vi.mocked(dashboardService.getAdminMetrics).mockResolvedValue(mockMetrics);
+    render(<AdminDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('User Management')).toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('Manage user accounts, roles, and permissions')).toBeInTheDocument();
+    expect(screen.getByText('Sales')).toBeInTheDocument();
+    expect(screen.getByText('Process transactions and manage sales')).toBeInTheDocument();
+    expect(screen.getByText('Inventory')).toBeInTheDocument();
+    expect(screen.getByText('Manage products, categories, and stock')).toBeInTheDocument();
+    expect(screen.getByText('Reports')).toBeInTheDocument();
+    expect(screen.getByText('View sales reports and analytics')).toBeInTheDocument();
+    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByText('System Status')).toBeInTheDocument();
+  });
+
+  it('displays recent transactions', async () => {
+    render(<AdminDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Recent Transactions')).toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('₹250')).toBeInTheDocument();
+    expect(screen.getByText('3 items • cashier1')).toBeInTheDocument();
+    expect(screen.getByText('cash')).toBeInTheDocument();
+    expect(screen.getByText('₹180')).toBeInTheDocument();
+    expect(screen.getByText('2 items • cashier2')).toBeInTheDocument();
+    expect(screen.getByText('upi')).toBeInTheDocument();
+  });
+
+  it('displays top products', async () => {
+    render(<AdminDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Top Products')).toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('Bhagavad Gita')).toBeInTheDocument();
+    expect(screen.getByText('15 sales')).toBeInTheDocument();
+    expect(screen.getByText('₹3,750')).toBeInTheDocument();
+    expect(screen.getByText('Srimad Bhagavatam')).toBeInTheDocument();
+    expect(screen.getByText('12 sales')).toBeInTheDocument();
+    expect(screen.getByText('₹2,400')).toBeInTheDocument();
+  });
+
+  it('shows loading state initially', () => {
+    // Mock a delayed response
+    mockFetch.mockImplementation(() => new Promise(resolve => {
+      setTimeout(() => resolve({
+        ok: true,
+        json: () => Promise.resolve(mockDashboardMetrics)
+      }), 100);
+    }));
+    
+    render(<AdminDashboard />);
+    
+    expect(screen.getByText('Loading...')).toBeInTheDocument(); // LoadingSpinner screen reader text
+  });
+
+  it('handles API error gracefully', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 500
+    });
     
     render(<AdminDashboard />);
     
     await waitFor(() => {
-      expect(screen.getByText("User Management")).toBeInTheDocument();
-      expect(screen.getByText("Sales")).toBeInTheDocument();
-      expect(screen.getByText("Inventory")).toBeInTheDocument();
-      expect(screen.getByText("Reports")).toBeInTheDocument();
-      expect(screen.getByText("Settings")).toBeInTheDocument();
-      expect(screen.getByText("System Status")).toBeInTheDocument();
+      expect(screen.getByText('Failed to load dashboard data')).toBeInTheDocument();
     });
   });
 
-  it('displays recent transactions when available', async () => {
-    vi.mocked(dashboardService.getAdminMetrics).mockResolvedValue(mockMetrics);
-    
-    render(<AdminDashboard />);
-    
-    await waitFor(() => {
-      expect(screen.getByText("Recent Transactions")).toBeInTheDocument();
-      expect(screen.getByText("₹250")).toBeInTheDocument();
-      expect(screen.getByText("3 items • cashier1")).toBeInTheDocument();
-    });
-  });
-
-  it('displays top products when available', async () => {
-    vi.mocked(dashboardService.getAdminMetrics).mockResolvedValue(mockMetrics);
-    
-    render(<AdminDashboard />);
-    
-    await waitFor(() => {
-      expect(screen.getByText("Top Products")).toBeInTheDocument();
-      expect(screen.getByText("Bhagavad Gita")).toBeInTheDocument();
-      expect(screen.getByText("15 sales")).toBeInTheDocument();
-      expect(screen.getByText("₹3,750")).toBeInTheDocument();
-    });
-  });
-
-  it('shows error message when metrics fail to load', async () => {
-    vi.mocked(dashboardService.getAdminMetrics).mockRejectedValue(new Error('Failed to load'));
+  it('handles network error gracefully', async () => {
+    mockFetch.mockRejectedValue(new Error('Network error'));
     
     render(<AdminDashboard />);
     
@@ -165,45 +203,107 @@ describe('AdminDashboard', () => {
   });
 
   it('shows access denied for non-admin users', () => {
-    // Mock non-admin user
-    vi.mocked(require('@/hooks/useAuth').useAuth).mockReturnValue({
-      user: { id: '1', username: 'cashier', role: 'cashier' },
+    // Override the mock for this specific test
+    mockUseAuth.mockReturnValue({
+      user: { ...mockUser, role: 'cashier' },
       isLoading: false
     });
     
     render(<AdminDashboard />);
     
     expect(screen.getByText('Access Denied')).toBeInTheDocument();
-    expect(screen.getByText("You don't have permission to access this page.")).toBeInTheDocument();
+    expect(screen.getByText('You don\'t have permission to access this page.')).toBeInTheDocument();
   });
 
   it('displays empty state for no recent transactions', async () => {
-    const metricsWithoutTransactions = {
-      ...mockMetrics,
+    const emptyMetrics = {
+      ...mockDashboardMetrics,
       recentTransactions: []
     };
     
-    vi.mocked(dashboardService.getAdminMetrics).mockResolvedValue(metricsWithoutTransactions);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(emptyMetrics)
+    });
     
     render(<AdminDashboard />);
     
     await waitFor(() => {
-      expect(screen.getByText("No recent transactions")).toBeInTheDocument();
+      expect(screen.getByText('Recent Transactions')).toBeInTheDocument();
     });
+    
+    expect(screen.getByText('No recent transactions')).toBeInTheDocument();
   });
 
   it('displays empty state for no top products', async () => {
-    const metricsWithoutProducts = {
-      ...mockMetrics,
+    const emptyMetrics = {
+      ...mockDashboardMetrics,
       topProducts: []
     };
     
-    vi.mocked(dashboardService.getAdminMetrics).mockResolvedValue(metricsWithoutProducts);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(emptyMetrics)
+    });
     
     render(<AdminDashboard />);
     
     await waitFor(() => {
-      expect(screen.getByText("No sales data available")).toBeInTheDocument();
+      expect(screen.getByText('Top Products')).toBeInTheDocument();
     });
+    
+    expect(screen.getByText('No sales data available')).toBeInTheDocument();
+  });
+
+  it('makes correct API call', async () => {
+    render(<AdminDashboard />);
+    
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/dashboard/admin');
+    });
+  });
+
+  it('displays trend indicators correctly', async () => {
+    render(<AdminDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Today\'s Sales')).toBeInTheDocument();
+    });
+    
+    // Should show upward trend
+    expect(screen.getByText('+15% vs yesterday')).toBeInTheDocument();
+  });
+
+  it('handles low stock warning correctly', async () => {
+    render(<AdminDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Total Products')).toBeInTheDocument();
+    });
+    
+    // Should show attention needed status for low stock
+    expect(screen.getByText('Attention Needed')).toBeInTheDocument();
+  });
+
+  it('displays system status as online', async () => {
+    render(<AdminDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('System Status')).toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('All Systems Online')).toBeInTheDocument();
+  });
+
+  it('formats transaction times correctly', async () => {
+    render(<AdminDashboard />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Recent Transactions')).toBeInTheDocument();
+    });
+    
+    // Should display formatted time (exact format may vary by locale)
+    const timeElements = screen.getAllByText(/\d{1,2}:\d{2}:\d{2}/);
+    expect(timeElements.length).toBeGreaterThan(0);
   });
 });
