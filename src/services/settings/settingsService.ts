@@ -115,23 +115,23 @@ export class SettingsService {
   validateSettings(settings: Partial<SystemSettings>): string[] {
     const errors: string[] = [];
 
-    if (settings.security?.sessionTimeout && settings.security.sessionTimeout < 5) {
+    if (settings.security?.sessionTimeout !== undefined && settings.security.sessionTimeout < 5) {
       errors.push('Session timeout must be at least 5 minutes');
     }
 
-    if (settings.security?.pinComplexity?.minLength && settings.security.pinComplexity.minLength < 4) {
+    if (settings.security?.pinComplexity?.minLength !== undefined && settings.security.pinComplexity.minLength < 4) {
       errors.push('PIN minimum length must be at least 4');
     }
 
-    if (settings.sync?.interval && settings.sync.interval < 1) {
+    if (settings.sync?.interval !== undefined && settings.sync.interval < 1) {
       errors.push('Sync interval must be at least 1 minute');
     }
 
-    if (settings.backup?.backupInterval && settings.backup.backupInterval < 1) {
+    if (settings.backup?.backupInterval !== undefined && settings.backup.backupInterval < 1) {
       errors.push('Backup interval must be at least 1 hour');
     }
 
-    if (settings.auditLog?.retentionDays && settings.auditLog.retentionDays < 1) {
+    if (settings.auditLog?.retentionDays !== undefined && settings.auditLog.retentionDays < 1) {
       errors.push('Audit log retention must be at least 1 day');
     }
 
