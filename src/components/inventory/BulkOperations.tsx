@@ -5,49 +5,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Modal } from '@/components/ui/Modal';
-
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  basePrice: number;
-  category?: {
-    id: string;
-    name: string;
-  };
-  keywords: string[];
-  metadata: {
-    author?: string;
-    publisher?: string;
-    language?: string;
-    material?: string;
-    customAttributes: Record<string, string>;
-  };
-  variants: Array<{
-    id: string;
-    name: string;
-    price: number;
-    stockQuantity: number;
-    attributes: Record<string, string>;
-  }>;
-  isActive: boolean;
-  createdAt: string;
-}
-
-interface Category {
-  id: string;
-  name: string;
-  description?: string;
-  parentId?: string;
-  keywords: string[];
-  isActive: boolean;
-  productCount: number;
-  children: Category[];
-}
+import type { EnhancedProduct } from '@/services/database/products';
+import type { CategoryHierarchy } from '@/services/database/categories';
 
 interface BulkOperationsProps {
-  products: Product[];
-  categories: Category[];
+  products: EnhancedProduct[];
+  categories: CategoryHierarchy[];
   onOperationComplete: () => void;
   isLoading?: boolean;
 }
@@ -351,7 +314,7 @@ export function BulkOperations({
     }
   };
 
-  const flatCategories = categories.flatMap(function flatten(cat): Category[] {
+  const flatCategories = categories.flatMap(function flatten(cat): CategoryHierarchy[] {
     return [cat, ...cat.children.flatMap(flatten)];
   });
 

@@ -1,63 +1,7 @@
 import { getLocalDb } from '@/lib/db/connection';
-import { transactions, products, users, categories } from '@/lib/db/schema';
+import { transactions, products, users, categories, transactionItems, productVariants } from '@/lib/db/schema';
 import { sql, eq, and, gte, desc, count } from 'drizzle-orm';
-
-export interface DashboardMetrics {
-  // Sales metrics
-  todaySales: {
-    total: number;
-    transactionCount: number;
-    averageTransaction: number;
-    trend: {
-      value: number;
-      direction: 'up' | 'down' | 'neutral';
-    };
-  };
-  
-  // Inventory metrics
-  inventory: {
-    totalProducts: number;
-    lowStockCount: number;
-    totalCategories: number;
-    outOfStockCount: number;
-  };
-  
-  // User metrics (admin only)
-  users: {
-    totalUsers: number;
-    activeUsers: number;
-    recentLogins: number;
-  };
-  
-  // Recent activity
-  recentTransactions: Array<{
-    id: string;
-    total: number;
-    itemCount: number;
-    paymentMethod: string;
-    createdAt: Date;
-    userName: string;
-  }>;
-  
-  // Top products
-  topProducts: Array<{
-    id: string;
-    name: string;
-    salesCount: number;
-    revenue: number;
-  }>;
-}
-
-export interface QuickStats {
-  label: string;
-  value: string | number;
-  subValue?: string;
-  trend?: {
-    value: number;
-    direction: 'up' | 'down' | 'neutral';
-    label: string;
-  };
-}
+import type { DashboardMetrics, QuickStats } from '@/types';
 
 export class DashboardService {
   private db = getLocalDb();
@@ -83,7 +27,7 @@ export class DashboardService {
     ]);
 
     // Calculate trend
-    const salesTrend = this.calculateTrend(todaySales.total, yesterdaySales.total);
+    const salesTrend = this.calculateTrend(todaySales.total, yesterdaySales);
 
     return {
       todaySales: {
@@ -115,7 +59,7 @@ export class DashboardService {
       this.getTopProducts(5)
     ]);
 
-    const salesTrend = this.calculateTrend(todaySales.total, yesterdaySales.total);
+    const salesTrend = this.calculateTrend(todaySales.total, yesterdaySales);
 
     return {
       todaySales: {
@@ -141,7 +85,7 @@ export class DashboardService {
       this.getUserTransactions(userId, 10)
     ]);
 
-    const salesTrend = this.calculateTrend(todaySales.total, yesterdaySales.total);
+    const salesTrend = this.calculateTrend(todaySales.total, yesterdaySales);
 
     return {
       todaySales: {
@@ -188,7 +132,7 @@ export class DashboardService {
   /**
    * Get yesterday's sales for trend calculation
    */
-  private async getYesterdaySales() {
+  private async getYesterdaySales(): Promise<number> {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     yesterday.setHours(0, 0, 0, 0);
@@ -208,19 +152,17 @@ export class DashboardService {
         )
       );
 
-    return result[0]?.total || 0;
+    return Number(result[0]?.total || 0);
   }
 
   /**
    * Get inventory statistics
    */
   private async getInventoryStats() {
-    const [productStats, categoryCount] = await Promise.all([
+    const [productStats, categoryCount, variantStats] = await Promise.all([
       this.db
         .select({
           totalProducts: sql<number>`COUNT(*)`,
-          lowStockCount: sql<number>`SUM(CASE WHEN ${products.stockQuantity} <= 10 AND ${products.stockQuantity} > 0 THEN 1 ELSE 0 END)`,
-          outOfStockCount: sql<number>`SUM(CASE WHEN ${products.stockQuantity} = 0 THEN 1 ELSE 0 END)`,
         })
         .from(products)
         .where(eq(products.isActive, true)),
@@ -228,13 +170,22 @@ export class DashboardService {
       this.db
         .select({ count: count() })
         .from(categories)
-        .where(eq(categories.isActive, true))
+        .where(eq(categories.isActive, true)),
+
+      this.db
+        .select({
+          lowStockCount: sql<number>`COUNT(CASE WHEN ${productVariants.stockQuantity} <= 10 AND ${productVariants.stockQuantity} > 0 THEN 1 END)`,
+          outOfStockCount: sql<number>`COUNT(CASE WHEN ${productVariants.stockQuantity} = 0 THEN 1 END)`,
+        })
+        .from(productVariants)
+        .innerJoin(products, eq(productVariants.productId, products.id))
+        .where(eq(products.isActive, true))
     ]);
 
     return {
       totalProducts: productStats[0]?.totalProducts || 0,
-      lowStockCount: productStats[0]?.lowStockCount || 0,
-      outOfStockCount: productStats[0]?.outOfStockCount || 0,
+      lowStockCount: variantStats[0]?.lowStockCount || 0,
+      outOfStockCount: variantStats[0]?.outOfStockCount || 0,
       totalCategories: categoryCount[0]?.count || 0,
     };
   }
@@ -265,7 +216,11 @@ export class DashboardService {
       .select({
         id: transactions.id,
         total: transactions.total,
-        itemCount: sql<number>`json_array_length(${transactions.items})`,
+        itemCount: sql<number>`(
+          SELECT COUNT(*) 
+          FROM ${transactionItems} 
+          WHERE ${transactionItems.transactionId} = ${transactions.id}
+        )`,
         paymentMethod: transactions.paymentMethod,
         createdAt: transactions.createdAt,
         userName: users.username,
@@ -277,7 +232,11 @@ export class DashboardService {
       .limit(limit);
 
     return result.map(row => ({
-      ...row,
+      id: row.id,
+      total: row.total,
+      itemCount: Number(row.itemCount),
+      paymentMethod: row.paymentMethod,
+      createdAt: row.createdAt || new Date(),
       userName: row.userName || 'Unknown User'
     }));
   }
@@ -290,7 +249,11 @@ export class DashboardService {
       .select({
         id: transactions.id,
         total: transactions.total,
-        itemCount: sql<number>`json_array_length(${transactions.items})`,
+        itemCount: sql<number>`(
+          SELECT COUNT(*) 
+          FROM ${transactionItems} 
+          WHERE ${transactionItems.transactionId} = ${transactions.id}
+        )`,
         paymentMethod: transactions.paymentMethod,
         createdAt: transactions.createdAt,
         userName: users.username,
@@ -307,7 +270,11 @@ export class DashboardService {
       .limit(limit);
 
     return result.map(row => ({
-      ...row,
+      id: row.id,
+      total: row.total,
+      itemCount: Number(row.itemCount),
+      paymentMethod: row.paymentMethod,
+      createdAt: row.createdAt || new Date(),
       userName: row.userName || 'Unknown User'
     }));
   }
@@ -316,21 +283,32 @@ export class DashboardService {
    * Get top-selling products
    */
   private async getTopProducts(limit: number = 5) {
-    // This is a simplified version - in a real implementation,
-    // you'd want to track product sales in a separate table
     const result = await this.db
       .select({
         id: products.id,
         name: products.name,
-        salesCount: sql<number>`COALESCE(${products.salesCount}, 0)`,
-        revenue: sql<number>`COALESCE(${products.salesCount} * ${products.basePrice}, 0)`,
+        salesCount: sql<number>`COALESCE(SUM(${transactionItems.quantity}), 0)`,
+        revenue: sql<number>`COALESCE(SUM(${transactionItems.totalPrice}), 0)`,
       })
       .from(products)
-      .where(eq(products.isActive, true))
-      .orderBy(desc(sql`COALESCE(${products.salesCount}, 0)`))
+      .leftJoin(transactionItems, eq(products.id, transactionItems.productId))
+      .leftJoin(transactions, eq(transactionItems.transactionId, transactions.id))
+      .where(
+        and(
+          eq(products.isActive, true),
+          sql`(${transactions.status} = 'completed' OR ${transactions.status} IS NULL)`
+        )
+      )
+      .groupBy(products.id, products.name)
+      .orderBy(desc(sql`COALESCE(SUM(${transactionItems.quantity}), 0)`))
       .limit(limit);
 
-    return result;
+    return result.map(row => ({
+      id: row.id,
+      name: row.name,
+      salesCount: Number(row.salesCount),
+      revenue: Number(row.revenue),
+    }));
   }
 
   /**
@@ -389,8 +367,8 @@ export class DashboardService {
       },
       {
         label: 'Active Users',
-        value: metrics.users.activeUsers,
-        subValue: `of ${metrics.users.totalUsers} total`
+        value: metrics.users?.activeUsers || 0,
+        subValue: `of ${metrics.users?.totalUsers || 0} total`
       },
       {
         label: 'Categories',
@@ -452,3 +430,4 @@ export class DashboardService {
 
 // Export singleton instance
 export const dashboardService = new DashboardService();
+export default dashboardService;

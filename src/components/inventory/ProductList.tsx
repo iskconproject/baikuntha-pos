@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
-import type { Category } from '@/types';
-import type { EnhancedProduct } from '@/services/database/products';
+import React, { useState, useEffect, useMemo } from "react";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import type { EnhancedProduct } from "@/services/database/products";
+import type { CategoryHierarchy } from "@/services/database/categories";
 
 interface ProductListProps {
   products: EnhancedProduct[];
-  categories: Category[];
+  categories: CategoryHierarchy[];
   onProductSelect: (product: EnhancedProduct) => void;
   onProductEdit: (product: EnhancedProduct) => void;
   onProductDelete: (productId: string) => void;
@@ -26,29 +26,37 @@ export function ProductList({
   onCreateProduct,
   isLoading = false,
 }: ProductListProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  const [stockFilter, setStockFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  const [stockFilter, setStockFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
-    let filtered = products.filter(product => {
+    let filtered = products.filter((product) => {
       // Text search
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesName = product.name.toLowerCase().includes(query);
-        const matchesDescription = product.description?.toLowerCase().includes(query);
-        const matchesKeywords = product.keywords.some(keyword => 
+        const matchesDescription = product.description
+          ?.toLowerCase()
+          .includes(query);
+        const matchesKeywords = product.keywords.some((keyword) =>
           keyword.toLowerCase().includes(query)
         );
-        const matchesMetadata = Object.values(product.metadata).some(value => 
-          typeof value === 'string' && value.toLowerCase().includes(query)
+        const matchesMetadata = Object.values(product.metadata).some(
+          (value) =>
+            typeof value === "string" && value.toLowerCase().includes(query)
         );
-        
-        if (!matchesName && !matchesDescription && !matchesKeywords && !matchesMetadata) {
+
+        if (
+          !matchesName &&
+          !matchesDescription &&
+          !matchesKeywords &&
+          !matchesMetadata
+        ) {
           return false;
         }
       }
@@ -67,18 +75,22 @@ export function ProductList({
       }
 
       // Stock filter
-      if (stockFilter === 'in-stock') {
-        const hasStock = product.variants.length === 0 || 
-          product.variants.some(variant => variant.stockQuantity > 0);
+      if (stockFilter === "in-stock") {
+        const hasStock =
+          product.variants.length === 0 ||
+          product.variants.some((variant) => (variant.stockQuantity || 0) > 0);
         if (!hasStock) return false;
-      } else if (stockFilter === 'low-stock') {
-        const hasLowStock = product.variants.some(variant => 
-          variant.stockQuantity > 0 && variant.stockQuantity <= 5
+      } else if (stockFilter === "low-stock") {
+        const hasLowStock = product.variants.some(
+          (variant) =>
+            (variant.stockQuantity || 0) > 0 &&
+            (variant.stockQuantity || 0) <= 5
         );
         if (!hasLowStock) return false;
-      } else if (stockFilter === 'out-of-stock') {
-        const isOutOfStock = product.variants.length > 0 && 
-          product.variants.every(variant => variant.stockQuantity === 0);
+      } else if (stockFilter === "out-of-stock") {
+        const isOutOfStock =
+          product.variants.length > 0 &&
+          product.variants.every((variant) => variant.stockQuantity === 0);
         if (!isOutOfStock) return false;
       }
 
@@ -90,57 +102,70 @@ export function ProductList({
       let aValue: any, bValue: any;
 
       switch (sortBy) {
-        case 'price':
+        case "price":
           aValue = a.basePrice;
           bValue = b.basePrice;
           break;
-        case 'category':
-          aValue = a.category?.name || '';
-          bValue = b.category?.name || '';
+        case "category":
+          aValue = a.category?.name || "";
+          bValue = b.category?.name || "";
           break;
-        case 'created':
-          aValue = new Date(a.createdAt);
-          bValue = new Date(b.createdAt);
+        case "created":
+          aValue = new Date(a.createdAt || 0);
+          bValue = new Date(b.createdAt || 0);
           break;
         default: // name
           aValue = a.name.toLowerCase();
           bValue = b.name.toLowerCase();
       }
 
-      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
 
     return filtered;
-  }, [products, searchQuery, selectedCategory, priceRange, stockFilter, sortBy, sortOrder]);
+  }, [
+    products,
+    searchQuery,
+    selectedCategory,
+    priceRange,
+    stockFilter,
+    sortBy,
+    sortOrder,
+  ]);
 
-  const getTotalStock = (product: Product): number => {
-    return product.variants.reduce((total, variant) => total + variant.stockQuantity, 0);
+  const getTotalStock = (product: EnhancedProduct): number => {
+    return product.variants.reduce(
+      (total, variant) => total + (variant.stockQuantity || 0),
+      0
+    );
   };
 
-  const getStockStatus = (product: Product): { status: string; className: string } => {
+  const getStockStatus = (
+    product: EnhancedProduct
+  ): { status: string; className: string } => {
     if (product.variants.length === 0) {
-      return { status: 'No variants', className: 'text-gray-500' };
+      return { status: "No variants", className: "text-gray-500" };
     }
 
     const totalStock = getTotalStock(product);
     if (totalStock === 0) {
-      return { status: 'Out of stock', className: 'text-red-600' };
+      return { status: "Out of stock", className: "text-red-600" };
     } else if (totalStock <= 5) {
-      return { status: 'Low stock', className: 'text-yellow-600' };
+      return { status: "Low stock", className: "text-yellow-600" };
     } else {
-      return { status: 'In stock', className: 'text-green-600' };
+      return { status: "In stock", className: "text-green-600" };
     }
   };
 
   const clearFilters = () => {
-    setSearchQuery('');
-    setSelectedCategory('');
-    setPriceRange({ min: '', max: '' });
-    setStockFilter('all');
-    setSortBy('name');
-    setSortOrder('asc');
+    setSearchQuery("");
+    setSelectedCategory("");
+    setPriceRange({ min: "", max: "" });
+    setStockFilter("all");
+    setSortBy("name");
+    setSortOrder("asc");
   };
 
   return (
@@ -184,8 +209,11 @@ export function ProductList({
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               options={[
-                { value: '', label: 'All categories' },
-                ...categories.map(cat => ({ value: cat.id, label: cat.name })),
+                { value: "", label: "All categories" },
+                ...categories.map((cat) => ({
+                  value: cat.id,
+                  label: cat.name,
+                })),
               ]}
             />
           </div>
@@ -198,10 +226,10 @@ export function ProductList({
               value={stockFilter}
               onChange={(e) => setStockFilter(e.target.value)}
               options={[
-                { value: 'all', label: 'All products' },
-                { value: 'in-stock', label: 'In stock' },
-                { value: 'low-stock', label: 'Low stock' },
-                { value: 'out-of-stock', label: 'Out of stock' },
+                { value: "all", label: "All products" },
+                { value: "in-stock", label: "In stock" },
+                { value: "low-stock", label: "Low stock" },
+                { value: "out-of-stock", label: "Out of stock" },
               ]}
             />
           </div>
@@ -215,20 +243,22 @@ export function ProductList({
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 options={[
-                  { value: 'name', label: 'Name' },
-                  { value: 'price', label: 'Price' },
-                  { value: 'category', label: 'Category' },
-                  { value: 'created', label: 'Created' },
+                  { value: "name", label: "Name" },
+                  { value: "price", label: "Price" },
+                  { value: "category", label: "Category" },
+                  { value: "created", label: "Created" },
                 ]}
                 className="flex-1"
               />
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                onClick={() =>
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                }
                 className="px-3"
               >
-                {sortOrder === 'asc' ? '↑' : '↓'}
+                {sortOrder === "asc" ? "↑" : "↓"}
               </Button>
             </div>
           </div>
@@ -243,14 +273,18 @@ export function ProductList({
               <Input
                 type="number"
                 value={priceRange.min}
-                onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                onChange={(e) =>
+                  setPriceRange((prev) => ({ ...prev, min: e.target.value }))
+                }
                 placeholder="Min price"
                 className="flex-1"
               />
               <Input
                 type="number"
                 value={priceRange.max}
-                onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                onChange={(e) =>
+                  setPriceRange((prev) => ({ ...prev, max: e.target.value }))
+                }
                 placeholder="Max price"
                 className="flex-1"
               />
@@ -274,7 +308,10 @@ export function ProductList({
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white p-6 rounded-lg border animate-pulse">
+            <div
+              key={i}
+              className="bg-white p-6 rounded-lg border animate-pulse"
+            >
               <div className="h-4 bg-gray-200 rounded mb-2"></div>
               <div className="h-3 bg-gray-200 rounded mb-4"></div>
               <div className="h-6 bg-gray-200 rounded mb-2"></div>
@@ -285,7 +322,9 @@ export function ProductList({
       ) : filteredProducts.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">No products found</p>
-          <p className="text-gray-400">Try adjusting your filters or create a new product</p>
+          <p className="text-gray-400">
+            Try adjusting your filters or create a new product
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -339,7 +378,9 @@ export function ProductList({
                     <span className="text-lg font-bold text-gray-900">
                       ₹{product.basePrice.toFixed(2)}
                     </span>
-                    <span className={`text-sm font-medium ${stockStatus.className}`}>
+                    <span
+                      className={`text-sm font-medium ${stockStatus.className}`}
+                    >
                       {stockStatus.status}
                     </span>
                   </div>
@@ -352,8 +393,9 @@ export function ProductList({
 
                   {product.variants.length > 0 && (
                     <div className="text-sm text-gray-500">
-                      {product.variants.length} variant{product.variants.length !== 1 ? 's' : ''} • 
-                      Total stock: {totalStock}
+                      {product.variants.length} variant
+                      {product.variants.length !== 1 ? "s" : ""} • Total stock:{" "}
+                      {totalStock}
                     </div>
                   )}
 

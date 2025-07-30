@@ -1,66 +1,119 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { DashboardWidget } from '@/components/dashboard/DashboardWidget';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { dashboardService, type DashboardMetrics } from '@/services/dashboard/dashboardService';
-import Link from 'next/link';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { DashboardWidget } from "@/components/dashboard/DashboardWidget";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { dashboardService } from "@/services/dashboard/dashboardService";
+import type { DashboardMetrics } from "@/types";
 
 // Icons
 const SalesIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2"
+    />
   </svg>
 );
 
 const InventoryIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+    />
   </svg>
 );
 
 const ReportsIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+    />
   </svg>
 );
 
 const SearchIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+    />
   </svg>
 );
 
 const AlertIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+    />
   </svg>
 );
 
 const StatsIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+    />
   </svg>
 );
 
 export default function ManagerDashboard() {
   const { user } = useAuth();
-  const [metrics, setMetrics] = useState<Omit<DashboardMetrics, 'users'> | null>(null);
+  const [metrics, setMetrics] = useState<Omit<
+    DashboardMetrics,
+    "users"
+  > | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Redirect if not manager or admin
-  if (user?.role !== 'manager' && user?.role !== 'admin') {
-    return (
-      <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-        <p className="text-gray-600">You don't have permission to access this page.</p>
-      </div>
-    );
-  }
 
   // Load dashboard metrics
   useEffect(() => {
@@ -71,8 +124,8 @@ export default function ManagerDashboard() {
         setMetrics(data);
         setError(null);
       } catch (err) {
-        console.error('Failed to load dashboard metrics:', err);
-        setError('Failed to load dashboard data');
+        console.error("Failed to load dashboard metrics:", err);
+        setError("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }
@@ -80,6 +133,18 @@ export default function ManagerDashboard() {
 
     loadMetrics();
   }, []);
+
+  // Redirect if not manager or admin
+  if (user?.role !== "manager" && user?.role !== "admin") {
+    return (
+      <div className="text-center py-12">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+        <p className="text-gray-600">
+          You don&apos;t have permission to access this page.
+        </p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -118,12 +183,12 @@ export default function ManagerDashboard() {
             subValue={`${metrics.todaySales.transactionCount} transactions`}
             trend={{
               ...metrics.todaySales.trend,
-              label: 'vs yesterday'
+              label: "vs yesterday",
             }}
             size="lg"
             className="md:col-span-2 lg:col-span-1"
           />
-          
+
           <DashboardWidget
             title="Products"
             icon={InventoryIcon}
@@ -132,11 +197,11 @@ export default function ManagerDashboard() {
             subValue={`${metrics.inventory.lowStockCount} low stock`}
             status={
               metrics.inventory.lowStockCount > 0
-                ? { label: 'Attention Needed', type: 'warning' }
-                : { label: 'All Good', type: 'success' }
+                ? { label: "Attention Needed", type: "warning" }
+                : { label: "All Good", type: "success" }
             }
           />
-          
+
           <DashboardWidget
             title="Avg. Transaction"
             icon={StatsIcon}
@@ -155,7 +220,7 @@ export default function ManagerDashboard() {
           iconColor="success"
           action={{
             label: "Go to Sales",
-            href: "/sales"
+            href: "/sales",
           }}
         />
 
@@ -166,7 +231,7 @@ export default function ManagerDashboard() {
           iconColor="warning"
           action={{
             label: "Manage Inventory",
-            href: "/inventory"
+            href: "/inventory",
           }}
         />
 
@@ -177,7 +242,7 @@ export default function ManagerDashboard() {
           iconColor="primary"
           action={{
             label: "View Reports",
-            href: "/reports"
+            href: "/reports",
           }}
         />
 
@@ -188,7 +253,7 @@ export default function ManagerDashboard() {
           iconColor="info"
           action={{
             label: "Coming Soon",
-            disabled: true
+            disabled: true,
           }}
         />
 
@@ -198,8 +263,12 @@ export default function ManagerDashboard() {
           icon={AlertIcon}
           iconColor="error"
           status={{
-            label: metrics?.inventory.lowStockCount === 0 ? "All Stock Levels OK" : `${metrics?.inventory.lowStockCount} Items Low`,
-            type: metrics?.inventory.lowStockCount === 0 ? "success" : "warning"
+            label:
+              metrics?.inventory.lowStockCount === 0
+                ? "All Stock Levels OK"
+                : `${metrics?.inventory.lowStockCount} Items Low`,
+            type:
+              metrics?.inventory.lowStockCount === 0 ? "success" : "warning",
           }}
         />
 
@@ -218,21 +287,30 @@ export default function ManagerDashboard() {
           {/* Recent Transactions */}
           <Card variant="elevated">
             <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Recent Transactions
+              </h3>
             </CardHeader>
             <CardContent>
               {metrics.recentTransactions.length > 0 ? (
                 <div className="space-y-3">
                   {metrics.recentTransactions.map((transaction) => (
-                    <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div
+                      key={transaction.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
                       <div>
-                        <p className="font-medium text-gray-900">₹{transaction.total.toLocaleString()}</p>
+                        <p className="font-medium text-gray-900">
+                          ₹{transaction.total.toLocaleString()}
+                        </p>
                         <p className="text-sm text-gray-600">
                           {transaction.itemCount} items • {transaction.userName}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-600 capitalize">{transaction.paymentMethod}</p>
+                        <p className="text-sm text-gray-600 capitalize">
+                          {transaction.paymentMethod}
+                        </p>
                         <p className="text-xs text-gray-500">
                           {new Date(transaction.createdAt).toLocaleTimeString()}
                         </p>
@@ -241,7 +319,9 @@ export default function ManagerDashboard() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4">No recent transactions</p>
+                <p className="text-gray-500 text-center py-4">
+                  No recent transactions
+                </p>
               )}
             </CardContent>
           </Card>
@@ -249,30 +329,45 @@ export default function ManagerDashboard() {
           {/* Top Products */}
           <Card variant="elevated">
             <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Top Products</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Top Products
+              </h3>
             </CardHeader>
             <CardContent>
               {metrics.topProducts.length > 0 ? (
                 <div className="space-y-3">
                   {metrics.topProducts.map((product, index) => (
-                    <div key={product.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div
+                      key={product.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
                       <div className="flex items-center space-x-3">
                         <div className="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-primary-600">#{index + 1}</span>
+                          <span className="text-sm font-medium text-primary-600">
+                            #{index + 1}
+                          </span>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900 truncate">{product.name}</p>
-                          <p className="text-sm text-gray-600">{product.salesCount} sales</p>
+                          <p className="font-medium text-gray-900 truncate">
+                            {product.name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {product.salesCount} sales
+                          </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium text-gray-900">₹{product.revenue.toLocaleString()}</p>
+                        <p className="font-medium text-gray-900">
+                          ₹{product.revenue.toLocaleString()}
+                        </p>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4">No sales data available</p>
+                <p className="text-gray-500 text-center py-4">
+                  No sales data available
+                </p>
               )}
             </CardContent>
           </Card>

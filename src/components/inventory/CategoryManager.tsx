@@ -8,20 +8,10 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Modal } from '@/components/ui/Modal';
-
-interface Category {
-  id: string;
-  name: string;
-  description?: string;
-  parentId?: string;
-  keywords: string[];
-  isActive: boolean;
-  productCount: number;
-  children: Category[];
-}
+import type { CategoryHierarchy } from '@/services/database/categories';
 
 interface CategoryManagerProps {
-  categories: Category[];
+  categories: CategoryHierarchy[];
   onCreateCategory: (data: CategoryFormInput) => Promise<void>;
   onUpdateCategory: (id: string, data: Partial<CategoryFormInput>) => Promise<void>;
   onDeleteCategory: (id: string) => Promise<void>;
@@ -36,7 +26,7 @@ export function CategoryManager({
   isLoading = false,
 }: CategoryManagerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingCategory, setEditingCategory] = useState<CategoryHierarchy | null>(null);
   const [keywordInput, setKeywordInput] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
@@ -65,7 +55,7 @@ export function CategoryManager({
 
   const keywords = watch('keywords');
 
-  const handleOpenModal = (category?: Category) => {
+  const handleOpenModal = (category?: CategoryHierarchy) => {
     if (category) {
       setEditingCategory(category);
       reset({
@@ -73,7 +63,7 @@ export function CategoryManager({
         description: category.description || '',
         parentId: category.parentId || '',
         keywords: category.keywords.map(k => ({ value: k })),
-        isActive: category.isActive,
+        isActive: category.isActive ?? true,
       });
     } else {
       setEditingCategory(null);
@@ -128,13 +118,13 @@ export function CategoryManager({
     }
   };
 
-  const handleDeleteCategory = async (category: Category) => {
-    if (category.children.length > 0) {
+  const handleDeleteCategory = async (category: CategoryHierarchy) => {
+    if (category.children && category.children.length > 0) {
       alert('Cannot delete category with subcategories. Please delete or move subcategories first.');
       return;
     }
 
-    if (category.productCount > 0) {
+    if (category.productCount && category.productCount > 0) {
       const confirmed = confirm(
         `This category has ${category.productCount} products. Are you sure you want to delete it?`
       );
@@ -158,12 +148,12 @@ export function CategoryManager({
     setExpandedCategories(newExpanded);
   };
 
-  const renderCategoryTree = (categories: Category[], level: number = 0) => {
+  const renderCategoryTree = (categories: CategoryHierarchy[], level: number = 0) => {
     return categories.map((category) => (
       <div key={category.id} className={`${level > 0 ? 'ml-6' : ''}`}>
         <div className="flex items-center justify-between p-3 bg-white border rounded-lg mb-2">
           <div className="flex items-center space-x-3">
-            {category.children.length > 0 && (
+            {category.children && category.children.length > 0 && (
               <button
                 onClick={() => toggleExpanded(category.id)}
                 className="text-gray-400 hover:text-gray-600"
@@ -179,7 +169,7 @@ export function CategoryManager({
               )}
               <div className="flex items-center space-x-4 mt-1">
                 <span className="text-xs text-gray-500">
-                  {category.productCount} products
+                  {category.productCount || 0} products
                 </span>
                 {category.keywords.length > 0 && (
                   <div className="flex space-x-1">
@@ -221,7 +211,7 @@ export function CategoryManager({
           </div>
         </div>
 
-        {expandedCategories.has(category.id) && category.children.length > 0 && (
+        {expandedCategories.has(category.id) && category.children && category.children.length > 0 && (
           <div className="ml-4">
             {renderCategoryTree(category.children, level + 1)}
           </div>
@@ -231,12 +221,12 @@ export function CategoryManager({
   };
 
   // Get flat list of categories for parent selection
-  const getFlatCategories = (categories: Category[], level: number = 0): Array<{ id: string; name: string; level: number }> => {
+  const getFlatCategories = (categories: CategoryHierarchy[], level: number = 0): Array<{ id: string; name: string; level: number }> => {
     const result: Array<{ id: string; name: string; level: number }> = [];
 
     categories.forEach(category => {
       result.push({ id: category.id, name: category.name, level });
-      if (category.children.length > 0) {
+      if (category.children && category.children.length > 0) {
         result.push(...getFlatCategories(category.children, level + 1));
       }
     });

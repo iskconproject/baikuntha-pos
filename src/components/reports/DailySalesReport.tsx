@@ -185,13 +185,59 @@ export function DailySalesReport({ selectedDate }: DailySalesReportProps) {
         </div>
       </div>
 
-      {/* Payment Method Breakdown */}
+      {/* Payment Method Breakdown with Visual Chart */}
       <div className="bg-white rounded-lg border p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Methods</h3>
+        
+        {/* Visual pie chart representation */}
+        <div className="mb-6">
+          <div className="flex items-center justify-center mb-4">
+            <div className="relative w-32 h-32">
+              {(() => {
+                const total = data.paymentMethodBreakdown.cash.amount + data.paymentMethodBreakdown.upi.amount;
+                const cashPercentage = total > 0 ? (data.paymentMethodBreakdown.cash.amount / total) * 100 : 0;
+                const upiPercentage = total > 0 ? (data.paymentMethodBreakdown.upi.amount / total) * 100 : 0;
+                
+                return (
+                  <div className="w-32 h-32 rounded-full relative overflow-hidden" 
+                       style={{
+                         background: `conic-gradient(
+                           #10b981 0deg ${cashPercentage * 3.6}deg,
+                           #3b82f6 ${cashPercentage * 3.6}deg 360deg
+                         )`
+                       }}>
+                    <div className="absolute inset-4 bg-white rounded-full flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-xs text-gray-500">Total</div>
+                        <div className="text-sm font-bold">{formatCurrency(total)}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+          
+          {/* Legend */}
+          <div className="flex justify-center gap-6">
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-green-500 rounded mr-2"></div>
+              <span className="text-sm text-gray-600">Cash</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-blue-500 rounded mr-2"></div>
+              <span className="text-sm text-gray-600">UPI</span>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="border rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-600">Cash</span>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-green-500 rounded mr-2"></div>
+                <span className="text-sm font-medium text-gray-600">Cash</span>
+              </div>
               <span className="text-sm text-gray-500">
                 {data.paymentMethodBreakdown.cash.count} transactions
               </span>
@@ -199,16 +245,33 @@ export function DailySalesReport({ selectedDate }: DailySalesReportProps) {
             <div className="text-xl font-bold text-gray-900">
               {formatCurrency(data.paymentMethodBreakdown.cash.amount)}
             </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {(() => {
+                const total = data.paymentMethodBreakdown.cash.amount + data.paymentMethodBreakdown.upi.amount;
+                const percentage = total > 0 ? (data.paymentMethodBreakdown.cash.amount / total) * 100 : 0;
+                return `${percentage.toFixed(1)}% of total`;
+              })()}
+            </div>
           </div>
           <div className="border rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-600">UPI</span>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-blue-500 rounded mr-2"></div>
+                <span className="text-sm font-medium text-gray-600">UPI</span>
+              </div>
               <span className="text-sm text-gray-500">
                 {data.paymentMethodBreakdown.upi.count} transactions
               </span>
             </div>
             <div className="text-xl font-bold text-gray-900">
               {formatCurrency(data.paymentMethodBreakdown.upi.amount)}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {(() => {
+                const total = data.paymentMethodBreakdown.cash.amount + data.paymentMethodBreakdown.upi.amount;
+                const percentage = total > 0 ? (data.paymentMethodBreakdown.upi.amount / total) * 100 : 0;
+                return `${percentage.toFixed(1)}% of total`;
+              })()}
             </div>
           </div>
         </div>

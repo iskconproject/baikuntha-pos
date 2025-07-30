@@ -155,3 +155,52 @@ export interface Cart {
   discount: number
   total: number
 }
+
+// Dashboard types
+export interface DashboardMetrics {
+  todaySales: {
+    total: number
+    transactionCount: number
+    averageTransaction: number
+    trend: {
+      value: number
+      direction: 'up' | 'down' | 'neutral'
+    }
+  }
+  inventory: {
+    totalProducts: number
+    lowStockCount: number
+    outOfStockCount: number
+    totalCategories: number
+  }
+  users?: {
+    totalUsers: number
+    activeUsers: number
+    recentLogins: number
+  }
+  recentTransactions: {
+    id: string
+    total: number
+    itemCount: number
+    paymentMethod: string
+    createdAt: Date
+    userName: string
+  }[]
+  topProducts: {
+    id: string
+    name: string
+    salesCount: number
+    revenue: number
+  }[]
+}
+
+export interface QuickStats {
+  label: string
+  value: string | number
+  subValue?: string
+  trend?: {
+    value: number
+    direction: 'up' | 'down' | 'neutral'
+    label: string
+  }
+}

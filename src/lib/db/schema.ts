@@ -157,6 +157,29 @@ export const syncMetadata = sqliteTable('sync_metadata', {
   versionIdx: index('sync_version_idx').on(table.syncVersion),
 }));
 
+// Scheduled reports table
+export const scheduledReports = sqliteTable('scheduled_reports', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  reportType: text('report_type').notNull(), // 'daily-sales', 'transactions', 'products', 'analytics'
+  frequency: text('frequency').notNull(), // 'daily', 'weekly', 'monthly'
+  format: text('format').notNull(), // 'csv', 'pdf'
+  recipients: text('recipients'), // JSON array of email addresses
+  filters: text('filters'), // JSON object with report filters
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  nextRun: integer('next_run', { mode: 'timestamp' }).notNull(),
+  lastRun: integer('last_run', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  createdBy: text('created_by').references(() => users.id),
+}, (table) => ({
+  typeIdx: index('scheduled_report_type_idx').on(table.reportType),
+  frequencyIdx: index('scheduled_report_frequency_idx').on(table.frequency),
+  activeIdx: index('scheduled_report_active_idx').on(table.isActive),
+  nextRunIdx: index('scheduled_report_next_run_idx').on(table.nextRun),
+  createdByIdx: index('scheduled_report_created_by_idx').on(table.createdBy),
+}));
+
 // Export types for TypeScript
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -184,3 +207,6 @@ export type NewUserActivity = typeof userActivity.$inferInsert;
 
 export type SyncMetadata = typeof syncMetadata.$inferSelect;
 export type NewSyncMetadata = typeof syncMetadata.$inferInsert;
+
+export type ScheduledReport = typeof scheduledReports.$inferSelect;
+export type NewScheduledReport = typeof scheduledReports.$inferInsert;

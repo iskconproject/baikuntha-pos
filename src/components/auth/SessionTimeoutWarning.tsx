@@ -69,8 +69,7 @@ export const SessionTimeoutWarning: React.FC<SessionTimeoutWarningProps> = ({
       onClose={() => {}} // Prevent closing by clicking backdrop
       title="Session Expiring Soon"
       size="sm"
-      closeOnBackdropClick={false}
-      closeOnEscape={false}
+
     >
       <div className="text-center space-y-6">
         {/* Warning Icon */}
@@ -103,7 +102,7 @@ export const SessionTimeoutWarning: React.FC<SessionTimeoutWarningProps> = ({
             </span>
           </p>
           <p className="text-sm text-gray-500">
-            Click "Stay Signed In" to extend your session, or "Sign Out" to logout now.
+            Click &quot;Stay Signed In&quot; to extend your session, or &quot;Sign Out&quot; to logout now.
           </p>
         </div>
 

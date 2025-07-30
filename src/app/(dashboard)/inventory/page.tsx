@@ -10,14 +10,34 @@ import { BulkOperations } from '@/components/inventory/BulkOperations';
 import { InventoryReports } from '@/components/inventory/InventoryReports';
 import { ProductDetailModal } from '@/components/inventory/ProductDetailModal';
 import { useAuth } from '@/hooks/useAuth';
-import type { Category } from '@/types';
+import type { CategoryHierarchy } from '@/services/database/categories';
 import type { EnhancedProduct } from '@/services/database/products';
+
+// Utility function to flatten category hierarchy
+const flattenCategories = (categories: CategoryHierarchy[]): Array<{ id: string; name: string }> => {
+  const result: Array<{ id: string; name: string }> = [];
+  
+  const flatten = (cats: CategoryHierarchy[], level: number = 0) => {
+    cats.forEach(cat => {
+      result.push({
+        id: cat.id,
+        name: '  '.repeat(level) + cat.name
+      });
+      if (cat.children && cat.children.length > 0) {
+        flatten(cat.children, level + 1);
+      }
+    });
+  };
+  
+  flatten(categories);
+  return result;
+};
 
 export default function InventoryPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'stock' | 'bulk' | 'reports'>('products');
   const [products, setProducts] = useState<EnhancedProduct[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<CategoryHierarchy[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,7 +67,7 @@ export default function InventoryPage() {
       // Load products and categories in parallel
       const [productsResponse, categoriesResponse] = await Promise.all([
         fetch('/api/products?limit=1000'),
-        fetch('/api/categories'),
+        fetch('/api/categories?hierarchy=true'),
       ]);
 
       if (!productsResponse.ok || !categoriesResponse.ok) {
@@ -322,8 +342,16 @@ export default function InventoryPage() {
           setEditingProduct(null);
         }}
         onSubmit={handleProductSubmit}
-        initialData={editingProduct || undefined}
-        categories={categories}
+        initialData={editingProduct ? {
+          name: editingProduct.name,
+          description: editingProduct.description || undefined,
+          basePrice: editingProduct.basePrice,
+          categoryId: editingProduct.categoryId || undefined,
+          keywords: editingProduct.keywords.map(k => ({ value: k })),
+          metadata: editingProduct.metadata,
+          isActive: editingProduct.isActive ?? true
+        } : undefined}
+        categories={flattenCategories(categories)}
         isLoading={false}
       />
 

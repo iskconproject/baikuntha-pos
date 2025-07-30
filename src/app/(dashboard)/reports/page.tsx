@@ -1,25 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
 import { DailySalesReport } from '@/components/reports/DailySalesReport';
 import { TransactionHistory } from '@/components/reports/TransactionHistory';
 import { ProductPerformance } from '@/components/reports/ProductPerformance';
+import { ReportScheduler } from '@/components/reports/ReportScheduler';
+import { OfflineReportStatus } from '@/components/reports/OfflineReportStatus';
 
-type ReportTab = 'daily' | 'transactions' | 'products' | 'analytics';
+type ReportTab = 'daily' | 'transactions' | 'products' | 'analytics' | 'scheduler';
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<ReportTab>('daily');
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [isOnline, setIsOnline] = useState(true);
+
+  // Monitor online status
+  useEffect(() => {
+    const updateOnlineStatus = () => setIsOnline(navigator.onLine);
+    
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    
+    return () => {
+      window.removeEventListener('online', updateOnlineStatus);
+      window.removeEventListener('offline', updateOnlineStatus);
+    };
+  }, []);
 
   const tabs = [
     { id: 'daily' as ReportTab, label: 'Daily Sales', icon: '📊' },
     { id: 'transactions' as ReportTab, label: 'Transaction History', icon: '📋' },
     { id: 'products' as ReportTab, label: 'Product Performance', icon: '📦' },
     { id: 'analytics' as ReportTab, label: 'Analytics', icon: '📈' },
+    { id: 'scheduler' as ReportTab, label: 'Scheduled Reports', icon: '⏰' },
   ];
 
   return (
@@ -27,10 +43,15 @@ export default function ReportsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
-          <p className="mt-2 text-gray-600">
-            View sales reports, transaction history, and product performance analytics
-          </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
+              <p className="mt-2 text-gray-600">
+                View sales reports, transaction history, and product performance analytics
+              </p>
+            </div>
+            <OfflineReportStatus isOnline={isOnline} />
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -109,6 +130,12 @@ export default function ReportsPage() {
           {activeTab === 'analytics' && (
             <div className="p-6">
               <SalesAnalytics />
+            </div>
+          )}
+
+          {activeTab === 'scheduler' && (
+            <div className="p-6">
+              <ReportScheduler />
             </div>
           )}
         </div>
@@ -219,28 +246,42 @@ function SalesAnalytics() {
             </div>
           </div>
 
-          {/* Category Breakdown */}
+          {/* Category Breakdown with Visual Chart */}
           <div className="bg-white rounded-lg border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue by Category</h3>
-            <div className="space-y-3">
-              {analyticsData.categoryBreakdown.map((category: any) => (
-                <div key={category.categoryId} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 bg-orange-500 rounded mr-3"></div>
-                    <span className="text-sm font-medium text-gray-900">
-                      {category.categoryName}
-                    </span>
+            <div className="space-y-4">
+              {analyticsData.categoryBreakdown.map((category: any, index: number) => {
+                const colors = ['bg-orange-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-red-500'];
+                const color = colors[index % colors.length];
+                
+                return (
+                  <div key={category.categoryId} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className={`w-4 h-4 ${color} rounded mr-3`}></div>
+                        <span className="text-sm font-medium text-gray-900">
+                          {category.categoryName}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm text-gray-500">
+                          {category.percentage.toFixed(1)}%
+                        </span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {formatCurrency(category.revenue)}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Progress bar visualization */}
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`${color} h-2 rounded-full transition-all duration-500`}
+                        style={{ width: `${category.percentage}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-500">
-                      {category.percentage.toFixed(1)}%
-                    </span>
-                    <span className="text-sm font-medium text-gray-900">
-                      {formatCurrency(category.revenue)}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
