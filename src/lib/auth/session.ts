@@ -175,8 +175,11 @@ export function refreshSession(sessionData: SessionData): string {
 }
 
 /**
- * Get authenticated user from request (alias for getSessionFromRequest)
+ * Get authenticated user from request (for API routes)
  */
-export async function getSessionUser(request: NextRequest): Promise<AuthUser | null> {
-  return getSessionFromRequest(request);
+export async function getSessionUser(request?: NextRequest): Promise<AuthUser | null> {
+  if (request) {
+    return getSessionFromRequest(request);
+  }
+  return getSession();
 }
