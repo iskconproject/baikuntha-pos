@@ -197,7 +197,7 @@
   - Write Vitest component tests for reporting interface and data visualization
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
 
-- [ ] 19. Implement offline status and sync management UI
+- [x] 19. Implement offline status and sync management UI
 
   - Create connection status indicator with visual feedback
   - Build sync progress interface with operation queue display
@@ -209,7 +209,22 @@
   - Write Vitest component tests for offline functionality and sync UI
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6_
 
-- [ ] 20. Build PWA installation and notification interface
+- [-] 20. Build comprehensive system settings and configuration interface
+
+  - Create settings page with tabbed interface for different configuration categories
+  - Implement system preferences (language, currency, timezone, date format)
+  - Build printer configuration interface with thermal printer setup and testing
+  - Create receipt customization settings (header, footer, logo, contact info)
+  - Implement sync settings with manual/automatic sync preferences and intervals
+  - Build security settings (session timeout, PIN complexity requirements, trusted devices)
+  - Create backup and restore interface for local data management
+  - Implement theme and display settings (dark mode, font size, touch sensitivity)
+  - Build notification preferences for sync status, low stock, and system alerts
+  - Create audit log settings and data retention policies
+  - Write Vitest component tests for settings interface and configuration persistence
+  - _Requirements: Cross-cutting requirement for system configuration and user preferences_
+
+- [ ] 21. Build PWA installation and notification interface
 
   - Create app installation prompts and PWA setup guidance
   - Implement push notification permission requests and management
@@ -221,7 +236,7 @@
   - Write Vitest component tests for PWA functionality and notifications
   - _Requirements: 9.4, 9.5, 9.6_
 
-- [ ] 21. Implement comprehensive error handling and validation UI
+- [ ] 22. Implement comprehensive error handling and validation UI
 
   - Create centralized error display system with user-friendly messages
   - Build form validation UI with real-time feedback
@@ -233,7 +248,7 @@
   - Write Vitest unit tests for error handling and validation logic
   - _Requirements: All requirements - error handling is cross-cutting_
 
-- [ ] 22. Create comprehensive test suite with E2E user scenarios
+- [ ] 23. Create comprehensive test suite with E2E user scenarios
 
   - Write Vitest unit tests for all service layer functions and utilities
   - Create Vitest integration tests for API endpoints and database operations
@@ -244,7 +259,7 @@
   - Write Vitest security tests for authentication and authorization
   - _Requirements: All requirements - testing validates all functionality_
 
-- [ ] 23. Implement production deployment and monitoring setup
+- [ ] 24. Implement production deployment and monitoring setup
   - Configure production build optimization and bundle analysis
   - Set up environment configuration for local, staging, and production
   - Implement database migration scripts for production deployment
