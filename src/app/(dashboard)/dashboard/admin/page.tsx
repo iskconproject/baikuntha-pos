@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardWidget } from '@/components/dashboard/DashboardWidget';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+
 // Types for dashboard metrics
 interface DashboardMetrics {
   todaySales: {
@@ -43,7 +43,6 @@ interface DashboardMetrics {
     revenue: number;
   }>;
 }
-import Link from 'next/link';
 
 // Icons
 const UsersIcon = ({ className }: { className?: string }) => (
@@ -256,8 +255,8 @@ export default function AdminDashboard() {
           icon={SettingsIcon}
           iconColor="gray"
           action={{
-            label: "Coming Soon",
-            disabled: true
+            label: "Configure",
+            href: "/settings"
           }}
         />
 
