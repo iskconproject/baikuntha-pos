@@ -82,3 +82,8 @@ pids/
 # Temporary folders
 tmp/
 temp/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
