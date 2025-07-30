@@ -145,7 +145,7 @@ export function SyncManager({ className = "" }: SyncManagerProps) {
           <div className="flex items-center space-x-3">
             <div className={`w-3 h-3 rounded-full ${getStatusColor()}`} />
             <h3 className="text-lg font-semibold text-gray-900">Sync Status</h3>
-            <Badge variant={connectionStatus?.isOnline ? "success" : "error"}>
+            <Badge variant={connectionStatus?.isOnline ? "success" : "destructive"}>
               {connectionStatus?.isOnline ? "Online" : "Offline"}
             </Badge>
           </div>
@@ -244,7 +244,7 @@ export function SyncManager({ className = "" }: SyncManagerProps) {
               </span>
               <Button
                 variant="outline"
-                size="xs"
+                size="sm"
                 onClick={() => setShowQueueDetails(true)}
               >
                 View Details
@@ -273,7 +273,7 @@ export function SyncManager({ className = "" }: SyncManagerProps) {
             {queueStats.failedOperations > 0 && (
               <Button
                 variant="outline"
-                size="xs"
+                size="sm"
                 onClick={handleRetryFailed}
                 className="mt-2"
               >
@@ -341,8 +341,8 @@ export function SyncManager({ className = "" }: SyncManagerProps) {
                       <Badge
                         variant={
                           operation.retryCount >= operation.maxRetries
-                            ? "error"
-                            : "info"
+                            ? "destructive"
+                            : "default"
                         }
                       >
                         {formatOperationType(operation.type)}
@@ -396,7 +396,7 @@ export function SyncManager({ className = "" }: SyncManagerProps) {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Badge variant={result.success ? "success" : "error"}>
+                    <Badge variant={result.success ? "success" : "destructive"}>
                       {result.success ? "Success" : "Failed"}
                     </Badge>
                     <span className="text-xs text-gray-500">
