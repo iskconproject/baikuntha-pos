@@ -1,93 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { categoryService } from '@/services/database/categories';
-import { createCategorySchema, categoryQuerySchema } from '@/lib/validation/category';
-import { z } from 'zod';
+import { getLocalDb } from '@/lib/db/connection';
+import { categories } from '@/lib/db/schema';
+import { eq, desc } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const queryParams = Object.fromEntries(searchParams.entries());
+    const db = getLocalDb();
     
-    // Validate query parameters
-    const validatedQuery = categoryQuerySchema.parse(queryParams);
-    
-    const result = await categoryService.getCategoriesByQuery(validatedQuery);
-    
+    const allCategories = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.isActive, true))
+      .orderBy(categories.name);
+
     return NextResponse.json({
+      categories: allCategories,
       success: true,
-      data: result,
     });
   } catch (error) {
     console.error('Error fetching categories:', error);
-    
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid query parameters',
-          details: error.errors,
-        },
-        { status: 400 }
-      );
-    }
-    
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch categories',
-      },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    
-    // Validate request body
-    const validatedData = createCategorySchema.parse(body);
-    
-    // Create the category
-    const category = await categoryService.createCategoryWithValidation(validatedData);
-    
-    return NextResponse.json(
-      {
-        success: true,
-        data: category,
-        message: 'Category created successfully',
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error('Error creating category:', error);
-    
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid category data',
-          details: error.errors,
-        },
-        { status: 400 }
-      );
-    }
-    
-    if (error instanceof Error) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: error.message,
-        },
-        { status: 400 }
-      );
-    }
-    
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to create category',
-      },
+      { error: 'Failed to fetch categories' },
       { status: 500 }
     );
   }
