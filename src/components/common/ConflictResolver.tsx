@@ -69,7 +69,7 @@ export function ConflictResolver({
         ? currentConflict.localRecord[field]
         : currentConflict.cloudRecord[field];
 
-    setMergedData((prev) => ({
+    setMergedData((prev: any) => ({
       ...prev,
       [field]: value,
     }));
@@ -106,7 +106,7 @@ export function ConflictResolver({
         {/* Progress Indicator */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Badge variant="warning">
+            <Badge variant="destructive">
               Conflict {currentConflictIndex + 1} of {conflicts.length}
             </Badge>
             <span className="text-sm text-gray-600">
