@@ -101,7 +101,7 @@ export interface SystemSettings {
 export interface SettingsCategory {
   id: string;
   name: string;
-  icon: string;
+  icon: React.ComponentType<{ className?: string }>;
   description: string;
 }
 

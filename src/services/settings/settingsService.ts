@@ -165,7 +165,8 @@ export class SettingsService {
       const { ThermalPrinter } = await import('@/services/printer/thermalPrinter');
       const printer = new ThermalPrinter();
       
-      return await printer.testConnection();
+      const result = await printer.printTest();
+      return result.success;
     } catch (error) {
       console.error('Printer test failed:', error);
       return false;
