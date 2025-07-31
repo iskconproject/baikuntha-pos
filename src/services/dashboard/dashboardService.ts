@@ -113,8 +113,8 @@ export class DashboardService {
       .from(transactions)
       .where(
         and(
-          gte(transactions.createdAt, today),
-          sql`${transactions.createdAt} < ${tomorrow}`,
+          sql`${transactions.createdAt} >= ${today.toISOString()}`,
+          sql`${transactions.createdAt} < ${tomorrow.toISOString()}`,
           eq(transactions.status, 'completed')
         )
       );
@@ -146,8 +146,8 @@ export class DashboardService {
       .from(transactions)
       .where(
         and(
-          gte(transactions.createdAt, yesterday),
-          sql`${transactions.createdAt} < ${today}`,
+          sql`${transactions.createdAt} >= ${yesterday.toISOString()}`,
+          sql`${transactions.createdAt} < ${today.toISOString()}`,
           eq(transactions.status, 'completed')
         )
       );
@@ -201,7 +201,7 @@ export class DashboardService {
       .select({
         totalUsers: sql<number>`COUNT(*)`,
         activeUsers: sql<number>`SUM(CASE WHEN ${users.isActive} = 1 THEN 1 ELSE 0 END)`,
-        recentLogins: sql<number>`SUM(CASE WHEN ${users.lastLoginAt} >= ${thirtyDaysAgo} THEN 1 ELSE 0 END)`,
+        recentLogins: sql<number>`SUM(CASE WHEN ${users.lastLoginAt} >= ${thirtyDaysAgo.toISOString()} THEN 1 ELSE 0 END)`,
       })
       .from(users);
 

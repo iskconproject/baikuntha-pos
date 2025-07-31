@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface DashboardWidgetProps {
   title: string;
@@ -55,27 +56,16 @@ const trendClasses = {
 };
 
 const TrendIcon: React.FC<{ direction: 'up' | 'down' | 'neutral' }> = ({ direction }) => {
-  if (direction === 'up') {
-    return (
-      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-      </svg>
-    );
-  }
+  const iconProps = { className: "h-4 w-4" };
   
-  if (direction === 'down') {
-    return (
-      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-      </svg>
-    );
+  switch (direction) {
+    case 'up':
+      return <TrendingUp {...iconProps} />;
+    case 'down':
+      return <TrendingDown {...iconProps} />;
+    default:
+      return <Minus {...iconProps} />;
   }
-  
-  return (
-    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h8" />
-    </svg>
-  );
 };
 
 export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
@@ -93,10 +83,14 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
   size = 'md',
 }) => {
   const sizeClasses = {
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8',
+    sm: 'p-3',
+    md: 'p-4',
+    lg: 'p-6',
   };
+
+  // Determine card type for consistent layout
+  const isMetricCard = value !== undefined;
+  const isActionCard = action !== undefined;
 
   return (
     <Card 
@@ -107,125 +101,134 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({
         className
       )}
     >
+      {/* Header Section - Fixed height for consistency */}
       <CardHeader className={cn('flex-shrink-0', sizeClasses[size])}>
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3 min-w-0 flex-1">
+        <div className="flex flex-col min-h-[60px]">
+          {/* Title Row */}
+          <div className="flex items-center space-x-3 mb-2">
             {Icon && (
               <div className={cn('p-2 rounded-lg flex-shrink-0', iconColorClasses[iconColor])}>
-                <Icon className={cn('flex-shrink-0', size === 'lg' ? 'h-8 w-8' : 'h-6 w-6')} />
+                <Icon className={cn('flex-shrink-0', size === 'lg' ? 'h-6 w-6' : 'h-5 w-5')} />
               </div>
             )}
             <div className="min-w-0 flex-1">
               <h3 className={cn(
-                'font-semibold text-gray-900 truncate',
-                size === 'lg' ? 'text-xl' : size === 'md' ? 'text-lg' : 'text-base'
+                'font-semibold text-gray-900 leading-tight',
+                size === 'lg' ? 'text-base' : 'text-sm'
               )}>
                 {title}
               </h3>
-              {description && (
-                <p className={cn(
-                  'text-gray-600 mt-1 line-clamp-2',
-                  size === 'lg' ? 'text-base' : 'text-sm'
-                )}>
-                  {description}
-                </p>
-              )}
             </div>
           </div>
           
-          {status && (
-            <div className="flex items-center space-x-2 flex-shrink-0 ml-2">
-              <div className={cn('h-2 w-2 rounded-full', statusClasses[status.type])} />
-              <span className={cn(
-                'font-medium whitespace-nowrap',
-                size === 'lg' ? 'text-sm' : 'text-xs',
-                status.type === 'success' ? 'text-success-600' :
-                status.type === 'warning' ? 'text-warning-600' :
-                status.type === 'error' ? 'text-error-600' :
-                'text-blue-600'
-              )}>
-                {status.label}
-              </span>
-            </div>
-          )}
+          {/* Status Row - Always reserve space */}
+          <div className={cn('min-h-[16px] flex items-center', Icon ? 'ml-11' : '')}>
+            {status && (
+              <div className="flex items-center space-x-2">
+                <div className={cn('h-2 w-2 rounded-full', statusClasses[status.type])} />
+                <span className={cn(
+                  'font-medium text-xs',
+                  status.type === 'success' ? 'text-success-600' :
+                  status.type === 'warning' ? 'text-warning-600' :
+                  status.type === 'error' ? 'text-error-600' :
+                  'text-blue-600'
+                )}>
+                  {status.label}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </CardHeader>
       
+      {/* Content Section - Flexible height */}
       <CardContent className={cn('pt-0 flex-1 flex flex-col', sizeClasses[size])}>
-        <div className="flex-1">
-          {value !== undefined && (
-            <div className="mb-4">
-              <div className={cn(
-                'font-bold text-gray-900',
-                size === 'lg' ? 'text-3xl' : size === 'md' ? 'text-2xl' : 'text-xl'
-              )}>
-                {value}
-              </div>
-              {subValue && (
+        <div className="flex-1 flex flex-col justify-between">
+          {/* Main Content Area */}
+          <div className="flex-1">
+            {/* Metric Display */}
+            {isMetricCard && (
+              <div className="mb-3">
                 <div className={cn(
-                  'text-gray-600 mt-1',
-                  size === 'lg' ? 'text-base' : 'text-sm'
+                  'font-bold text-gray-900 leading-tight',
+                  size === 'lg' ? 'text-2xl' : 'text-xl'
                 )}>
-                  {subValue}
+                  {value}
                 </div>
-              )}
-              {trend && (
-                <div className={cn(
-                  'flex items-center space-x-1 mt-2',
-                  trendClasses[trend.direction]
-                )}>
-                  <TrendIcon direction={trend.direction} />
-                  <span className={cn(
-                    'font-medium',
-                    size === 'lg' ? 'text-sm' : 'text-xs'
+                {subValue && (
+                  <div className="text-gray-600 text-xs mt-1 leading-tight">
+                    {subValue}
+                  </div>
+                )}
+                {trend && (
+                  <div className={cn(
+                    'flex items-center space-x-1 mt-2',
+                    trendClasses[trend.direction]
                   )}>
-                    {trend.value > 0 ? '+' : ''}{trend.value}% {trend.label}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
+                    <TrendIcon direction={trend.direction} />
+                    <span className="font-medium text-xs">
+                      {trend.value > 0 ? '+' : ''}{trend.value}% {trend.label}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Description for Action Cards */}
+            {isActionCard && description && (
+              <div className="mb-3">
+                <p className={cn(
+                  'text-gray-600 text-xs leading-relaxed',
+                  Icon ? 'ml-11' : ''
+                )}>
+                  {description}
+                </p>
+              </div>
+            )}
+            
+            {/* Custom Children Content */}
+            {children && (
+              <div className="mb-3">
+                {children}
+              </div>
+            )}
+          </div>
           
-          {children && (
-            <div className="mb-4">
-              {children}
+          {/* Action Button - Always at bottom */}
+          {action && (
+            <div className="mt-auto">
+              {action.href ? (
+                <a
+                  href={action.href}
+                  className={cn(
+                    'inline-flex items-center justify-center rounded-lg font-medium w-full',
+                    'transition-all duration-200 ease-in-out',
+                    'focus:outline-none focus:ring-2 focus:ring-offset-2',
+                    'touch-manipulation min-h-[36px] px-3 py-2 text-sm gap-2',
+                    'bg-primary-600 text-white shadow-sm',
+                    'hover:bg-primary-700 active:bg-primary-800',
+                    'focus:ring-primary-500',
+                    action.disabled && 'pointer-events-none opacity-50'
+                  )}
+                  role="button"
+                  aria-disabled={action.disabled}
+                >
+                  {action.label}
+                </a>
+              ) : (
+                <Button
+                  onClick={action.onClick}
+                  variant="primary"
+                  size="sm"
+                  className="w-full min-h-[36px]"
+                  disabled={action.disabled}
+                >
+                  {action.label}
+                </Button>
+              )}
             </div>
           )}
         </div>
-        
-        {action && (
-          <div className="mt-auto pt-4">
-            {action.href ? (
-              <a
-                href={action.href}
-                className={cn(
-                  'inline-flex items-center justify-center rounded-lg font-medium w-full',
-                  'transition-all duration-200 ease-in-out',
-                  'focus:outline-none focus:ring-2 focus:ring-offset-2',
-                  'touch-manipulation min-h-[44px] px-4 py-3 text-sm gap-2',
-                  'bg-primary-600 text-white shadow-sm',
-                  'hover:bg-primary-700 active:bg-primary-800',
-                  'focus:ring-primary-500',
-                  action.disabled && 'pointer-events-none opacity-50'
-                )}
-                role="button"
-                aria-disabled={action.disabled}
-              >
-                {action.label}
-              </a>
-            ) : (
-              <Button
-                onClick={action.onClick}
-                variant="primary"
-                size="md"
-                className="w-full"
-                disabled={action.disabled}
-              >
-                {action.label}
-              </Button>
-            )}
-          </div>
-        )}
       </CardContent>
     </Card>
   );

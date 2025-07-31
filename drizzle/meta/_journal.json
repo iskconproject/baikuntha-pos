@@ -8,6 +8,13 @@
       "when": 1753695477938,
       "tag": "0000_large_machine_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1753930148415,
+      "tag": "0001_nosy_the_hunter",
+      "breakpoints": true
     }
   ]
 }
