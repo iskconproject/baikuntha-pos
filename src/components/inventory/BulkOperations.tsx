@@ -329,43 +329,45 @@ export function BulkOperations({
       {/* Operation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Import Products */}
-        <div className="bg-white p-6 rounded-lg border">
-          <div className="flex items-center mb-4">
-            <div className="text-2xl mr-3">📥</div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Import Products</h3>
-              <p className="text-sm text-gray-600">Import products from CSV or JSON file</p>
+        <div className="bg-white p-6 rounded-lg border h-full flex flex-col">
+          <div className="flex items-start mb-4">
+            <div className="text-2xl mr-3 mt-1">📥</div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Import Products</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">Import products from CSV or JSON file</p>
             </div>
           </div>
           
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv,.json"
-            onChange={handleFileImport}
-            className="hidden"
-          />
-          
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full bg-blue-600 hover:bg-blue-700"
-            disabled={isProcessing}
-          >
-            Choose File
-          </Button>
+          <div className="mt-auto">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.json"
+              onChange={handleFileImport}
+              className="hidden"
+            />
+            
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={isProcessing}
+            >
+              Choose File
+            </Button>
+          </div>
         </div>
 
         {/* Export Products */}
-        <div className="bg-white p-6 rounded-lg border">
-          <div className="flex items-center mb-4">
-            <div className="text-2xl mr-3">📤</div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Export Products</h3>
-              <p className="text-sm text-gray-600">Export selected or all products</p>
+        <div className="bg-white p-6 rounded-lg border h-full flex flex-col">
+          <div className="flex items-start mb-4">
+            <div className="text-2xl mr-3 mt-1">📤</div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Export Products</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">Export selected or all products</p>
             </div>
           </div>
           
-          <div className="space-y-3">
+          <div className="mt-auto space-y-3">
             <Select
               value={exportFormat}
               onChange={(e) => setExportFormat(e.target.value as 'csv' | 'json')}
@@ -386,67 +388,82 @@ export function BulkOperations({
         </div>
 
         {/* Bulk Edit */}
-        <div className="bg-white p-6 rounded-lg border">
-          <div className="flex items-center mb-4">
-            <div className="text-2xl mr-3">✏️</div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Bulk Edit</h3>
-              <p className="text-sm text-gray-600">Edit multiple products at once</p>
+        <div className="bg-white p-6 rounded-lg border h-full flex flex-col">
+          <div className="flex items-start mb-4">
+            <div className="text-2xl mr-3 mt-1">✏️</div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Bulk Edit</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">Edit multiple products at once</p>
             </div>
           </div>
           
-          <Button
-            onClick={() => setIsBulkEditModalOpen(true)}
-            className="w-full bg-orange-600 hover:bg-orange-700"
-            disabled={selectedProducts.size === 0 || isProcessing}
-          >
-            Edit Selected ({selectedProducts.size})
-          </Button>
+          <div className="mt-auto">
+            <Button
+              onClick={() => setIsBulkEditModalOpen(true)}
+              className="w-full bg-orange-600 hover:bg-orange-700"
+              disabled={selectedProducts.size === 0 || isProcessing}
+            >
+              Edit Selected ({selectedProducts.size})
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Product Selection */}
       <div className="bg-white rounded-lg border">
-        <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-gray-900">
               Select Products ({selectedProducts.size} selected)
             </h3>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <input
                 type="checkbox"
                 checked={selectedProducts.size === products.length && products.length > 0}
                 onChange={handleSelectAll}
-                className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                className="h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
               />
-              <label className="text-sm text-gray-600">Select All</label>
+              <label className="text-sm font-medium text-gray-700 cursor-pointer" onClick={handleSelectAll}>
+                Select All
+              </label>
             </div>
           </div>
         </div>
 
         <div className="max-h-96 overflow-y-auto">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="flex items-center px-4 py-3 border-b border-gray-100 hover:bg-gray-50"
-            >
-              <input
-                type="checkbox"
-                checked={selectedProducts.has(product.id)}
-                onChange={() => handleSelectProduct(product.id)}
-                className="rounded border-gray-300 text-orange-600 focus:ring-orange-500 mr-3"
-              />
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">{product.name}</div>
-                <div className="text-sm text-gray-500">
-                  {product.category?.name} • ₹{product.basePrice.toFixed(2)}
+          {products.length === 0 ? (
+            <div className="px-6 py-8 text-center text-gray-500">
+              No products available
+            </div>
+          ) : (
+            products.map((product) => (
+              <div
+                key={product.id}
+                className="flex items-center px-6 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedProducts.has(product.id)}
+                  onChange={() => handleSelectProduct(product.id)}
+                  className="h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 mr-4"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900 truncate">{product.name}</div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    {product.category?.name && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mr-2">
+                        {product.category.name}
+                      </span>
+                    )}
+                    <span className="font-semibold text-gray-900">₹{product.basePrice.toFixed(2)}</span>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-400 ml-4">
+                  {product.variants.length} variant{product.variants.length !== 1 ? 's' : ''}
                 </div>
               </div>
-              <div className="text-sm text-gray-400">
-                {product.variants.length} variant{product.variants.length !== 1 ? 's' : ''}
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 

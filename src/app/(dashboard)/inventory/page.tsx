@@ -96,7 +96,7 @@ export default function InventoryPage() {
       console.log('Data loaded successfully');
     } catch (error) {
       console.error('Error loading inventory data:', error);
-      setError(`Failed to load inventory data: ${error.message}`);
+      setError(`Failed to load inventory data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
