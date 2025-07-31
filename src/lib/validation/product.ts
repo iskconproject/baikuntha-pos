@@ -144,15 +144,15 @@ export const lowStockAlertSchema = z.object({
 export const productQuerySchema = z.object({
   search: z.string().optional(),
   categoryId: z.string().uuid().optional(),
-  isActive: z.boolean().default(true),
-  priceMin: z.number().min(0).optional(),
-  priceMax: z.number().min(0).optional(),
-  hasVariants: z.boolean().optional(),
-  inStock: z.boolean().optional(),
+  isActive: z.coerce.boolean().default(true),
+  priceMin: z.coerce.number().min(0).optional(),
+  priceMax: z.coerce.number().min(0).optional(),
+  hasVariants: z.coerce.boolean().optional(),
+  inStock: z.coerce.boolean().optional(),
   sortBy: z.enum(['name', 'price', 'category', 'created', 'updated']).default('name'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
   page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(100).default(20),
+  limit: z.coerce.number().min(1).max(1000).default(20), // Increased limit for inventory management
 });
 
 // Export types

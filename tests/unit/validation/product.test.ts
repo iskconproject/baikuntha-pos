@@ -369,17 +369,41 @@ describe('Product Validation Schemas', () => {
     });
 
     it('should validate pagination limits', () => {
-      const validLimits = [1, 50, 100];
+      const validLimits = [1, 50, 100, 500, 1000];
       validLimits.forEach(limit => {
         const result = productQuerySchema.safeParse({ limit });
         expect(result.success).toBe(true);
       });
 
-      const invalidLimits = [0, 101, -1];
+      const invalidLimits = [0, 1001, -1];
       invalidLimits.forEach(limit => {
         const result = productQuerySchema.safeParse({ limit });
         expect(result.success).toBe(false);
       });
+    });
+
+    it('should coerce string values to appropriate types', () => {
+      const queryWithStrings = {
+        isActive: 'true',
+        priceMin: '50',
+        priceMax: '200',
+        hasVariants: '', // Empty string coerces to false
+        inStock: 'true',
+        page: '2',
+        limit: '15',
+      };
+
+      const result = productQuerySchema.safeParse(queryWithStrings);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.isActive).toBe(true);
+        expect(result.data.priceMin).toBe(50);
+        expect(result.data.priceMax).toBe(200);
+        expect(result.data.hasVariants).toBe(false);
+        expect(result.data.inStock).toBe(true);
+        expect(result.data.page).toBe(2);
+        expect(result.data.limit).toBe(15);
+      }
     });
   });
 });
