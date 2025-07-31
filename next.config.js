@@ -24,7 +24,12 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["better-sqlite3"],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
+    // Disable webpack cache in development to prevent corruption issues
+    if (dev || process.env.WEBPACK_CACHE_DISABLED === 'true') {
+      config.cache = false;
+    }
+    
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -33,6 +38,21 @@ const nextConfig = {
         tls: false,
       };
     }
+    
+    // Optimize webpack performance and prevent cache issues
+    config.optimization = {
+      ...config.optimization,
+      moduleIds: dev ? 'named' : 'deterministic',
+    };
+    
+    // Additional webpack stability improvements
+    if (dev) {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: ['**/node_modules/**', '**/.next/**'],
+      };
+    }
+    
     return config;
   },
   env: {

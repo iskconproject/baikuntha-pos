@@ -20,7 +20,10 @@
     "build:analyze": "ANALYZE=true next build",
     "pwa:install": "next build && next start",
     "sw:update": "next build",
-    "clear:cache": "node scripts/clear-dev-cache.js"
+    "clear:cache": "node scripts/clear-dev-cache.js",
+    "dev:clean": "pnpm clear:cache && pnpm dev",
+    "reset:hard": "rm -rf node_modules .next tsconfig.tsbuildinfo && pnpm install",
+    "webpack:check": "node scripts/webpack-cache-fix.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.0",

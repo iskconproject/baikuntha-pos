@@ -11,6 +11,11 @@ out/
 build/
 dist/
 
+# Webpack and build caches
+.webpack/
+.cache/
+*.tsbuildinfo
+
 # Environment variables
 .env
 .env.local
