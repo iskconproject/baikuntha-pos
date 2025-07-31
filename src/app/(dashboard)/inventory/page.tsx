@@ -64,24 +64,39 @@ export default function InventoryPage() {
       setIsLoading(true);
       setError(null);
 
-      // Load products and categories in parallel
-      const [productsResponse, categoriesResponse] = await Promise.all([
-        fetch('/api/products?limit=1000'),
-        fetch('/api/categories?hierarchy=true'),
-      ]);
+      console.log('Starting to load inventory data...');
 
-      if (!productsResponse.ok || !categoriesResponse.ok) {
-        throw new Error('Failed to load inventory data');
+      // Load products first
+      console.log('Fetching products...');
+      const productsResponse = await fetch('/api/products?limit=1000');
+      console.log('Products response status:', productsResponse.status);
+      
+      if (!productsResponse.ok) {
+        throw new Error(`Products API failed with status: ${productsResponse.status}`);
       }
 
       const productsData = await productsResponse.json();
+      console.log('Products data:', productsData);
+
+      // Load categories
+      console.log('Fetching categories...');
+      const categoriesResponse = await fetch('/api/categories?hierarchy=true');
+      console.log('Categories response status:', categoriesResponse.status);
+      
+      if (!categoriesResponse.ok) {
+        throw new Error(`Categories API failed with status: ${categoriesResponse.status}`);
+      }
+
       const categoriesData = await categoriesResponse.json();
+      console.log('Categories data:', categoriesData);
 
       setProducts(productsData.data?.products || []);
       setCategories(categoriesData.categories || []);
+      
+      console.log('Data loaded successfully');
     } catch (error) {
       console.error('Error loading inventory data:', error);
-      setError('Failed to load inventory data. Please try again.');
+      setError(`Failed to load inventory data: ${error.message}`);
     } finally {
       setIsLoading(false);
     }

@@ -14,8 +14,27 @@ export function ProductSelection({ className = '' }: ProductSelectionProps) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [showVariantModal, setShowVariantModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'search' | 'categories' | 'recent'>('search');
 
   const addItem = useCartStore((state) => state.addItem);
+
+  // Mock categories for quick access
+  const quickCategories = [
+    { id: '1', name: 'Books', icon: '📚', count: 25 },
+    { id: '2', name: 'Accessories', icon: '📿', count: 15 },
+    { id: '3', name: 'Incense', icon: '🕯️', count: 8 },
+    { id: '4', name: 'Clothing', icon: '👕', count: 12 },
+    { id: '5', name: 'Jewelry', icon: '💍', count: 6 },
+    { id: '6', name: 'Gifts', icon: '🎁', count: 20 },
+  ];
+
+  // Mock recent/popular products
+  const recentProducts = [
+    { id: '1', name: 'Bhagavad Gita As It Is', price: 350, image: '📖' },
+    { id: '2', name: 'Tulsi Japa Mala', price: 250, image: '📿' },
+    { id: '3', name: 'Sandalwood Incense', price: 150, image: '🕯️' },
+    { id: '4', name: 'Krishna T-Shirt', price: 450, image: '👕' },
+  ];
 
   const handleProductSelect = (product: any) => {
     const productData: Product = {
@@ -96,19 +115,190 @@ export function ProductSelection({ className = '' }: ProductSelectionProps) {
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Product Selection</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Search and select products to add to cart
-          </p>
+        {/* Tab Navigation */}
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8 px-4" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('search')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'search'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span>Search</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('categories')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'categories'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <span>Categories</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('recent')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'recent'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Recent</span>
+              </div>
+            </button>
+          </nav>
         </div>
-        
+
+        {/* Tab Content */}
         <div className="p-4">
-          <SearchInterface
-            onProductSelect={handleProductSelect}
-            onAddToCart={handleAddToCart}
-            className="h-96"
-          />
+          {activeTab === 'search' && (
+            <div className="space-y-4">
+              <div className="space-y-4">
+                {/* Search Input */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search products, books, accessories..."
+                    className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Mock Products Display */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                  {[
+                    { id: '1', name: 'Bhagavad Gita As It Is', price: 350, description: 'Complete edition with Sanskrit verses and purports', stock: 50 },
+                    { id: '2', name: 'Tulsi Japa Mala', price: 150, description: 'Hand-crafted 108 bead japa mala', stock: 75 },
+                    { id: '3', name: 'Srimad Bhagavatam Set', price: 4500, description: 'Complete 12 canto set', stock: 10 },
+                    { id: '4', name: 'Japa Mala Bag', price: 50, description: 'Cotton bag with drawstring', stock: 40 },
+                  ].map((product) => (
+                    <div
+                      key={product.id}
+                      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="space-y-3">
+                        <div>
+                          <h3 className="font-semibold text-gray-900 text-sm">{product.name}</h3>
+                          <p className="text-xs text-gray-600 mt-1">{product.description}</p>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-lg font-bold text-orange-600">₹{product.price}</span>
+                            <p className="text-xs text-gray-500">Stock: {product.stock}</p>
+                          </div>
+                          
+                          <button
+                            onClick={() => {
+                              // Mock add to cart
+                              const mockProduct = {
+                                id: product.id,
+                                name: product.name,
+                                description: product.description,
+                                basePrice: product.price,
+                                categoryId: '1',
+                                keywords: [],
+                                metadata: { customAttributes: {} },
+                                isActive: true,
+                                createdAt: new Date(),
+                                updatedAt: new Date(),
+                                variants: [],
+                              };
+                              handleAddToCart(mockProduct);
+                            }}
+                            className="px-3 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors text-sm font-medium"
+                          >
+                            Add to Cart
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'categories' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Browse by Category</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                {quickCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => {
+                      // Switch to search tab and filter by category
+                      setActiveTab('search');
+                      // TODO: Implement category filtering
+                    }}
+                    className="p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors text-left"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">{category.icon}</span>
+                      <div>
+                        <h4 className="font-medium text-gray-900">{category.name}</h4>
+                        <p className="text-sm text-gray-600">{category.count} items</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'recent' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Popular Products</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {recentProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-2xl">{product.image}</span>
+                        <div>
+                          <h4 className="font-medium text-gray-900">{product.name}</h4>
+                          <p className="text-lg font-semibold text-orange-600">₹{product.price}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          // TODO: Add to cart directly
+                          console.log('Add to cart:', product);
+                        }}
+                        className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors text-sm font-medium"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

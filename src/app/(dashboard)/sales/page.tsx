@@ -12,6 +12,7 @@ type SalesStep = 'selection' | 'payment' | 'receipt';
 export default function SalesPage() {
   const [currentStep, setCurrentStep] = useState<SalesStep>('selection');
   const [completedTransaction, setCompletedTransaction] = useState<Transaction | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
 
   const handleCheckout = () => {
     setCurrentStep('payment');
@@ -47,38 +48,72 @@ export default function SalesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Sales Transaction</h1>
-          <p className="text-gray-600 mt-2">
-            Process customer purchases and manage transactions
-          </p>
+      {/* Mobile-First Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Point of Sale</h1>
+              <p className="text-sm text-gray-600 hidden sm:block">
+                {currentStep === 'selection' && 'Add products to cart'}
+                {currentStep === 'payment' && 'Process payment'}
+                {currentStep === 'receipt' && 'Transaction complete'}
+              </p>
+            </div>
+            
+            {/* Quick Actions */}
+            <div className="flex items-center space-x-2">
+              {currentStep === 'selection' && (
+                <>
+                  <button
+                    onClick={() => setShowHistory(!showHistory)}
+                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Transaction History"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
+                  <button
+                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Scan Barcode"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    </svg>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Step Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-8">
+      {/* Step Indicator - Simplified for Mobile */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-center space-x-4 sm:space-x-8">
             <div className={`flex items-center ${
               currentStep === 'selection' ? 'text-orange-600' : 
               currentStep === 'payment' || currentStep === 'receipt' ? 'text-green-600' : 'text-gray-400'
             }`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border-2 ${
                 currentStep === 'selection' ? 'border-orange-600 bg-orange-50' :
                 currentStep === 'payment' || currentStep === 'receipt' ? 'border-green-600 bg-green-50' : 'border-gray-300'
               }`}>
                 {currentStep === 'payment' || currentStep === 'receipt' ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
-                  <span className="text-sm font-medium">1</span>
+                  <span className="text-xs sm:text-sm font-medium">1</span>
                 )}
               </div>
-              <span className="ml-2 text-sm font-medium">Product Selection</span>
+              <span className="ml-2 text-xs sm:text-sm font-medium hidden sm:inline">Product Selection</span>
+              <span className="ml-2 text-xs font-medium sm:hidden">Products</span>
             </div>
 
-            <div className={`w-16 h-0.5 ${
+            <div className={`w-8 sm:w-16 h-0.5 ${
               currentStep === 'payment' || currentStep === 'receipt' ? 'bg-green-600' : 'bg-gray-300'
             }`} />
 
@@ -86,60 +121,85 @@ export default function SalesPage() {
               currentStep === 'payment' ? 'text-orange-600' :
               currentStep === 'receipt' ? 'text-green-600' : 'text-gray-400'
             }`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border-2 ${
                 currentStep === 'payment' ? 'border-orange-600 bg-orange-50' :
                 currentStep === 'receipt' ? 'border-green-600 bg-green-50' : 'border-gray-300'
               }`}>
                 {currentStep === 'receipt' ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
-                  <span className="text-sm font-medium">2</span>
+                  <span className="text-xs sm:text-sm font-medium">2</span>
                 )}
               </div>
-              <span className="ml-2 text-sm font-medium">Payment</span>
+              <span className="ml-2 text-xs sm:text-sm font-medium">Payment</span>
             </div>
 
-            <div className={`w-16 h-0.5 ${
+            <div className={`w-8 sm:w-16 h-0.5 ${
               currentStep === 'receipt' ? 'bg-green-600' : 'bg-gray-300'
             }`} />
 
             <div className={`flex items-center ${
               currentStep === 'receipt' ? 'text-green-600' : 'text-gray-400'
             }`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border-2 ${
                 currentStep === 'receipt' ? 'border-green-600 bg-green-50' : 'border-gray-300'
               }`}>
                 {currentStep === 'receipt' ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
-                  <span className="text-sm font-medium">3</span>
+                  <span className="text-xs sm:text-sm font-medium">3</span>
                 )}
               </div>
-              <span className="ml-2 text-sm font-medium">Receipt</span>
+              <span className="ml-2 text-xs sm:text-sm font-medium">Receipt</span>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Main Content */}
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         {currentStep === 'selection' && (
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
+          <div className="space-y-4 sm:space-y-6">
+            {/* Mobile-First Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+              {/* Product Selection - Takes full width on mobile, 3/4 on desktop */}
+              <div className="lg:col-span-3 order-2 lg:order-1">
                 <ProductSelection />
               </div>
-              <div className="lg:col-span-1">
-                <CartManager onCheckout={handleCheckout} />
+              
+              {/* Cart - Sticky on mobile, sidebar on desktop */}
+              <div className="lg:col-span-1 order-1 lg:order-2">
+                <div className="lg:sticky lg:top-24">
+                  <CartManager onCheckout={handleCheckout} />
+                </div>
               </div>
             </div>
             
-            {/* Transaction History for Cashiers */}
-            <div className="border-t border-gray-200 pt-8">
-              <TransactionHistory limit={5} />
-            </div>
+            {/* Transaction History Modal/Sidebar */}
+            {showHistory && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:relative lg:bg-transparent lg:z-auto">
+                <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl lg:relative lg:max-w-none lg:shadow-none lg:bg-gray-50 lg:rounded-lg lg:border lg:border-gray-200">
+                  <div className="flex items-center justify-between p-4 border-b border-gray-200 lg:border-none">
+                    <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
+                    <button
+                      onClick={() => setShowHistory(false)}
+                      className="p-2 text-gray-400 hover:text-gray-600 lg:hidden"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="p-4">
+                    <TransactionHistory limit={10} />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
