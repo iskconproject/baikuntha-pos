@@ -127,36 +127,100 @@ export abstract class BaseService<T, TInsert extends Record<string, any>> {
     operation: "create" | "update" | "delete",
     recordId: string
   ): Promise<void> {
-    // Import sync service dynamically to avoid circular dependencies
-    const { syncService } = await import("./sync");
+    try {
+      // Get table name first
+      const tableName = this.getTableName();
 
-    // Get the record data for the sync operation
-    let data: any = null;
-    if (operation !== "delete") {
-      data = await this.findById(recordId);
-    } else {
-      data = { id: recordId };
+      // Skip sync if we can't determine table name
+      if (tableName === "unknown_table") {
+        console.warn(
+          `Skipping sync for ${operation} operation - unknown table name`
+        );
+        return;
+      }
+
+      // Import sync service dynamically to avoid circular dependencies
+      const { syncService } = await import("./sync");
+
+      // Get the record data for the sync operation
+      let data: any = null;
+      if (operation !== "delete") {
+        data = await this.findById(recordId);
+      } else {
+        data = { id: recordId };
+      }
+
+      // Queue the operation for sync
+      syncService.queueOperation(operation, tableName, data);
+    } catch (error) {
+      console.error(`Error queuing ${operation} operation for sync:`, error);
+      // Don't throw the error - sync failure shouldn't break the main operation
     }
-
-    // Queue the operation for sync
-    syncService.queueOperation(operation, this.getTableName(), data);
   }
 
   // Get table name for sync operations
   protected getTableName(): string {
-    // Extract table name from the table object
-    // Drizzle tables have the name in different places depending on version
-    if (this.table._?.name) return this.table._.name;
-    if (this.table._.baseName) return this.table._.baseName;
-    if (this.table.name) return this.table.name;
+    try {
+      // Import table references for comparison
+      const {
+        products,
+        categories,
+        users,
+        productVariants,
+        transactions,
+        transactionItems,
+      } = require("@/lib/db/schema");
 
-    // Fallback: try to extract from constructor name or toString
-    const tableStr = this.table.toString();
-    const match = tableStr.match(/table "([^"]+)"/);
-    if (match) return match[1];
+      // Method 1: Direct table comparison (most reliable)
+      if (this.table === products) return "products";
+      if (this.table === categories) return "categories";
+      if (this.table === users) return "users";
+      if (this.table === productVariants) return "product_variants";
+      if (this.table === transactions) return "transactions";
+      if (this.table === transactionItems) return "transaction_items";
 
-    console.warn("Could not determine table name for sync, using fallback");
-    return "unknown_table";
+      // Method 2: Check the Symbol.for('drizzle:Name') property
+      const nameSymbol = Symbol.for("drizzle:Name");
+      if (this.table[nameSymbol]) {
+        return this.table[nameSymbol];
+      }
+
+      // Method 3: Check all symbols for drizzle name
+      const symbols = Object.getOwnPropertySymbols(this.table);
+      for (const symbol of symbols) {
+        const symbolStr = symbol.toString();
+        if (symbolStr.includes("drizzle:Name")) {
+          const value = this.table[symbol];
+          if (typeof value === "string" && value.length > 0) {
+            return value;
+          }
+        }
+      }
+
+      // Method 4: Check for modern Drizzle structure
+      if (this.table._ && this.table._.name) {
+        return this.table._.name;
+      }
+
+      if (this.table._ && this.table._.baseName) {
+        return this.table._.baseName;
+      }
+
+      // Method 5: Try to extract from toString
+      const tableStr = this.table.toString();
+      const match = tableStr.match(/table "([^"]+)"/);
+      if (match) {
+        return match[1];
+      }
+
+      console.warn(
+        "Could not determine table name for sync. Disabling sync for this table."
+      );
+      return "unknown_table";
+    } catch (error) {
+      console.error("Error extracting table name:", error);
+      return "unknown_table";
+    }
   }
 
   // Utility methods
