@@ -36,9 +36,9 @@ export function DailySalesReport({ selectedDate }: DailySalesReportProps) {
 
   useEffect(() => {
     fetchDailySalesData();
-  }, [selectedDate]);
+  }, [selectedDate, fetchDailySalesData]);
 
-  const fetchDailySalesData = async () => {
+  const fetchDailySalesData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -56,7 +56,7 @@ export function DailySalesReport({ selectedDate }: DailySalesReportProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {

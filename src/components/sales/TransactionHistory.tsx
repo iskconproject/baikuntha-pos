@@ -53,7 +53,7 @@ export function TransactionHistory({
     fetchTransactions();
   }, [dateFilter, paymentMethodFilter, currentPage, limit]);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -119,7 +119,7 @@ export function TransactionHistory({
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, pagination]);
 
   const formatCurrency = (amount: number) => {
     return `₹${amount.toFixed(2)}`;

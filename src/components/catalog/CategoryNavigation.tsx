@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Category } from '@/lib/db/schema';
 
 interface CategoryNavigationProps {
@@ -26,9 +26,9 @@ export function CategoryNavigation({
   useEffect(() => {
     buildCategoryTree();
     fetchProductCounts();
-  }, [categories]);
+  }, [categories, buildCategoryTree, fetchProductCounts]);
 
-  const buildCategoryTree = () => {
+  const buildCategoryTree = useCallback(() => {
     const categoryMap = new Map<string, CategoryWithChildren>();
     const rootCategories: CategoryWithChildren[] = [];
 
@@ -53,9 +53,9 @@ export function CategoryNavigation({
     });
 
     setCategoryTree(rootCategories);
-  };
+  }, [categories]);
 
-  const fetchProductCounts = async () => {
+  const fetchProductCounts = useCallback(async () => {
     try {
       const response = await fetch('/api/categories/counts');
       const data = await response.json();
@@ -63,7 +63,7 @@ export function CategoryNavigation({
     } catch (error) {
       console.error('Error fetching product counts:', error);
     }
-  };
+  }, []);
 
   const toggleCategory = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);

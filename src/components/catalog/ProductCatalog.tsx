@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ProductGrid } from '@/components/ui/ProductGrid';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import type { ProductSearchResult, SearchSortOption } from '@/types/search';
@@ -27,13 +27,13 @@ export function ProductCatalog({
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory, sortBy, currentPage]);
+  }, [selectedCategory, sortBy, currentPage, fetchProducts]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategory, sortBy]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
       const searchParams = new URLSearchParams({
@@ -59,7 +59,7 @@ export function ProductCatalog({
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, selectedCategory, sortBy, currentPage, itemsPerPage]);
 
   const handleQuickSearch = (query: string) => {
     setSearchQuery(query);

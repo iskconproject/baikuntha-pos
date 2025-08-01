@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -154,7 +154,7 @@ function SalesAnalytics() {
     endDate: format(new Date(), 'yyyy-MM-dd'),
   });
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -176,12 +176,12 @@ function SalesAnalytics() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange.startDate, dateRange.endDate]);
 
   // Fetch analytics data on component mount and when date range changes
   useEffect(() => {
     fetchAnalytics();
-  }, [dateRange.startDate, dateRange.endDate]);
+  }, [dateRange.startDate, dateRange.endDate, fetchAnalytics]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {

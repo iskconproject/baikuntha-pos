@@ -253,10 +253,10 @@ export function NotificationSettings({ settings, onChange }: NotificationSetting
             Notification Examples
           </h4>
           <div className="text-sm text-blue-700 dark:text-blue-200 space-y-1">
-            <p>• "Sync completed successfully"</p>
-            <p>• "Low stock: Bhagavad Gita (5 remaining)"</p>
-            <p>• "System update available"</p>
-            <p>• "Transaction #1234 completed"</p>
+            <p>• &ldquo;Sync completed successfully&rdquo;</p>
+            <p>• &ldquo;Low stock: Bhagavad Gita (5 remaining)&rdquo;</p>
+            <p>• &ldquo;System update available&rdquo;</p>
+            <p>• &ldquo;Transaction #1234 completed&rdquo;</p>
           </div>
         </div>
 

@@ -67,7 +67,7 @@ export function SearchInterface({ onProductSelect, onAddToCart, className = '' }
     currentPage
   ]);
 
-  const fetchSuggestions = async (searchQuery: string) => {
+  const fetchSuggestions = useCallback(async (searchQuery: string) => {
     try {
       const response = await fetch(
         `/api/search/suggestions?q=${encodeURIComponent(searchQuery)}&lang=${language}&limit=8`
@@ -78,9 +78,9 @@ export function SearchInterface({ onProductSelect, onAddToCart, className = '' }
       console.error('Error fetching suggestions:', error);
       setSuggestions([]);
     }
-  };
+  }, [language]);
 
-  const performSearch = async () => {
+  const performSearch = useCallback(async () => {
     setIsLoading(true);
     
     try {
@@ -115,7 +115,7 @@ export function SearchInterface({ onProductSelect, onAddToCart, className = '' }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [query, language, sortBy, priceRange, currentPage]);
 
   const handleSuggestionClick = (suggestion: string) => {
     setQuery(suggestion);

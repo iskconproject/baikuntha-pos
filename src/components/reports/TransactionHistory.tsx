@@ -60,7 +60,7 @@ export function TransactionHistory({ onExport }: TransactionHistoryProps) {
     fetchTransactionHistory();
   }, [currentPage, filters]);
 
-  const fetchTransactionHistory = async () => {
+  const fetchTransactionHistory = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -87,7 +87,7 @@ export function TransactionHistory({ onExport }: TransactionHistoryProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, pagination]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {

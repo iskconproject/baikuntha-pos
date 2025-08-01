@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -64,7 +64,7 @@ export const UserList: React.FC<UserListProps> = ({ currentUserRole }) => {
   const [updateLoading, setUpdateLoading] = useState(false);
 
   // Fetch users
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -93,12 +93,12 @@ export const UserList: React.FC<UserListProps> = ({ currentUserRole }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, search, roleFilter, statusFilter]);
 
   // Effect to fetch users when filters change
   useEffect(() => {
     fetchUsers();
-  }, [currentPage, search, roleFilter, statusFilter]);
+  }, [currentPage, search, roleFilter, statusFilter, fetchUsers]);
 
   // Create user
   const handleCreateUser = async (data: CreateUserInput) => {

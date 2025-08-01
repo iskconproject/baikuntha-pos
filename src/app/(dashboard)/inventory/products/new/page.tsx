@@ -498,7 +498,7 @@ export default function NewProductPage() {
                 <div className="text-center py-12 text-gray-500">
                   <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
                   <p className="text-lg font-medium mb-2">No variants added yet</p>
-                  <p className="text-sm">Click "Add Variant" to create product variations like different sizes, colors, or editions.</p>
+                  <p className="text-sm">Click &ldquo;Add Variant&rdquo; to create product variations like different sizes, colors, or editions.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -805,7 +805,7 @@ function VariantEditor({ variant, onChange }: VariantEditorProps) {
 
         {attributeFields.length === 0 && (
           <p className="text-sm text-gray-500">
-            No attributes added. Click "Add Attribute" to specify variant characteristics like size, color, etc.
+            No attributes added. Click &ldquo;Add Attribute&rdquo; to specify variant characteristics like size, color, etc.
           </p>
         )}
       </div>

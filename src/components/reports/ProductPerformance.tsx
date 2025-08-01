@@ -36,9 +36,9 @@ export function ProductPerformance({ reportType = 'performance' }: ProductPerfor
 
   useEffect(() => {
     fetchProductPerformance();
-  }, [filters, limit, reportType]);
+  }, [filters, limit, reportType, fetchProductPerformance]);
 
-  const fetchProductPerformance = async () => {
+  const fetchProductPerformance = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -65,7 +65,7 @@ export function ProductPerformance({ reportType = 'performance' }: ProductPerfor
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {

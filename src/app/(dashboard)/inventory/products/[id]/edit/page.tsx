@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { Package } from 'lucide-react';
@@ -107,9 +107,9 @@ export default function EditProductPage() {
 
   useEffect(() => {
     loadData();
-  }, [params.id]);
+  }, [params.id, loadData]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -201,7 +201,7 @@ export default function EditProductPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [params.id, reset]);
 
   const handleAddKeyword = () => {
     if (keywordInput.trim() && !keywords?.some(k => k.value === keywordInput.trim())) {
@@ -609,7 +609,7 @@ export default function EditProductPage() {
                 <div className="text-center py-12 text-gray-500">
                   <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
                   <p className="text-lg font-medium mb-2">No variants added yet</p>
-                  <p className="text-sm">Click "Add Variant" to create product variations like different sizes, colors, or editions.</p>
+                  <p className="text-sm">Click &ldquo;Add Variant&rdquo; to create product variations like different sizes, colors, or editions.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -915,7 +915,7 @@ function VariantEditor({ variant, onChange }: VariantEditorProps) {
 
         {attributeFields.length === 0 && (
           <p className="text-sm text-gray-500">
-            No attributes added. Click "Add Attribute" to specify variant characteristics like size, color, etc.
+            No attributes added. Click &ldquo;Add Attribute&rdquo; to specify variant characteristics like size, color, etc.
           </p>
         )}
       </div>

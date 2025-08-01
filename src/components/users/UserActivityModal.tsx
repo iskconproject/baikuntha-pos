@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
@@ -88,7 +88,7 @@ export const UserActivityModal: React.FC<UserActivityModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [actionFilter, setActionFilter] = useState('');
 
-  const fetchActivities = async () => {
+  const fetchActivities = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -114,11 +114,11 @@ export const UserActivityModal: React.FC<UserActivityModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.id, actionFilter]);
 
   useEffect(() => {
     fetchActivities();
-  }, [user.id, actionFilter]);
+  }, [user.id, actionFilter, fetchActivities]);
 
   return (
     <Modal
