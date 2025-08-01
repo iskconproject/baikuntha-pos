@@ -204,27 +204,18 @@ export default function SettingsPage() {
   const activeTab = SETTINGS_CATEGORIES.find(cat => cat.id === activeCategory);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50">
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}
         <div className="mb-8">
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center">
-              <Settings className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
-                System Settings
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Configure system preferences and application behavior
-              </p>
-            </div>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900">System Settings</h1>
+          <p className="text-gray-600 mt-2">
+            Configure system preferences and application behavior
+          </p>
           
           {/* Status Indicator */}
           {hasChanges && (
-            <div className="bg-amber-100 border border-amber-200 rounded-lg p-3 flex items-center space-x-2">
+            <div className="bg-amber-100 border border-amber-200 rounded-lg p-3 flex items-center space-x-2 mt-4">
               <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-amber-800 font-medium">
                 You have unsaved changes
@@ -236,9 +227,9 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Settings Categories Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-              <div className="p-6 bg-gradient-to-r from-orange-500 to-amber-500">
-                <h2 className="text-lg font-semibold text-white">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">
                   Settings Categories
                 </h2>
               </div>
@@ -249,10 +240,10 @@ export default function SettingsPage() {
                     <button
                       key={category.id}
                       onClick={() => setActiveCategory(category.id)}
-                      className={`w-full text-left p-4 rounded-xl transition-all duration-200 group ${
+                      className={`w-full text-left p-4 rounded-lg transition-all duration-200 group ${
                         activeCategory === category.id
-                          ? 'bg-gradient-to-r from-orange-100 to-amber-100 text-orange-900 shadow-md border border-orange-200'
-                          : 'hover:bg-gray-50 text-gray-700 hover:shadow-sm'
+                          ? 'bg-orange-50 text-orange-900 border-l-4 border-orange-500'
+                          : 'hover:bg-gray-50 text-gray-700'
                       }`}
                     >
                       <div className="flex items-start space-x-3">
@@ -281,15 +272,15 @@ export default function SettingsPage() {
 
           {/* Settings Content */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               {/* Content Header */}
-              <div className="p-6 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+              <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg flex items-center justify-center">
-                    {activeTab?.icon && <activeTab.icon className="w-5 h-5 text-white" />}
+                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                    {activeTab?.icon && <activeTab.icon className="w-5 h-5 text-orange-600" />}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">
+                    <h2 className="text-xl font-bold text-gray-900">
                       {activeTab?.name}
                     </h2>
                     <p className="text-gray-600 text-sm mt-1">
@@ -326,7 +317,7 @@ export default function SettingsPage() {
                     <Button
                       onClick={handleSave}
                       disabled={!hasChanges || saving}
-                      className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                      className="bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                     >
                       {saving ? (
                         <>
