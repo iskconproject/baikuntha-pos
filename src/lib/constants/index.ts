@@ -1,7 +1,7 @@
-// Application constants for VaikunthaPOS
+// Application constants for BaikunthaPOS
 
 export const APP_CONFIG = {
-  name: 'VaikunthaPOS',
+  name: 'BaikunthaPOS',
   version: '1.0.0',
   description: 'ISKCON Temple Point of Sale System',
   author: 'ISKCON Asansol Temple',
@@ -45,7 +45,7 @@ export const DEFAULT_PAGINATION = {
 
 export const SESSION_CONFIG = {
   TIMEOUT_MINUTES: 30,
-  COOKIE_NAME: 'vaikuntha-session',
+  COOKIE_NAME: 'baikuntha-session',
   COOKIE_MAX_AGE: 30 * 60 * 1000, // 30 minutes in milliseconds
 } as const
 
