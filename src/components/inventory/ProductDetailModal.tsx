@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ClipboardList, Settings, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
@@ -99,9 +100,9 @@ export function ProductDetailModal({ product, onClose, onEdit, onDelete }: Produ
   };
 
   const tabs = [
-    { id: 'details', label: 'Details', icon: '📋' },
-    { id: 'variants', label: 'Variants', icon: '🔧' },
-    { id: 'history', label: 'History', icon: '📊' },
+    { id: 'details', label: 'Details', icon: ClipboardList },
+    { id: 'variants', label: 'Variants', icon: Settings },
+    { id: 'history', label: 'History', icon: BarChart3 },
   ] as const;
 
   return (
@@ -145,13 +146,13 @@ export function ProductDetailModal({ product, onClose, onEdit, onDelete }: Produ
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap flex items-center ${
                   activeTab === tab.id
                     ? 'border-orange-500 text-orange-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <span className="mr-2">{tab.icon}</span>
+                <tab.icon className="w-4 h-4 mr-2" />
                 {tab.label}
               </button>
             ))}

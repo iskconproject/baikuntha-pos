@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "BrowserMCP": {
+      "command": "npx",
+      "args": [
+        "@browsermcp/mcp@latest"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "browser_navigate",
+        "browser_snapshot",
+        "browser_get_console_logs",
+        "browser_wait",
+        "browser_press_key",
+        "browser_screenshot",
+        "browser_type",
+        "browser_click",
+        "browser_hover",
+        "browser_select_option"
+      ]
+    }
+  }
+}

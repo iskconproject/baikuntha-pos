@@ -218,6 +218,7 @@ async function seedDatabase() {
           },
         },
         isActive: true,
+        variants: [],
       });
     }
 
@@ -286,6 +287,7 @@ async function seedDatabase() {
         },
       },
       isActive: true,
+      variants: [],
     });
 
     await productService.createVariant({
@@ -327,6 +329,7 @@ async function seedDatabase() {
         },
       },
       isActive: true,
+      variants: [],
     });
 
     await productService.createVariant({
@@ -363,6 +366,7 @@ async function seedDatabase() {
         },
       },
       isActive: true,
+      variants: [],
     });
 
     await productService.createVariant({

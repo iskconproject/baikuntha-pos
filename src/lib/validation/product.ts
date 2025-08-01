@@ -26,15 +26,19 @@ export const keywordsSchema = z
     return cleaned.length === keywords.length;
   }, 'Keywords must be unique and non-empty');
 
-// Product variant schema
-export const productVariantSchema = z.object({
-  id: z.string().optional(),
-  productId: z.string().uuid('Invalid product ID'),
+// Create product variant schema (defined first to avoid circular reference)
+export const createProductVariantSchema = z.object({
   name: z.string().min(1, 'Variant name is required').max(100, 'Variant name too long'),
   price: z.number().min(0, 'Price must be non-negative'),
   stockQuantity: z.number().int().min(0, 'Stock quantity must be non-negative').default(0),
   attributes: variantAttributesSchema.default({}),
   keywords: keywordsSchema,
+});
+
+// Product variant schema (with ID and productId)
+export const productVariantSchema = createProductVariantSchema.extend({
+  id: z.string().optional(),
+  productId: z.string().uuid('Invalid product ID'),
 });
 
 // Create product schema
@@ -56,10 +60,20 @@ export const createProductSchema = z.object({
     customAttributes: {},
   }),
   isActive: z.boolean().default(true),
+  variants: z.array(createProductVariantSchema).default([]),
 });
 
 // Update product schema
-export const updateProductSchema = createProductSchema.partial();
+export const updateProductSchema = createProductSchema.partial().extend({
+  variants: z.array(z.object({
+    id: z.string().optional(),
+    name: z.string().min(1, 'Variant name is required').max(100, 'Variant name too long'),
+    price: z.number().min(0, 'Price must be non-negative'),
+    stockQuantity: z.number().int().min(0, 'Stock quantity must be non-negative').default(0),
+    attributes: variantAttributesSchema.default({}),
+    keywords: keywordsSchema,
+  })).optional(),
+});
 
 // Form-specific schema for components (with required fields for better UX)
 export const productFormSchema = z.object({
@@ -72,8 +86,7 @@ export const productFormSchema = z.object({
   isActive: z.boolean(),
 });
 
-// Create product variant schema
-export const createProductVariantSchema = productVariantSchema.omit({ id: true, productId: true });
+// This is now defined above to avoid circular reference
 
 // Update product variant schema
 export const updateProductVariantSchema = createProductVariantSchema.partial();

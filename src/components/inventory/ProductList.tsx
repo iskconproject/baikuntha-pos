@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { Package } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -391,13 +392,46 @@ export function ProductList({
                     </div>
                   )}
 
-                  {product.variants.length > 0 && (
-                    <div className="text-sm text-gray-500">
-                      {product.variants.length} variant
-                      {product.variants.length !== 1 ? "s" : ""} • Total stock:{" "}
-                      {totalStock}
+                  {/* Enhanced Variant Display */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm">
+                      {product.variants.length > 0 ? (
+                        <>
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <Package className="w-3 h-3 mr-1" />
+                            {product.variants.length} variant{product.variants.length !== 1 ? "s" : ""}
+                          </span>
+                          <span className="text-gray-600 font-medium">
+                            Total stock: {totalStock}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                          <Package className="w-3 h-3 mr-1" />
+                          No variants
+                        </span>
+                      )}
                     </div>
-                  )}
+
+                    {/* Show variant names preview */}
+                    {product.variants.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {product.variants.slice(0, 3).map((variant, index) => (
+                          <span
+                            key={index}
+                            className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded"
+                          >
+                            {variant.name}
+                          </span>
+                        ))}
+                        {product.variants.length > 3 && (
+                          <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                            +{product.variants.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                   {product.keywords.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">

@@ -413,7 +413,25 @@ export class ProductService extends BaseService<Product, NewProduct> {
       if (!dbData.name) {
         throw new Error('Product name is required');
       }
-      return await this.create(dbData as Omit<NewProduct, 'id'>);
+      
+      // Create the product first
+      const product = await this.create(dbData as Omit<NewProduct, 'id'>);
+      
+      // Create variants if provided
+      if (productData.variants && productData.variants.length > 0) {
+        for (const variantData of productData.variants) {
+          await this.createVariant({
+            productId: product.id,
+            name: variantData.name,
+            price: variantData.price,
+            stockQuantity: variantData.stockQuantity || 0,
+            attributes: variantData.attributes || {},
+            keywords: variantData.keywords || [],
+          });
+        }
+      }
+      
+      return product;
     } catch (error) {
       console.error("Error creating product:", error);
       throw error;
@@ -444,7 +462,50 @@ export class ProductService extends BaseService<Product, NewProduct> {
 
       // Transform input to database format
       const dbData = this.transformProductInput(productData);
-      return await this.update(id, dbData);
+      const product = await this.update(id, dbData);
+      
+      // Handle variants if provided
+      if (productData.variants !== undefined) {
+        // Get existing variants
+        const existingVariants = await this.findVariantsByProduct(id);
+        const existingVariantIds = new Set(existingVariants.map(v => v.id));
+        const updatedVariantIds = new Set();
+        
+        // Process each variant in the update
+        for (const variantData of productData.variants) {
+          if (variantData.id && existingVariantIds.has(variantData.id)) {
+            // Update existing variant
+            await this.updateVariant(variantData.id, {
+              name: variantData.name,
+              price: variantData.price,
+              stockQuantity: variantData.stockQuantity || 0,
+              attributes: variantData.attributes ? JSON.stringify(variantData.attributes) : null,
+              keywords: variantData.keywords ? JSON.stringify(variantData.keywords) : null,
+            });
+            updatedVariantIds.add(variantData.id);
+          } else {
+            // Create new variant
+            const newVariant = await this.createVariant({
+              productId: id,
+              name: variantData.name,
+              price: variantData.price,
+              stockQuantity: variantData.stockQuantity || 0,
+              attributes: variantData.attributes || {},
+              keywords: variantData.keywords || [],
+            });
+            updatedVariantIds.add(newVariant.id);
+          }
+        }
+        
+        // Delete variants that are no longer in the update
+        for (const existingVariant of existingVariants) {
+          if (!updatedVariantIds.has(existingVariant.id)) {
+            await this.deleteVariant(existingVariant.id);
+          }
+        }
+      }
+      
+      return product;
     } catch (error) {
       console.error("Error updating product:", error);
       throw error;

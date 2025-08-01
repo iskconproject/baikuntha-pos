@@ -1,9 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { 
+  Package, 
+  FolderOpen, 
+  BarChart3, 
+  Zap, 
+  TrendingUp 
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ProductList } from '@/components/inventory/ProductList';
-import { ProductForm } from '@/components/inventory/ProductForm';
+
 import { CategoryManager } from '@/components/inventory/CategoryManager';
 import { StockManager } from '@/components/inventory/StockManager';
 import { BulkOperations } from '@/components/inventory/BulkOperations';
@@ -34,6 +42,7 @@ const flattenCategories = (categories: CategoryHierarchy[]): Array<{ id: string;
 };
 
 export default function InventoryPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'stock' | 'bulk' | 'reports'>('products');
   const [products, setProducts] = useState<EnhancedProduct[]>([]);
@@ -41,9 +50,7 @@ export default function InventoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Product form state
-  const [isProductFormOpen, setIsProductFormOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<EnhancedProduct | null>(null);
+  // Product detail modal state
   const [selectedProduct, setSelectedProduct] = useState<EnhancedProduct | null>(null);
 
   // Check if user has manager or admin role
@@ -103,46 +110,18 @@ export default function InventoryPage() {
   };
 
   const handleCreateProduct = () => {
-    setEditingProduct(null);
-    setIsProductFormOpen(true);
+    router.push('/inventory/products/new');
   };
 
   const handleEditProduct = (product: EnhancedProduct) => {
-    setEditingProduct(product);
-    setIsProductFormOpen(true);
+    router.push(`/inventory/products/${product.id}/edit`);
   };
 
   const handleProductSelect = (product: EnhancedProduct) => {
     setSelectedProduct(product);
   };
 
-  const handleProductSubmit = async (productData: any) => {
-    try {
-      const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
-      const method = editingProduct ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(productData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save product');
-      }
-
-      // Reload products
-      await loadData();
-      setIsProductFormOpen(false);
-      setEditingProduct(null);
-    } catch (error) {
-      console.error('Error saving product:', error);
-      throw error; // Re-throw to let the form handle the error
-    }
-  };
 
   const handleProductDelete = async (productId: string) => {
     if (!confirm('Are you sure you want to delete this product?')) {
@@ -258,11 +237,11 @@ export default function InventoryPage() {
   }
 
   const tabs = [
-    { id: 'products', label: 'Products', icon: '📦' },
-    { id: 'categories', label: 'Categories', icon: '📁' },
-    { id: 'stock', label: 'Stock Management', icon: '📊' },
-    { id: 'bulk', label: 'Bulk Operations', icon: '⚡' },
-    { id: 'reports', label: 'Reports', icon: '📈' },
+    { id: 'products', label: 'Products', icon: Package },
+    { id: 'categories', label: 'Categories', icon: FolderOpen },
+    { id: 'stock', label: 'Stock Management', icon: BarChart3 },
+    { id: 'bulk', label: 'Bulk Operations', icon: Zap },
+    { id: 'reports', label: 'Reports', icon: TrendingUp },
   ] as const;
 
   return (
@@ -284,13 +263,13 @@ export default function InventoryPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                  className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap flex items-center ${
                     activeTab === tab.id
                       ? 'border-orange-500 text-orange-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  <span className="mr-2">{tab.icon}</span>
+                  <tab.icon className="w-4 h-4 mr-2" />
                   {tab.label}
                 </button>
               ))}
@@ -349,26 +328,7 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* Product Form Modal */}
-      <ProductForm
-        isOpen={isProductFormOpen}
-        onClose={() => {
-          setIsProductFormOpen(false);
-          setEditingProduct(null);
-        }}
-        onSubmit={handleProductSubmit}
-        initialData={editingProduct ? {
-          name: editingProduct.name,
-          description: editingProduct.description || undefined,
-          basePrice: editingProduct.basePrice,
-          categoryId: editingProduct.categoryId || undefined,
-          keywords: editingProduct.keywords.map(k => ({ value: k })),
-          metadata: editingProduct.metadata,
-          isActive: editingProduct.isActive ?? true
-        } : undefined}
-        categories={flattenCategories(categories)}
-        isLoading={false}
-      />
+
 
       {/* Product Detail Modal */}
       {selectedProduct && (
