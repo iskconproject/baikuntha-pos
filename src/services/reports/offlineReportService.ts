@@ -12,7 +12,7 @@ interface OfflineReport {
 
 class OfflineReportService {
   private reports: Map<string, OfflineReport> = new Map();
-  private readonly STORAGE_KEY = 'vaikunthapos_offline_reports';
+  private readonly STORAGE_KEY = 'baikunthapos_offline_reports';
 
   constructor() {
     this.loadReportsFromStorage();

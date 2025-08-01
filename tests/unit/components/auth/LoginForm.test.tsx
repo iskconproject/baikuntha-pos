@@ -20,7 +20,7 @@ describe('LoginForm', () => {
   it('renders login form with all required fields', () => {
     render(<LoginForm {...defaultProps} />);
 
-    expect(screen.getByText('VaikunthaPOS')).toBeInTheDocument();
+    expect(screen.getByText('BaikunthaPOS')).toBeInTheDocument();
     expect(screen.getByText('Sign in to continue')).toBeInTheDocument();
     expect(screen.getByLabelText('Username')).toBeInTheDocument();
     expect(screen.getByLabelText('PIN')).toBeInTheDocument();

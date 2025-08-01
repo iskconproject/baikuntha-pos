@@ -2,7 +2,7 @@
 
 ## Overview
 
-VaikunthaPOS is designed as a modern Progressive Web App (PWA) using Next.js 14 with App Router, providing a comprehensive Point of Sale solution for ISKCON Asansol Temple's Gift & Book Store. The system follows an offline-first architecture with automatic cloud synchronization, ensuring continuous operation regardless of internet connectivity. The application uses a dual-database approach with local SQLite for offline operations and Turso (LibSQL) for cloud synchronization across multiple devices.
+BaikunthaPOS is designed as a modern Progressive Web App (PWA) using Next.js 14 with App Router, providing a comprehensive Point of Sale solution for ISKCON Asansol Temple's Gift & Book Store. The system follows an offline-first architecture with automatic cloud synchronization, ensuring continuous operation regardless of internet connectivity. The application uses a dual-database approach with local SQLite for offline operations and Turso (LibSQL) for cloud synchronization across multiple devices.
 
 ## Architecture
 
@@ -587,4 +587,4 @@ export const testProducts = [
 - **Input Validation**: SQL injection and XSS prevention
 - **API Security**: Rate limiting and request validation
 
-This comprehensive design provides a solid foundation for implementing the VaikunthaPOS system with all the required features while maintaining security, performance, and reliability standards appropriate for a temple gift store environment.
+This comprehensive design provides a solid foundation for implementing the BaikunthaPOS system with all the required features while maintaining security, performance, and reliability standards appropriate for a temple gift store environment.

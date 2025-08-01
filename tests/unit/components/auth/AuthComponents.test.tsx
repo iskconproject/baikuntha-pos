@@ -21,7 +21,7 @@ describe('Authentication Components', () => {
     it('renders login form correctly', () => {
       render(<LoginForm {...defaultProps} />);
       
-      expect(screen.getByText('VaikunthaPOS')).toBeInTheDocument();
+      expect(screen.getByText('BaikunthaPOS')).toBeInTheDocument();
       expect(screen.getByLabelText('Username')).toBeInTheDocument();
       expect(screen.getByLabelText('PIN')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();

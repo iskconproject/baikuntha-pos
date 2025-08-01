@@ -92,7 +92,7 @@ export function DataBackupRestore({ isOpen, onClose }: DataBackupRestoreProps) {
       setBackupProgress(90);
 
       // Create and download backup file
-      const filename = `vaikunthapos-backup-${new Date().toISOString().split('T')[0]}.json`;
+      const filename = `baikunthapos-backup-${new Date().toISOString().split('T')[0]}.json`;
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       
@@ -147,7 +147,7 @@ export function DataBackupRestore({ isOpen, onClose }: DataBackupRestoreProps) {
       setRestorePreview(data);
     } catch (error) {
       console.error('Error reading backup file:', error);
-      alert('Invalid backup file. Please select a valid VaikunthaPOS backup file.');
+      alert('Invalid backup file. Please select a valid BaikunthaPOS backup file.');
       setSelectedFile(null);
       setRestorePreview(null);
     }

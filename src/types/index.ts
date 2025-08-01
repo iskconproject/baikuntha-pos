@@ -1,4 +1,4 @@
-// Core entity types for VaikunthaPOS
+// Core entity types for BaikunthaPOS
 
 export interface User {
   id: string

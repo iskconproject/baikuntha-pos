@@ -25,9 +25,9 @@ vi.mock('bcryptjs', () => ({
 vi.mock('@/lib/auth/session', () => ({
   getSessionFromRequest: vi.fn(),
   createSession: vi.fn().mockResolvedValue('mock-session-token'),
-  setSessionCookie: vi.fn().mockReturnValue('vaikuntha-session=mock-token; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400'),
-  clearSessionCookie: vi.fn().mockReturnValue('vaikuntha-session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0'),
-  createSessionCookie: vi.fn().mockReturnValue('vaikuntha-session=mock-token; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400'),
+  setSessionCookie: vi.fn().mockReturnValue('baikuntha-session=mock-token; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400'),
+  clearSessionCookie: vi.fn().mockReturnValue('baikuntha-session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0'),
+  createSessionCookie: vi.fn().mockReturnValue('baikuntha-session=mock-token; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400'),
 }));
 
 // Mock middleware
@@ -111,7 +111,7 @@ describe('Authentication API Integration', () => {
       // Check that session cookie is set
       const setCookieHeader = response.headers.get('set-cookie');
       if (setCookieHeader) {
-        expect(setCookieHeader).toContain('vaikuntha-session=');
+        expect(setCookieHeader).toContain('baikuntha-session=');
       }
     });
 
@@ -180,7 +180,7 @@ describe('Authentication API Integration', () => {
       // Check that session cookie is cleared
       const setCookieHeader = response.headers.get('set-cookie');
       if (setCookieHeader) {
-        expect(setCookieHeader).toContain('vaikuntha-session=;');
+        expect(setCookieHeader).toContain('baikuntha-session=;');
       }
     });
   });

@@ -23,7 +23,7 @@ export default function LoginPage() {
 
   // Load remember device preference and last username from localStorage
   useEffect(() => {
-    const remembered = localStorage.getItem('vaikuntha-remember-device') === 'true';
+    const remembered = localStorage.getItem('baikuntha-remember-device') === 'true';
     setRememberDevice(remembered);
   }, []);
 
@@ -35,11 +35,11 @@ export default function LoginPage() {
     if (result.success) {
       // Handle remember device functionality
       if (rememberDevice) {
-        localStorage.setItem('vaikuntha-remember-device', 'true');
+        localStorage.setItem('baikuntha-remember-device', 'true');
         trustedDeviceService.trustDevice(username);
         trustedDeviceService.setLastRememberedUsername(username);
       } else {
-        localStorage.removeItem('vaikuntha-remember-device');
+        localStorage.removeItem('baikuntha-remember-device');
         trustedDeviceService.untrustDevice(username);
         trustedDeviceService.clearLastRememberedUsername();
       }
@@ -55,7 +55,7 @@ export default function LoginPage() {
   const handleRememberDeviceChange = (remember: boolean) => {
     setRememberDevice(remember);
     if (!remember) {
-      localStorage.removeItem('vaikuntha-remember-device');
+      localStorage.removeItem('baikuntha-remember-device');
       trustedDeviceService.clearLastRememberedUsername();
     }
   };

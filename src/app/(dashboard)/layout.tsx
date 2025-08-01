@@ -50,7 +50,7 @@ export default function DashboardLayout({
             <div className="flex items-center space-x-8">
               <div className="flex-shrink-0">
                 <h1 className="text-xl font-bold text-saffron-600">
-                  VaikunthaPOS
+                  BaikunthaPOS
                 </h1>
               </div>
               

@@ -148,12 +148,12 @@ class ReportSyncService {
   }
 
   private getLastSyncTime(): Date | undefined {
-    const stored = localStorage.getItem('vaikunthapos_last_report_sync');
+    const stored = localStorage.getItem('baikunthapos_last_report_sync');
     return stored ? new Date(stored) : undefined;
   }
 
   private setLastSyncTime(date: Date): void {
-    localStorage.setItem('vaikunthapos_last_report_sync', date.toISOString());
+    localStorage.setItem('baikunthapos_last_report_sync', date.toISOString());
   }
 
   /**

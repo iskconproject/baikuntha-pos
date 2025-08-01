@@ -79,7 +79,7 @@ export class PDFExporter {
           </tbody>
         </table>
         <p style="font-size: 12px; color: #6b7280;">
-          Generated on ${format(new Date(), 'yyyy-MM-dd HH:mm:ss')} - VaikunthaPOS
+          Generated on ${format(new Date(), 'yyyy-MM-dd HH:mm:ss')} - BaikunthaPOS
         </p>
       </div>
       <style>

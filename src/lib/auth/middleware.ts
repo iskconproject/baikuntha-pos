@@ -54,7 +54,7 @@ export async function withAuth(
     }
 
     // Handle session refresh if needed
-    const token = request.cookies.get('vaikuntha-session')?.value;
+    const token = request.cookies.get('baikuntha-session')?.value;
     if (token) {
       const { verifySession } = await import('./session');
       const sessionData = verifySession(token);

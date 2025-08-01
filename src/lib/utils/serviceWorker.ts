@@ -172,7 +172,7 @@ export class ServiceWorkerSync {
     retryCount: number;
   }): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('VaikunthaPosSyncDB', 1);
+      const request = indexedDB.open('BaikunthaPosSyncDB', 1);
       
       request.onerror = () => reject(request.error);
       
@@ -203,7 +203,7 @@ export class ServiceWorkerSync {
 
   public async clearPendingOperations(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('VaikunthaPosSyncDB', 1);
+      const request = indexedDB.open('BaikunthaPosSyncDB', 1);
       
       request.onsuccess = () => {
         const db = request.result;

@@ -305,10 +305,10 @@ export const Navigation: React.FC<NavigationProps> = ({
         <div className="flex items-center h-16 px-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">VP</span>
+              <span className="text-white font-bold text-sm">BP</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900">VaikunthaPOS</h1>
+              <h1 className="text-lg font-bold text-gray-900">BaikunthaPOS</h1>
               <p className="text-xs text-gray-500 capitalize">{userRole}</p>
             </div>
           </div>
@@ -349,10 +349,10 @@ export const Navigation: React.FC<NavigationProps> = ({
         <div className="flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">VP</span>
+              <span className="text-white font-bold text-sm">BP</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900">VaikunthaPOS</h1>
+              <h1 className="text-lg font-bold text-gray-900">BaikunthaPOS</h1>
             </div>
           </div>
 
@@ -400,7 +400,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">VP</span>
+                      <span className="text-white font-bold text-sm">BP</span>
                     </div>
                     <div>
                       <h2

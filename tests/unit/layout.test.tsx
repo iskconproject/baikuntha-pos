@@ -38,7 +38,7 @@ describe('RootLayout', () => {
 
 describe('Metadata', () => {
   it('has correct title', () => {
-    expect(metadata.title).toBe('VaikunthaPOS - ISKCON Temple POS System')
+    expect(metadata.title).toBe('BaikunthaPOS - ISKCON Temple POS System')
   })
 
   it('has correct description', () => {

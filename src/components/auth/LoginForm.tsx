@@ -31,8 +31,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   // Focus username field on mount and load remembered username
   useEffect(() => {
     // Load remembered username if device is trusted
-    const lastUsername = localStorage.getItem('vaikuntha-last-username');
-    const isRemembered = localStorage.getItem('vaikuntha-remember-device') === 'true';
+    const lastUsername = localStorage.getItem('baikuntha-last-username');
+    const isRemembered = localStorage.getItem('baikuntha-remember-device') === 'true';
     
     if (isRemembered && lastUsername && !username) {
       setUsername(lastUsername);
@@ -128,7 +128,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">VaikunthaPOS</h1>
+          <h1 className="text-2xl font-bold text-gray-900">BaikunthaPOS</h1>
           <p className="text-gray-600">Sign in to continue</p>
         </div>
       </CardHeader>

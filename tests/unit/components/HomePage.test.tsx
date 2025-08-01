@@ -24,7 +24,7 @@ describe('Home Page', () => {
   it('should render loading state', () => {
     const { getByText } = render(<Home />);
     
-    expect(getByText('VaikunthaPOS')).toBeInTheDocument();
+    expect(getByText('BaikunthaPOS')).toBeInTheDocument();
     expect(getByText('ISKCON Temple Point of Sale System')).toBeInTheDocument();
     expect(getByText('Loading...')).toBeInTheDocument();
   });

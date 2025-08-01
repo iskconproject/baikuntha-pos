@@ -18,7 +18,7 @@ describe('Navigation Component', () => {
     it('renders desktop navigation with brand', () => {
       render(<Navigation userRole="admin" />);
       
-      expect(screen.getByText('VaikunthaPOS')).toBeInTheDocument();
+      expect(screen.getByText('BaikunthaPOS')).toBeInTheDocument();
       expect(screen.getByText('admin')).toBeInTheDocument();
     });
 
@@ -236,7 +236,7 @@ describe('Navigation Component', () => {
       render(<Navigation userRole="manager" />);
       
       // Should appear in both desktop and mobile
-      const brandElements = screen.getAllByText('VaikunthaPOS');
+      const brandElements = screen.getAllByText('BaikunthaPOS');
       expect(brandElements.length).toBeGreaterThanOrEqual(1);
       
       // Check for logo

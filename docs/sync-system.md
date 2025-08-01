@@ -1,6 +1,6 @@
 # Offline-First Sync System
 
-The VaikunthaPOS sync system provides robust offline-first functionality with automatic conflict resolution and background synchronization between local SQLite and Turso cloud databases.
+The BaikunthaPOS sync system provides robust offline-first functionality with automatic conflict resolution and background synchronization between local SQLite and Turso cloud databases.
 
 ## Architecture Overview
 

@@ -131,19 +131,19 @@ describe('TrustedDeviceService', () => {
       
       const lastUsername = trustedDeviceService.getLastRememberedUsername();
       expect(lastUsername).toBe('testuser');
-      expect(mockLocalStorage.getItem).toHaveBeenCalledWith('vaikuntha-last-username');
+      expect(mockLocalStorage.getItem).toHaveBeenCalledWith('baikuntha-last-username');
     });
 
     it('should set last remembered username', () => {
       trustedDeviceService.setLastRememberedUsername('newuser');
       
-      expect(mockLocalStorage.setItem).toHaveBeenCalledWith('vaikuntha-last-username', 'newuser');
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith('baikuntha-last-username', 'newuser');
     });
 
     it('should clear last remembered username', () => {
       trustedDeviceService.clearLastRememberedUsername();
       
-      expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('vaikuntha-last-username');
+      expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('baikuntha-last-username');
     });
 
     it('should return null when no username is remembered', () => {

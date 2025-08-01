@@ -4,7 +4,7 @@ import type { SessionData, AuthUser } from '@/types/auth';
 import { DEFAULT_AUTH_CONFIG } from '@/types/auth';
 import { authService } from '@/services/auth/authService';
 
-const SESSION_COOKIE_NAME = 'vaikuntha-session';
+const SESSION_COOKIE_NAME = 'baikuntha-session';
 const SESSION_SECRET = process.env.APP_SECRET || 'fallback-secret-key-change-in-production';
 
 /**

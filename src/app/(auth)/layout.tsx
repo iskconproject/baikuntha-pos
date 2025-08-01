@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sign In - VaikunthaPOS',
-  description: 'Sign in to VaikunthaPOS - ISKCON Temple POS System',
+  title: 'Sign In - BaikunthaPOS',
+  description: 'Sign in to BaikunthaPOS - ISKCON Temple POS System',
 };
 
 export default function AuthLayout({

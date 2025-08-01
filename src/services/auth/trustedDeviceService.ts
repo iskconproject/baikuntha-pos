@@ -11,7 +11,7 @@ interface TrustedDevice {
   lastUsed: number;
 }
 
-const TRUSTED_DEVICES_KEY = 'vaikuntha-trusted-devices';
+const TRUSTED_DEVICES_KEY = 'baikuntha-trusted-devices';
 const DEVICE_TRUST_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 export class TrustedDeviceService {
@@ -193,7 +193,7 @@ export class TrustedDeviceService {
    */
   getLastRememberedUsername(): string | null {
     try {
-      return localStorage.getItem('vaikuntha-last-username');
+      return localStorage.getItem('baikuntha-last-username');
     } catch (error) {
       console.error('Error reading last username:', error);
       return null;
@@ -205,7 +205,7 @@ export class TrustedDeviceService {
    */
   setLastRememberedUsername(username: string): void {
     try {
-      localStorage.setItem('vaikuntha-last-username', username);
+      localStorage.setItem('baikuntha-last-username', username);
     } catch (error) {
       console.error('Error saving last username:', error);
     }
@@ -216,7 +216,7 @@ export class TrustedDeviceService {
    */
   clearLastRememberedUsername(): void {
     try {
-      localStorage.removeItem('vaikuntha-last-username');
+      localStorage.removeItem('baikuntha-last-username');
     } catch (error) {
       console.error('Error clearing last username:', error);
     }

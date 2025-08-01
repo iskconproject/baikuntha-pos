@@ -5,7 +5,7 @@ import { verifySession } from "@/lib/auth/session";
 export async function GET(request: NextRequest) {
   try {
     // Extract session token from cookies
-    const sessionToken = request.cookies.get("vaikuntha-session")?.value;
+    const sessionToken = request.cookies.get("baikuntha-session")?.value;
 
     if (!sessionToken) {
       return NextResponse.json(

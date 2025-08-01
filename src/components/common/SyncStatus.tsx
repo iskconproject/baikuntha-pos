@@ -154,7 +154,7 @@ export function SyncStatusIndicator({ className = '', showDetails = false }: Syn
               <span className="text-sm text-gray-600">Conflicts:</span>
               <Button
                 variant="outline"
-                size="xs"
+                size="sm"
                 onClick={() => {/* Open conflict resolver */}}
                 className="text-orange-600 hover:text-orange-700"
               >

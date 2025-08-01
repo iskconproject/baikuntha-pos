@@ -384,7 +384,7 @@ describe('ServiceWorkerSync', () => {
       }, 0);
       
       await expect(promise).resolves.toBeUndefined();
-      expect(mockIndexedDB.open).toHaveBeenCalledWith('VaikunthaPosSyncDB', 1);
+      expect(mockIndexedDB.open).toHaveBeenCalledWith('BaikunthaPosSyncDB', 1);
     });
 
     it('should handle IndexedDB errors', async () => {

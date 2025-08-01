@@ -51,7 +51,7 @@ export function NotificationSettings({ settings, onChange }: NotificationSetting
       const permission = await checkNotificationPermission();
       
       if (permission === 'granted') {
-        new Notification('VaikunthaPOS Test', {
+        new Notification('BaikunthaPOS Test', {
           body: 'This is a test notification from your POS system.',
           icon: '/icons/icon-192x192.png',
           badge: '/icons/icon-192x192.png',

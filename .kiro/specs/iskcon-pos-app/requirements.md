@@ -2,7 +2,7 @@
 
 ## Introduction
 
-VaikunthaPOS is a modern, web-based Point of Sale system designed specifically for ISKCON Asansol Temple's Gift & Book Store. The system will be built as a Progressive Web App (PWA) with offline-first capabilities, enabling temple staff to manage sales transactions, inventory, and reporting across multiple devices including phones, tablets, and computers. The application will support secure PIN-based authentication for multiple user roles and provide seamless offline operations with automatic synchronization when online connectivity is restored.
+BaikunthaPOS is a modern, web-based Point of Sale system designed specifically for ISKCON Asansol Temple's Gift & Book Store. The system will be built as a Progressive Web App (PWA) with offline-first capabilities, enabling temple staff to manage sales transactions, inventory, and reporting across multiple devices including phones, tablets, and computers. The application will support secure PIN-based authentication for multiple user roles and provide seamless offline operations with automatic synchronization when online connectivity is restored.
 
 ## Requirements
 

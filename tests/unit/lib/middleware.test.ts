@@ -188,7 +188,7 @@ describe('Authentication Middleware', () => {
       vi.mocked(refreshSession).mockReturnValue('new-token');
 
       const mockRequest = new NextRequest('http://localhost/api/test');
-      mockRequest.cookies.set('vaikuntha-session', 'old-token');
+      mockRequest.cookies.set('baikuntha-session', 'old-token');
       
       const mockHandler = vi.fn().mockResolvedValue(NextResponse.json({ success: true }));
 

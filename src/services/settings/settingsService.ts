@@ -1,6 +1,6 @@
 import { SystemSettings, DEFAULT_SETTINGS } from '@/types/settings';
 
-const SETTINGS_KEY = 'vaikunthapos_settings';
+const SETTINGS_KEY = 'baikunthapos_settings';
 
 export class SettingsService {
   private static instance: SettingsService;

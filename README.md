@@ -1,4 +1,4 @@
-# VaikunthaPOS - ISKCON Temple POS System
+# BaikunthaPOS - ISKCON Temple POS System
 
 A modern Progressive Web App (PWA) Point of Sale system designed specifically for ISKCON Asansol Temple's Gift & Book Store.
 

@@ -20,7 +20,7 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-saffron-50 to-saffron-100 flex items-center justify-center">
       <div className="text-center">
         <h1 className="text-4xl font-bold text-saffron-800 mb-4">
-          VaikunthaPOS
+          BaikunthaPOS
         </h1>
         <p className="text-saffron-600 text-lg">
           ISKCON Temple Point of Sale System
