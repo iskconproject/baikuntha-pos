@@ -10,6 +10,7 @@ import {
   TrendingUp 
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { AlertDialog } from '@/components/ui/AlertDialog';
 import { ProductList } from '@/components/inventory/ProductList';
 
 import { CategoryManager } from '@/components/inventory/CategoryManager';
@@ -52,6 +53,18 @@ export default function InventoryPage() {
 
   // Product detail modal state
   const [selectedProduct, setSelectedProduct] = useState<EnhancedProduct | null>(null);
+
+  // Alert dialog state
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    productId: string;
+    productName: string;
+  }>({
+    isOpen: false,
+    productId: '',
+    productName: '',
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Check if user has manager or admin role
   const canManageInventory = user?.role === 'manager' || user?.role === 'admin';
@@ -124,12 +137,19 @@ export default function InventoryPage() {
 
 
   const handleProductDelete = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) {
-      return;
-    }
+    // Find the product to get its name
+    const product = products.find(p => p.id === productId);
+    setDeleteDialog({
+      isOpen: true,
+      productId,
+      productName: product?.name || 'this product',
+    });
+  };
 
+  const confirmProductDelete = async () => {
+    setIsDeleting(true);
     try {
-      const response = await fetch(`/api/products/${productId}`, {
+      const response = await fetch(`/api/products/${deleteDialog.productId}`, {
         method: 'DELETE',
       });
 
@@ -140,9 +160,12 @@ export default function InventoryPage() {
 
       // Reload products
       await loadData();
+      setDeleteDialog({ isOpen: false, productId: '', productName: '' });
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Failed to delete product. Please try again.');
+      // Keep dialog open and show error in the dialog
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -339,6 +362,19 @@ export default function InventoryPage() {
           onDelete={handleProductDelete}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ isOpen: false, productId: '', productName: '' })}
+        onConfirm={confirmProductDelete}
+        title="Delete Product"
+        description={`Are you sure you want to delete "${deleteDialog.productName}"? This action cannot be undone and will remove all associated data including variants and transaction history.`}
+        confirmText="Delete Product"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

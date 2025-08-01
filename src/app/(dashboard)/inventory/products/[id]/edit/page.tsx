@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { Package } from 'lucide-react';
+import { AlertDialog } from '@/components/ui/AlertDialog';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productFormSchema, type ProductFormInput, type CreateProductInput } from '@/lib/validation/product';
 import { Button } from '@/components/ui/Button';
@@ -57,6 +58,17 @@ export default function EditProductPage() {
   // Variant management state
   const [variants, setVariants] = useState<VariantFormData[]>([]);
   const [activeVariantIndex, setActiveVariantIndex] = useState<number | null>(null);
+
+  // Error dialog state
+  const [errorDialog, setErrorDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+  });
 
   const {
     register,
@@ -266,7 +278,11 @@ export default function EditProductPage() {
       router.push('/inventory');
     } catch (error) {
       console.error('Error updating product:', error);
-      alert('Failed to update product. Please try again.');
+      setErrorDialog({
+        isOpen: true,
+        title: 'Error Updating Product',
+        message: error instanceof Error ? error.message : 'Failed to update product. Please try again.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -670,6 +686,17 @@ export default function EditProductPage() {
           </div>
         </form>
       </div>
+
+      {/* Error Dialog */}
+      <AlertDialog
+        isOpen={errorDialog.isOpen}
+        onClose={() => setErrorDialog({ isOpen: false, title: '', message: '' })}
+        onConfirm={() => setErrorDialog({ isOpen: false, title: '', message: '' })}
+        title={errorDialog.title}
+        description={errorDialog.message}
+        confirmText="OK"
+        variant="danger"
+      />
     </div>
   );
 }

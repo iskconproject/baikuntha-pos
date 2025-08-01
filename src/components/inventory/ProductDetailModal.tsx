@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ClipboardList, Settings, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { AlertDialog } from '@/components/ui/AlertDialog';
 import { Input } from '@/components/ui/Input';
 import type { EnhancedProduct } from '@/services/database/products';
 
@@ -22,6 +23,18 @@ interface VariantStockUpdate {
 export function ProductDetailModal({ product, onClose, onEdit, onDelete }: ProductDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'variants' | 'history'>('details');
   const [isUpdatingStock, setIsUpdatingStock] = useState(false);
+  
+  // Delete confirmation dialog state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [errorDialog, setErrorDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+  });
   const [stockUpdates, setStockUpdates] = useState<Record<string, number>>({});
 
   const handleStockUpdate = (variantId: string, newStock: number) => {
@@ -60,7 +73,11 @@ export function ProductDetailModal({ product, onClose, onEdit, onDelete }: Produ
       onClose();
     } catch (error) {
       console.error('Error updating stock:', error);
-      alert('Failed to update stock. Please try again.');
+      setErrorDialog({
+        isOpen: true,
+        title: 'Error Updating Stock',
+        message: 'Failed to update stock. Please try again.',
+      });
     } finally {
       setIsUpdatingStock(false);
     }
@@ -72,10 +89,12 @@ export function ProductDetailModal({ product, onClose, onEdit, onDelete }: Produ
   };
 
   const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete "${product.name}"? This action cannot be undone.`)) {
-      onDelete(product.id);
-      onClose();
-    }
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    onDelete(product.id);
+    onClose();
   };
 
   const formatDate = (dateString: string) => {
@@ -106,6 +125,7 @@ export function ProductDetailModal({ product, onClose, onEdit, onDelete }: Produ
   ] as const;
 
   return (
+    <>
     <Modal isOpen={true} onClose={onClose} title={product.name} size="xl">
       <div className="space-y-6">
         {/* Header with Actions */}
@@ -375,5 +395,29 @@ export function ProductDetailModal({ product, onClose, onEdit, onDelete }: Produ
         </div>
       </div>
     </Modal>
+
+    {/* Delete Confirmation Dialog */}
+    <AlertDialog
+      isOpen={showDeleteDialog}
+      onClose={() => setShowDeleteDialog(false)}
+      onConfirm={confirmDelete}
+      title="Delete Product"
+      description={`Are you sure you want to delete "${product.name}"? This action cannot be undone and will remove all associated data including variants and transaction history.`}
+      confirmText="Delete Product"
+      cancelText="Cancel"
+      variant="danger"
+    />
+
+    {/* Error Dialog */}
+    <AlertDialog
+      isOpen={errorDialog.isOpen}
+      onClose={() => setErrorDialog({ isOpen: false, title: '', message: '' })}
+      onConfirm={() => setErrorDialog({ isOpen: false, title: '', message: '' })}
+      title={errorDialog.title}
+      description={errorDialog.message}
+      confirmText="OK"
+      variant="danger"
+    />
+  </>
   );
 }
