@@ -126,34 +126,44 @@ export default function EditProductPage() {
       const productData = await productResponse.json();
       const categoriesData = categoriesResponse.ok ? await categoriesResponse.json() : { categories: [] };
 
-      setProduct(productData.product);
+      setProduct(productData.data);
       setCategories(categoriesData.categories || []);
 
       // Populate form with product data
-      const productToEdit = productData.product;
+      const productToEdit = productData.data;
+      
+      // Parse JSON strings from database
+      const parsedKeywords = typeof productToEdit.keywords === 'string' 
+        ? JSON.parse(productToEdit.keywords) 
+        : (Array.isArray(productToEdit.keywords) ? productToEdit.keywords : []);
+      
+      const parsedMetadata = typeof productToEdit.metadata === 'string' 
+        ? JSON.parse(productToEdit.metadata) 
+        : (productToEdit.metadata || {});
+      
       reset({
         name: productToEdit.name,
         description: productToEdit.description || '',
         basePrice: productToEdit.basePrice,
         categoryId: productToEdit.categoryId || '',
-        keywords: productToEdit.keywords?.map((k: string) => ({ value: k })) || [],
+        keywords: parsedKeywords.map((k: string) => ({ value: k })),
         metadata: {
-          author: productToEdit.metadata?.author || '',
-          publisher: productToEdit.metadata?.publisher || '',
-          language: productToEdit.metadata?.language || '',
-          isbn: productToEdit.metadata?.isbn || '',
-          material: productToEdit.metadata?.material || '',
-          dimensions: productToEdit.metadata?.dimensions || '',
-          weight: productToEdit.metadata?.weight || '',
-          color: productToEdit.metadata?.color || '',
-          customAttributes: productToEdit.metadata?.customAttributes || {},
+          author: parsedMetadata.author || '',
+          publisher: parsedMetadata.publisher || '',
+          language: parsedMetadata.language || '',
+          isbn: parsedMetadata.isbn || '',
+          material: parsedMetadata.material || '',
+          dimensions: parsedMetadata.dimensions || '',
+          weight: parsedMetadata.weight || '',
+          color: parsedMetadata.color || '',
+          customAttributes: parsedMetadata.customAttributes || {},
         },
         isActive: productToEdit.isActive ?? true,
       });
 
       // Set metadata fields for editing
-      if (productToEdit.metadata?.customAttributes) {
-        const fields = Object.entries(productToEdit.metadata.customAttributes).map(([key, value]) => ({
+      if (parsedMetadata.customAttributes) {
+        const fields = Object.entries(parsedMetadata.customAttributes).map(([key, value]) => ({
           key,
           value: String(value),
         }));
@@ -162,14 +172,24 @@ export default function EditProductPage() {
 
       // Set variants for editing
       if (productToEdit.variants) {
-        const variantData = productToEdit.variants.map((variant: any) => ({
-          id: variant.id,
-          name: variant.name,
-          price: variant.price,
-          stockQuantity: variant.stockQuantity,
-          attributes: variant.attributes || {},
-          keywords: variant.keywords || [],
-        }));
+        const variantData = productToEdit.variants.map((variant: any) => {
+          const parsedAttributes = typeof variant.attributes === 'string' 
+            ? JSON.parse(variant.attributes) 
+            : (variant.attributes || {});
+          
+          const parsedKeywords = typeof variant.keywords === 'string' 
+            ? JSON.parse(variant.keywords) 
+            : (Array.isArray(variant.keywords) ? variant.keywords : []);
+          
+          return {
+            id: variant.id,
+            name: variant.name,
+            price: variant.price,
+            stockQuantity: variant.stockQuantity,
+            attributes: parsedAttributes,
+            keywords: parsedKeywords,
+          };
+        });
         setVariants(variantData);
       }
 
