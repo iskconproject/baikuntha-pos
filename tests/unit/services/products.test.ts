@@ -52,6 +52,7 @@ describe('ProductService', () => {
           customAttributes: {},
         },
         isActive: true,
+        variants: [],
       };
 
       // Mock category exists
@@ -101,6 +102,7 @@ describe('ProductService', () => {
         keywords: [],
         metadata: { customAttributes: {} },
         isActive: true,
+        variants: [],
       };
 
       vi.spyOn(categoryService, 'findById').mockResolvedValue(null);
@@ -115,6 +117,7 @@ describe('ProductService', () => {
         keywords: [],
         metadata: { customAttributes: {} },
         isActive: true,
+        variants: [],
       };
 
       vi.spyOn(productService, 'findByName').mockResolvedValue({
