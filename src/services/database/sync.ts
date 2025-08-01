@@ -1,4 +1,4 @@
-import { eq, sql, gt, and, or } from "drizzle-orm";
+import { eq, gt } from "drizzle-orm";
 import {
   syncMetadata,
   users,

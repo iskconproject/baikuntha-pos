@@ -52,11 +52,11 @@ export abstract class BaseService<T, TInsert extends Record<string, any>> {
     try {
       const id = this.generateId();
       const now = new Date();
-      const insertData = { 
-        ...data, 
+      const insertData = {
+        ...data,
         id,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
       } as any;
 
       await this.localDb.insert(this.table).values(insertData);
@@ -127,9 +127,36 @@ export abstract class BaseService<T, TInsert extends Record<string, any>> {
     operation: "create" | "update" | "delete",
     recordId: string
   ): Promise<void> {
-    // This will be implemented in the sync service
-    // For now, we'll just log the operation
-    console.log(`Queued for sync: ${operation} ${this.table.name} ${recordId}`);
+    // Import sync service dynamically to avoid circular dependencies
+    const { syncService } = await import("./sync");
+
+    // Get the record data for the sync operation
+    let data: any = null;
+    if (operation !== "delete") {
+      data = await this.findById(recordId);
+    } else {
+      data = { id: recordId };
+    }
+
+    // Queue the operation for sync
+    syncService.queueOperation(operation, this.getTableName(), data);
+  }
+
+  // Get table name for sync operations
+  protected getTableName(): string {
+    // Extract table name from the table object
+    // Drizzle tables have the name in different places depending on version
+    if (this.table._?.name) return this.table._.name;
+    if (this.table._.baseName) return this.table._.baseName;
+    if (this.table.name) return this.table.name;
+
+    // Fallback: try to extract from constructor name or toString
+    const tableStr = this.table.toString();
+    const match = tableStr.match(/table "([^"]+)"/);
+    if (match) return match[1];
+
+    console.warn("Could not determine table name for sync, using fallback");
+    return "unknown_table";
   }
 
   // Utility methods

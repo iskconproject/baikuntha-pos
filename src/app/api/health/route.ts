@@ -1,3 +1,7 @@
+/**
+ * Health check endpoint for connection monitoring
+ */
+
 import { NextResponse } from 'next/server';
 
 export async function GET() {
