@@ -1,23 +1,23 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
   helperText?: string;
 }
 
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, helperText, id, required, ...props }, ref) => {
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
-    const errorId = `${inputId}-error`;
-    const helperId = `${inputId}-helper`;
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, label, error, helperText, id, required, rows = 3, ...props }, ref) => {
+    const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
+    const errorId = `${textareaId}-error`;
+    const helperId = `${textareaId}-helper`;
     
     return (
       <div className="space-y-2">
         {label && (
           <label
-            htmlFor={inputId}
+            htmlFor={textareaId}
             className={cn(
               'block text-sm font-medium text-gray-700',
               // Touch-friendly label sizing
@@ -30,16 +30,16 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         
         <div className="relative">
-          <input
-            id={inputId}
+          <textarea
+            id={textareaId}
             ref={ref}
+            rows={rows}
             className={cn(
-              // Base styles
+              // Base styles matching Input component
               'flex w-full rounded-lg border bg-white px-3 py-2.5 text-sm',
               'placeholder:text-gray-400',
               'transition-all duration-200 ease-in-out',
-              // Touch optimization - minimum 44px height
-              'min-h-[44px] sm:min-h-[48px]',
+              // Touch optimization - consistent with other inputs
               'sm:text-base sm:py-3',
               // Focus and interaction states
               'focus:outline-none focus:ring-2 focus:ring-offset-1',
@@ -55,6 +55,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               ],
               // Disabled state
               'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50',
+              // Resize behavior
+              'resize-vertical',
               className
             )}
             aria-invalid={error ? 'true' : 'false'}
@@ -68,7 +70,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           
           {/* Error icon */}
           {error && (
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+            <div className="absolute top-3 right-0 pr-3 flex items-start pointer-events-none">
               <svg
                 className="h-5 w-5 text-red-500"
                 fill="none"
@@ -113,4 +115,4 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   }
 );
 
-Input.displayName = 'Input';
+Textarea.displayName = 'Textarea';
