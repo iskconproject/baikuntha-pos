@@ -178,6 +178,11 @@ function SalesAnalytics() {
     }
   };
 
+  // Fetch analytics data on component mount and when date range changes
+  useEffect(() => {
+    fetchAnalytics();
+  }, [dateRange.startDate, dateRange.endDate]);
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
