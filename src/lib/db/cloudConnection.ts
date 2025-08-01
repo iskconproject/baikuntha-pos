@@ -37,11 +37,34 @@ export function getCloudClient() {
 
 export async function testCloudConnection(): Promise<boolean> {
   try {
-    const db = getCloudDb();
-    await db.select().from(schema.syncMetadata).limit(1);
+    console.log('Testing cloud connection...');
+    
+    const url = process.env.TURSO_DATABASE_URL;
+    const authToken = process.env.TURSO_AUTH_TOKEN;
+
+    if (!url) {
+      console.error('TURSO_DATABASE_URL is missing');
+      return false;
+    }
+
+    console.log('Creating client with URL:', url);
+    
+    const testClient = createClient({
+      url,
+      authToken,
+    });
+    
+    console.log('Test client created, executing query...');
+    
+    // Simple query to test connection
+    const result = await testClient.execute('SELECT COUNT(*) as count FROM users');
+    console.log('Query executed successfully, result:', result.rows);
+    
+    await testClient.close();
     return true;
   } catch (error) {
     console.error('Cloud database connection test failed:', error);
+    console.error('Error details:', error);
     return false;
   }
 }

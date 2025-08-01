@@ -114,7 +114,10 @@ export function SyncManager({ className = "" }: SyncManagerProps) {
     if (!syncStatus.lastSyncAt) return "Never";
 
     const now = new Date();
-    const diff = now.getTime() - syncStatus.lastSyncAt.getTime();
+    const lastSyncTime = syncStatus.lastSyncAt instanceof Date ? 
+      syncStatus.lastSyncAt.getTime() : 
+      (typeof syncStatus.lastSyncAt === 'number' ? syncStatus.lastSyncAt * 1000 : 0);
+    const diff = now.getTime() - lastSyncTime;
     const minutes = Math.floor(diff / 60000);
 
     if (minutes < 1) return "Just now";

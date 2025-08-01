@@ -1,0 +1,11 @@
+-- Sync product variants to cloud database
+INSERT INTO product_variants (id, product_id, name, price, stock_quantity, attributes, keywords, created_at, updated_at) VALUES 
+('53e02006-c330-43a3-8e3c-adc2101057ea', '0255cecd-7878-4829-bb00-b924341a486e', 'Hardcover English', 350.0, 47, '{"binding":"hardcover","language":"english","size":"regular"}', '["hardcover","english","durable"]', 1754032969, 1754030516),
+('e817f9fc-7f55-453d-a4ba-348b7b26e206', '0255cecd-7878-4829-bb00-b924341a486e', 'Paperback English', 250.0, 100, '{"binding":"paperback","language":"english","size":"regular"}', '["paperback","english","affordable"]', 1754032969, 1754030516),
+('efc27e25-7933-4d5c-a86d-90cc2e5e9771', '0255cecd-7878-4829-bb00-b924341a486e', 'Hindi Translation', 300.0, 30, '{"binding":"paperback","language":"hindi","size":"regular"}', '["hindi","translation","bhasha"]', 1754032969, 1754030516),
+('ffd824b3-a59a-439c-ac57-46ad963fe786', '9d9ce52f-bd2c-4afa-bcc5-1061787aa516', 'Hardcover Set', 4500.0, 10, '{"binding":"hardcover","volumes":12,"language":"english"}', '["hardcover","complete","set","premium"]', 1754032969, 1754032969),
+('41b9f797-b271-4c61-a2be-1b5c7b530217', 'd12de81b-ddd9-47ba-a31a-ed5a4c323220', 'Regular Size', 150.0, 75, '{"size":"regular","beadSize":"8mm"}', '["regular","standard","8mm"]', 1754032969, 1754032969),
+('b6281bce-3ce9-49bd-b67b-b2258e330914', 'd12de81b-ddd9-47ba-a31a-ed5a4c323220', 'Large Size', 200.0, 25, '{"size":"large","beadSize":"10mm"}', '["large","big","10mm"]', 1754032969, 1754032969),
+('9a75f114-6561-487a-ae1d-6168f9b366a4', '93413212-a310-45ee-9e6d-801cdba72e3d', 'Saffron Color', 50.0, 40, '{"color":"saffron","material":"cotton"}', '["saffron","orange","traditional"]', 1754032969, 1754032969),
+('d65afd25-1b72-495c-94a1-846e98b8e918', '93413212-a310-45ee-9e6d-801cdba72e3d', 'White Color', 50.0, 30, '{"color":"white","material":"cotton"}', '["white","pure","clean"]', 1754032969, 1754032969),
+('208dfa40-9b74-4a54-99de-6a30467639c0', 'c766812a-97b8-4c8f-ac56-5042f5128958', 'Test Variant', 20.0, 1, '{}', '[]', 1754026983, 1754026983);

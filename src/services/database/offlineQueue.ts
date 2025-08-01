@@ -43,6 +43,9 @@ export class OfflineQueue {
   }
 
   private loadFromStorage() {
+    // Only run in browser environment
+    if (typeof window === 'undefined') return;
+    
     try {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {
@@ -55,6 +58,9 @@ export class OfflineQueue {
   }
 
   private saveToStorage() {
+    // Only run in browser environment
+    if (typeof window === 'undefined') return;
+    
     try {
       const operations = Array.from(this.queue.values());
       localStorage.setItem(this.storageKey, JSON.stringify(operations));

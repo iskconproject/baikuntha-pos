@@ -13,15 +13,21 @@ export interface ConnectionStatus {
 
 export class ConnectionMonitor {
   private listeners: Set<(status: ConnectionStatus) => void> = new Set();
-  private currentStatus: ConnectionStatus = { isOnline: navigator.onLine };
+  private currentStatus: ConnectionStatus = { isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true };
   private checkInterval?: NodeJS.Timeout;
 
   constructor() {
-    this.setupEventListeners();
-    this.startPeriodicCheck();
+    // Only setup event listeners in browser environment
+    if (typeof window !== 'undefined') {
+      this.setupEventListeners();
+      this.startPeriodicCheck();
+    }
   }
 
   private setupEventListeners() {
+    // Only run in browser environment
+    if (typeof window === 'undefined') return;
+    
     // Basic online/offline events
     window.addEventListener('online', this.handleOnline);
     window.addEventListener('offline', this.handleOffline);
@@ -42,7 +48,7 @@ export class ConnectionMonitor {
   };
 
   private handleConnectionChange = () => {
-    if ('connection' in navigator) {
+    if (typeof navigator !== 'undefined' && 'connection' in navigator) {
       const connection = (navigator as any).connection;
       this.updateStatus({
         isOnline: navigator.onLine,
@@ -75,6 +81,9 @@ export class ConnectionMonitor {
   }
 
   private startPeriodicCheck() {
+    // Only run in browser environment
+    if (typeof window === 'undefined') return;
+    
     // Check connection every 30 seconds by attempting to fetch a small resource
     this.checkInterval = setInterval(async () => {
       try {
@@ -116,12 +125,14 @@ export class ConnectionMonitor {
   }
 
   public destroy() {
-    window.removeEventListener('online', this.handleOnline);
-    window.removeEventListener('offline', this.handleOffline);
-    
-    if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
-      connection.removeEventListener('change', this.handleConnectionChange);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('online', this.handleOnline);
+      window.removeEventListener('offline', this.handleOffline);
+      
+      if ('connection' in navigator) {
+        const connection = (navigator as any).connection;
+        connection.removeEventListener('change', this.handleConnectionChange);
+      }
     }
     
     if (this.checkInterval) {
