@@ -105,10 +105,6 @@ export default function EditProductPage() {
   // Check permissions
   const canManageInventory = user?.role === 'manager' || user?.role === 'admin';
 
-  useEffect(() => {
-    loadData();
-  }, [params.id, loadData]);
-
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -202,6 +198,10 @@ export default function EditProductPage() {
       setIsLoading(false);
     }
   }, [params.id, reset]);
+
+  useEffect(() => {
+    loadData();
+  }, [params.id, loadData]);
 
   const handleAddKeyword = () => {
     if (keywordInput.trim() && !keywords?.some(k => k.value === keywordInput.trim())) {

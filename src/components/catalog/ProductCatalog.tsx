@@ -25,14 +25,6 @@ export function ProductCatalog({
 
   const itemsPerPage = 24;
 
-  useEffect(() => {
-    fetchProducts();
-  }, [selectedCategory, sortBy, currentPage, fetchProducts]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedCategory, sortBy]);
-
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
@@ -60,6 +52,14 @@ export function ProductCatalog({
       setLoading(false);
     }
   }, [searchQuery, selectedCategory, sortBy, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [selectedCategory, sortBy, currentPage, fetchProducts]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, sortBy]);
 
   const handleQuickSearch = (query: string) => {
     setSearchQuery(query);

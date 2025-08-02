@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 
 
@@ -119,7 +119,7 @@ export function TransactionHistory({
     } finally {
       setLoading(false);
     }
-  }, [filters, pagination]);
+  }, [dateFilter, paymentMethodFilter, currentPage, limit]);
 
   const formatCurrency = (amount: number) => {
     return `₹${amount.toFixed(2)}`;

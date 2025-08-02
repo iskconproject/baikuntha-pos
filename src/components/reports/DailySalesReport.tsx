@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/Button';
 import { ReportExportService } from '@/services/reports/exportService';
@@ -34,10 +34,6 @@ export function DailySalesReport({ selectedDate }: DailySalesReportProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchDailySalesData();
-  }, [selectedDate, fetchDailySalesData]);
-
   const fetchDailySalesData = useCallback(async () => {
     try {
       setLoading(true);
@@ -57,6 +53,10 @@ export function DailySalesReport({ selectedDate }: DailySalesReportProps) {
       setLoading(false);
     }
   }, [selectedDate]);
+
+  useEffect(() => {
+    fetchDailySalesData();
+  }, [selectedDate, fetchDailySalesData]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {

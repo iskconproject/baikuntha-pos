@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -87,7 +87,7 @@ export function TransactionHistory({ onExport }: TransactionHistoryProps) {
     } finally {
       setLoading(false);
     }
-  }, [filters, pagination]);
+  }, [filters, currentPage, limit]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {

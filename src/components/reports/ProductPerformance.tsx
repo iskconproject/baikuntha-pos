@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -34,10 +34,6 @@ export function ProductPerformance({ reportType = 'performance' }: ProductPerfor
   });
   const [limit, setLimit] = useState(50);
 
-  useEffect(() => {
-    fetchProductPerformance();
-  }, [filters, limit, reportType, fetchProductPerformance]);
-
   const fetchProductPerformance = useCallback(async () => {
     try {
       setLoading(true);
@@ -65,7 +61,11 @@ export function ProductPerformance({ reportType = 'performance' }: ProductPerfor
     } finally {
       setLoading(false);
     }
-  }, [dateRange]);
+  }, [filters, limit, reportType]);
+
+  useEffect(() => {
+    fetchProductPerformance();
+  }, [filters, limit, reportType, fetchProductPerformance]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {

@@ -23,11 +23,6 @@ export function CategoryNavigation({
   const [categoryTree, setCategoryTree] = useState<CategoryWithChildren[]>([]);
   const [productCounts, setProductCounts] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    buildCategoryTree();
-    fetchProductCounts();
-  }, [categories, buildCategoryTree, fetchProductCounts]);
-
   const buildCategoryTree = useCallback(() => {
     const categoryMap = new Map<string, CategoryWithChildren>();
     const rootCategories: CategoryWithChildren[] = [];
@@ -64,6 +59,11 @@ export function CategoryNavigation({
       console.error('Error fetching product counts:', error);
     }
   }, []);
+
+  useEffect(() => {
+    buildCategoryTree();
+    fetchProductCounts();
+  }, [categories, buildCategoryTree, fetchProductCounts]);
 
   const toggleCategory = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);

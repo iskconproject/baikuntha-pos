@@ -378,7 +378,7 @@ export function DataBackupRestore({ isOpen, onClose }: DataBackupRestoreProps) {
                     {Object.entries(restorePreview.tables).map(([tableName, data]) => (
                       <div key={tableName} className="flex justify-between p-2 bg-gray-50 rounded">
                         <span>{formatTableName(tableName)}</span>
-                        <Badge variant="info" size="sm">{data.length}</Badge>
+                        <Badge variant="secondary" size="sm">{data.length}</Badge>
                       </div>
                     ))}
                   </div>
