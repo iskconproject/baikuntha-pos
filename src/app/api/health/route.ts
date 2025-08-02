@@ -1,13 +1,37 @@
-/**
- * Health check endpoint for connection monitoring
- */
+import { NextRequest, NextResponse } from 'next/server';
+import { withErrorHandling } from '@/lib/errors/apiErrorHandler';
 
-import { NextResponse } from 'next/server';
+async function healthHandler(request: NextRequest): Promise<NextResponse> {
+  const timestamp = new Date().toISOString();
+  
+  // Basic health check
+  const health = {
+    status: 'healthy',
+    timestamp,
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV,
+  };
 
-export async function GET() {
-  return NextResponse.json({ status: 'ok', timestamp: new Date().toISOString() });
+  // For HEAD requests (used by connectivity checks), return minimal response
+  if (request.method === 'HEAD') {
+    return new NextResponse(null, { 
+      status: 200,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
+  }
+
+  return NextResponse.json(health, {
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
+  });
 }
 
-export async function HEAD() {
-  return new NextResponse(null, { status: 200 });
-}
+export const GET = withErrorHandling(healthHandler);
+export const HEAD = withErrorHandling(healthHandler);

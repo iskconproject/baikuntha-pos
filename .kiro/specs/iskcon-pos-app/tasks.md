@@ -224,19 +224,7 @@
   - Write Vitest component tests for settings interface and configuration persistence
   - _Requirements: Cross-cutting requirement for system configuration and user preferences_
 
-- [ ] 21. Build PWA installation and notification interface
-
-  - Create app installation prompts and PWA setup guidance
-  - Implement push notification permission requests and management
-  - Build notification display system for sync status and alerts
-  - Create PWA update notifications and installation prompts
-  - Implement offline page fallbacks and error handling
-  - Build app and PWA configuration interface
-  - Create device-specific optimization indicators
-  - Write Vitest component tests for PWA functionality and notifications
-  - _Requirements: 9.4, 9.5, 9.6_
-
-- [ ] 22. Implement comprehensive error handling and validation UI
+- [x] 21. Implement comprehensive error handling and validation UI
 
   - Create centralized error display system with user-friendly messages
   - Build form validation UI with real-time feedback
@@ -247,6 +235,18 @@
   - Create error logging interface for administrators
   - Write Vitest unit tests for error handling and validation logic
   - _Requirements: All requirements - error handling is cross-cutting_
+
+- [ ] 22. Build PWA installation and notification interface
+
+  - Create app installation prompts and PWA setup guidance
+  - Implement push notification permission requests and management
+  - Build notification display system for sync status and alerts
+  - Create PWA update notifications and installation prompts
+  - Implement offline page fallbacks and error handling
+  - Build app and PWA configuration interface
+  - Create device-specific optimization indicators
+  - Write Vitest component tests for PWA functionality and notifications
+  - _Requirements: 9.4, 9.5, 9.6_
 
 - [ ] 23. Create comprehensive test suite with E2E user scenarios
 
