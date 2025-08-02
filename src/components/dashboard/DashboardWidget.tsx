@@ -4,7 +4,24 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+// Simple SVG icons to replace lucide-react
+const TrendingUpIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+  </svg>
+);
+
+const TrendingDownIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+  </svg>
+);
+
+const MinusIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+  </svg>
+);
 
 interface DashboardWidgetProps {
   title: string;
@@ -60,11 +77,11 @@ const TrendIcon: React.FC<{ direction: 'up' | 'down' | 'neutral' }> = ({ directi
   
   switch (direction) {
     case 'up':
-      return <TrendingUp {...iconProps} />;
+      return <TrendingUpIcon {...iconProps} />;
     case 'down':
-      return <TrendingDown {...iconProps} />;
+      return <TrendingDownIcon {...iconProps} />;
     default:
-      return <Minus {...iconProps} />;
+      return <MinusIcon {...iconProps} />;
   }
 };
 

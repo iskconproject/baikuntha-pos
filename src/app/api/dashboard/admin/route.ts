@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { dashboardService } from "@/services/dashboard/dashboardService";
 import { verifySession } from "@/lib/auth/session";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Extract session token from cookies
