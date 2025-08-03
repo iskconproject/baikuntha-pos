@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import type { SessionData, AuthUser } from '@/types/auth';
 import { DEFAULT_AUTH_CONFIG } from '@/types/auth';
 import { authService } from '@/services/auth/authService';
@@ -53,7 +54,6 @@ class SimpleTokenManager {
 
   private createSignature(payload: string): string {
     // Simple HMAC-like signature using built-in crypto
-    const crypto = require('crypto');
     return crypto
       .createHmac('sha256', this.secret)
       .update(payload)
