@@ -1,5 +1,6 @@
 import { ReceiptGenerator } from './receiptGenerator';
 import { ThermalPrinter } from './thermalPrinter';
+import { settingsService } from '@/services/settings/settingsService';
 import type { 
   ReceiptData, 
   PrinterConfig, 
@@ -8,15 +9,30 @@ import type {
   ReceiptTemplate 
 } from '@/types/receipt';
 import type { Transaction, TransactionItem } from '@/types';
+import type { SystemSettings } from '@/types/settings';
 
 export class ReceiptService {
   private thermalPrinter: ThermalPrinter;
-  private config: PrinterConfig;
   private receipts: Map<string, StoredReceipt> = new Map();
   
-  constructor(config: PrinterConfig = { type: 'thermal', thermalConfig: { width: 32 } }) {
-    this.config = config;
+  constructor() {
     this.thermalPrinter = new ThermalPrinter();
+  }
+
+  /**
+   * Get current printer configuration from settings
+   */
+  private async getConfig(): Promise<PrinterConfig> {
+    const settings = await settingsService.getSettings();
+    
+    return {
+      type: settings.printer.type as 'thermal' | 'pdf',
+      thermalConfig: settings.printer.type === 'thermal' ? {
+        width: settings.printer.characterWidth,
+        cutPaper: true, // Default to true, could be added to settings if needed
+        openDrawer: false, // Default to false, could be added to settings if needed
+      } : undefined,
+    };
   }
   
   /**
@@ -70,6 +86,9 @@ export class ReceiptService {
     receiptData: ReceiptData, 
     template?: ReceiptTemplate
   ): Promise<PrintResult> {
+    // Get current configuration from settings
+    const config = await this.getConfig();
+    
     // Store receipt for reprint functionality
     const storedReceipt: StoredReceipt = {
       id: receiptData.id,
@@ -84,8 +103,8 @@ export class ReceiptService {
     let result: PrintResult;
     
     try {
-      if (this.config.type === 'thermal') {
-        result = await this.printThermal(receiptData, template);
+      if (config.type === 'thermal') {
+        result = await this.printThermal(receiptData, template, config);
       } else {
         result = await this.printPDF(receiptData);
       }
@@ -102,7 +121,7 @@ export class ReceiptService {
       storedReceipt.printStatus = 'failed';
       
       // Try fallback to PDF if thermal printing fails
-      if (this.config.type === 'thermal') {
+      if (config.type === 'thermal') {
         console.log('Thermal printing failed, trying PDF fallback...');
         try {
           result = await this.printPDF(receiptData);
@@ -128,8 +147,12 @@ export class ReceiptService {
    */
   private async printThermal(
     receiptData: ReceiptData, 
-    template?: ReceiptTemplate
+    template?: ReceiptTemplate,
+    config?: PrinterConfig
   ): Promise<PrintResult> {
+    // Use provided config or get from settings
+    const printerConfig = config || await this.getConfig();
+    
     // Check if thermal printing is supported
     const isSupported = typeof ThermalPrinter.isSupported === 'function' 
       ? ThermalPrinter.isSupported() 
@@ -141,14 +164,14 @@ export class ReceiptService {
     
     // Connect to printer if not already connected
     if (!this.thermalPrinter.isReady()) {
-      await this.thermalPrinter.connect(this.config.thermalConfig);
+      await this.thermalPrinter.connect(printerConfig.thermalConfig);
     }
     
     // Generate thermal receipt text
     const receiptText = ReceiptGenerator.generateThermalReceipt(receiptData, template);
     
     // Print the receipt
-    const result = await this.thermalPrinter.print(receiptText, this.config.thermalConfig);
+    const result = await this.thermalPrinter.print(receiptText, printerConfig.thermalConfig);
     
     return {
       ...result,
@@ -225,9 +248,11 @@ export class ReceiptService {
    * Test printer connection
    */
   async testPrinter(): Promise<PrintResult> {
-    if (this.config.type === 'thermal') {
+    const config = await this.getConfig();
+    
+    if (config.type === 'thermal') {
       if (!this.thermalPrinter.isReady()) {
-        await this.thermalPrinter.connect(this.config.thermalConfig);
+        await this.thermalPrinter.connect(config.thermalConfig);
       }
       return await this.thermalPrinter.printTest();
     } else {
@@ -243,11 +268,13 @@ export class ReceiptService {
    * Connect to thermal printer
    */
   async connectThermalPrinter(): Promise<boolean> {
-    if (this.config.type !== 'thermal') {
+    const config = await this.getConfig();
+    
+    if (config.type !== 'thermal') {
       throw new Error('Not configured for thermal printing');
     }
     
-    return await this.thermalPrinter.connect(this.config.thermalConfig);
+    return await this.thermalPrinter.connect(config.thermalConfig);
   }
   
   /**
@@ -265,10 +292,11 @@ export class ReceiptService {
   }
   
   /**
-   * Update printer configuration
+   * Update printer configuration (deprecated - settings are now managed centrally)
+   * @deprecated Use settings service to update printer configuration
    */
   updateConfig(config: PrinterConfig): void {
-    this.config = config;
+    console.warn('receiptService.updateConfig is deprecated. Use settings service to update printer configuration.');
   }
   
   /**

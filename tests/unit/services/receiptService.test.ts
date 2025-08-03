@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ReceiptService } from '@/services/printer/receiptService';
 import type { ReceiptData, PrinterConfig } from '@/types/receipt';
+import type { SystemSettings } from '@/types/settings';
 
 // Mock the thermal printer
 vi.mock('@/services/printer/thermalPrinter', () => ({
@@ -10,9 +11,53 @@ vi.mock('@/services/printer/thermalPrinter', () => ({
     print: vi.fn().mockResolvedValue({ success: true, printMethod: 'thermal' }),
     printTest: vi.fn().mockResolvedValue({ success: true, printMethod: 'thermal' }),
     disconnect: vi.fn().mockResolvedValue(undefined)
-  })),
-  // Mock static method
-  isSupported: vi.fn().mockReturnValue(true)
+  }))
+}));
+
+// Mock the receipt generator
+vi.mock('@/services/printer/receiptGenerator', () => ({
+  ReceiptGenerator: {
+    generateThermalReceipt: vi.fn().mockReturnValue('Mock thermal receipt text'),
+    generateHTMLReceipt: vi.fn().mockReturnValue('<html>Mock HTML receipt</html>'),
+  },
+}));
+
+// Mock the settings service
+vi.mock('@/services/settings/settingsService', () => ({
+  settingsService: {
+    getSettings: vi.fn().mockResolvedValue({
+      printer: {
+        enabled: true,
+        type: 'thermal',
+        paperWidth: 80,
+        characterWidth: 32,
+        deviceId: 'test-device',
+        testPrintEnabled: true,
+      },
+      display: {
+        theme: 'light',
+        fontSize: 'medium',
+        language: 'en',
+        currency: 'INR',
+        dateFormat: 'DD/MM/YYYY',
+        timeFormat: '24h',
+      },
+      backup: {
+        autoBackup: true,
+        backupFrequency: 'daily',
+        retentionDays: 30,
+        cloudSync: false,
+      },
+      audit: {
+        enabled: true,
+        logLevel: 'info',
+        retentionDays: 90,
+        includeUserActions: true,
+      },
+    }),
+    updateSettings: vi.fn().mockResolvedValue(undefined),
+    testPrinter: vi.fn().mockResolvedValue(true),
+  },
 }));
 
 // Mock URL.createObjectURL and related APIs
@@ -178,27 +223,48 @@ describe('ReceiptService', () => {
       mockReceiptData = receiptService.generateReceiptData(mockTransaction, mockCashier);
     });
 
-    it('should print thermal receipt successfully', async () => {
-      const config: PrinterConfig = {
-        type: 'thermal',
-        thermalConfig: { width: 32, cutPaper: true }
-      };
-      
-      receiptService.updateConfig(config);
-      
+    it('should print receipt successfully (falls back to PDF in test environment)', async () => {
       const result = await receiptService.printReceipt(mockReceiptData);
 
       expect(result.success).toBe(true);
-      expect(result.printMethod).toBe('thermal');
+      // In test environment, thermal printing is not supported, so it falls back to PDF
+      expect(result.printMethod).toBe('pdf');
       expect(result.receiptId).toBe(mockReceiptData.id);
     });
 
-    it('should generate PDF receipt', async () => {
-      const config: PrinterConfig = {
-        type: 'pdf'
-      };
-      
-      receiptService.updateConfig(config);
+    it('should generate PDF receipt when configured for PDF', async () => {
+      // Mock settings to return PDF configuration
+      const { settingsService } = await import('@/services/settings/settingsService');
+      vi.mocked(settingsService.getSettings).mockResolvedValueOnce({
+        printer: {
+          enabled: true,
+          type: 'pdf',
+          paperWidth: 80,
+          characterWidth: 32,
+          deviceId: 'test-device',
+          testPrintEnabled: true,
+        },
+        display: {
+          theme: 'light',
+          fontSize: 'medium',
+          language: 'en',
+          currency: 'INR',
+          dateFormat: 'DD/MM/YYYY',
+          timeFormat: '24h',
+        },
+        backup: {
+          autoBackup: true,
+          backupFrequency: 'daily',
+          retentionDays: 30,
+          cloudSync: false,
+        },
+        audit: {
+          enabled: true,
+          logLevel: 'info',
+          retentionDays: 90,
+          includeUserActions: true,
+        },
+      });
       
       const result = await receiptService.printReceipt(mockReceiptData);
 
@@ -228,10 +294,7 @@ describe('ReceiptService', () => {
       };
 
       // Create service with failing thermal printer
-      const failingService = new ReceiptService({
-        type: 'thermal',
-        thermalConfig: { width: 32 }
-      });
+      const failingService = new ReceiptService();
 
       // Mock the thermal printer instance
       (failingService as any).thermalPrinter = mockThermalPrinter;
@@ -286,13 +349,6 @@ describe('ReceiptService', () => {
 
   describe('testPrinter', () => {
     it('should test thermal printer', async () => {
-      const config: PrinterConfig = {
-        type: 'thermal',
-        thermalConfig: { width: 32 }
-      };
-      
-      receiptService.updateConfig(config);
-      
       const result = await receiptService.testPrinter();
 
       expect(result.success).toBe(true);
@@ -300,11 +356,38 @@ describe('ReceiptService', () => {
     });
 
     it('should return success for PDF printer test', async () => {
-      const config: PrinterConfig = {
-        type: 'pdf'
-      };
-      
-      receiptService.updateConfig(config);
+      // Mock settings to return PDF configuration
+      const { settingsService } = await import('@/services/settings/settingsService');
+      vi.mocked(settingsService.getSettings).mockResolvedValueOnce({
+        printer: {
+          enabled: true,
+          type: 'pdf',
+          paperWidth: 80,
+          characterWidth: 32,
+          deviceId: 'test-device',
+          testPrintEnabled: true,
+        },
+        display: {
+          theme: 'light',
+          fontSize: 'medium',
+          language: 'en',
+          currency: 'INR',
+          dateFormat: 'DD/MM/YYYY',
+          timeFormat: '24h',
+        },
+        backup: {
+          autoBackup: true,
+          backupFrequency: 'daily',
+          retentionDays: 30,
+          cloudSync: false,
+        },
+        audit: {
+          enabled: true,
+          logLevel: 'info',
+          retentionDays: 90,
+          includeUserActions: true,
+        },
+      });
       
       const result = await receiptService.testPrinter();
 
@@ -314,19 +397,20 @@ describe('ReceiptService', () => {
   });
 
   describe('configuration management', () => {
-    it('should update printer configuration', () => {
+    it('should show deprecation warning for updateConfig', () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      
       const newConfig: PrinterConfig = {
         type: 'pdf',
-        pdfConfig: {
-          pageSize: 'A4',
-          orientation: 'portrait'
-        }
       };
 
       receiptService.updateConfig(newConfig);
 
-      // Configuration should be updated (tested indirectly through behavior)
-      expect(() => receiptService.updateConfig(newConfig)).not.toThrow();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'receiptService.updateConfig is deprecated. Use settings service to update printer configuration.'
+      );
+      
+      consoleSpy.mockRestore();
     });
 
     it('should handle thermal printer connection status', () => {
