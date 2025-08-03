@@ -72,7 +72,7 @@ export function ProductSelection({ className = '' }: ProductSelectionProps) {
 
       const data = await response.json();
       
-      if (data.success) {
+      if (response.ok && data.products) {
         setSearchResults(data.products || []);
       } else {
         setSearchResults([]);
