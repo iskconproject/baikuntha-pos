@@ -11,8 +11,9 @@ export function NotificationProvider() {
       {notifications.map((notification) => (
         <Toast
           key={notification.id}
-          message={notification.message}
-          type={notification.type}
+          id={notification.id}
+          title={notification.message}
+          type={notification.type as 'success' | 'error' | 'warning' | 'info'}
           duration={notification.duration}
           onClose={() => removeNotification(notification.id)}
         />

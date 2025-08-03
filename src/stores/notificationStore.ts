@@ -3,7 +3,7 @@ import { create } from 'zustand';
 export interface Notification {
   id: string;
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'warning' | 'info';
   duration?: number;
 }
 

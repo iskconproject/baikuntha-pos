@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { ToastProps } from '@/components/ui/Toast';
+import type { ToastProps } from '@/components/ui/Toast';
 
 export interface ToastOptions {
   type: 'success' | 'error' | 'warning' | 'info';

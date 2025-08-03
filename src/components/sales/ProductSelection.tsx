@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useCartStore } from '@/stores/cartStore';
 import { useDebounce } from '@/hooks/useDebounce';
 import { VariantSelector } from './VariantSelector';
@@ -42,16 +42,7 @@ export function ProductSelection({ className = '' }: ProductSelectionProps) {
     { id: '5', name: 'Jewelry', icon: '💍', color: 'bg-pink-100 text-pink-700' },
   ];
 
-  // Search products
-  useEffect(() => {
-    if (debouncedQuery.trim() || selectedCategory) {
-      performSearch();
-    } else {
-      setSearchResults([]);
-    }
-  }, [debouncedQuery, selectedCategory]);
-
-  const performSearch = async () => {
+  const performSearch = useCallback(async () => {
     setIsLoading(true);
     try {
       const searchQuery = {
@@ -83,7 +74,16 @@ export function ProductSelection({ className = '' }: ProductSelectionProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [debouncedQuery, selectedCategory]);
+
+  // Search products
+  useEffect(() => {
+    if (debouncedQuery.trim() || selectedCategory) {
+      performSearch();
+    } else {
+      setSearchResults([]);
+    }
+  }, [debouncedQuery, selectedCategory, performSearch]);
 
   const handleQuickAdd = async (product: ProductSearchResult) => {
     try {
