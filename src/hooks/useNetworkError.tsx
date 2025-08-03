@@ -20,7 +20,7 @@ export interface RetryOptions {
 
 export function useNetworkError() {
   const [state, setState] = useState<NetworkErrorState>({
-    isOnline: typeof navigator !== "undefined" ? navigator.onLine : true,
+    isOnline: true, // Default to online during SSR
     hasNetworkError: false,
     retryCount: 0,
     lastError: null,
@@ -32,8 +32,11 @@ export function useNetworkError() {
     success: showSuccessToast,
   } = useToast();
 
-  // Update online status
+  // Initialize and update online status
   useEffect(() => {
+    // Set initial online state on client
+    setState((prev) => ({ ...prev, isOnline: navigator.onLine }));
+
     const handleOnline = () => {
       setState((prev) => ({ ...prev, isOnline: true, hasNetworkError: false }));
       showSuccessToast("Connection restored", "You are back online");
@@ -209,6 +212,16 @@ export function useNetworkError() {
 // Network error component
 export function NetworkErrorIndicator() {
   const { isOnline, hasNetworkError } = useNetworkError();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Prevent hydration mismatch by not rendering on server
+  if (!isMounted) {
+    return null;
+  }
 
   if (isOnline && !hasNetworkError) {
     return null;

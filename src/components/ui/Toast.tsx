@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
 
 export interface ToastProps {
   id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
+  type: "success" | "error" | "warning" | "info";
   title: string;
   message?: string;
   duration?: number;
@@ -52,27 +52,27 @@ export function Toast({
 
   const getIcon = () => {
     switch (type) {
-      case 'success':
+      case "success":
         return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case 'error':
+      case "error":
         return <AlertCircle className="h-5 w-5 text-red-600" />;
-      case 'warning':
+      case "warning":
         return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
-      case 'info':
+      case "info":
         return <Info className="h-5 w-5 text-blue-600" />;
     }
   };
 
   const getStyles = () => {
     switch (type) {
-      case 'success':
-        return 'border-green-200 bg-green-50';
-      case 'error':
-        return 'border-red-200 bg-red-50';
-      case 'warning':
-        return 'border-yellow-200 bg-yellow-50';
-      case 'info':
-        return 'border-blue-200 bg-blue-50';
+      case "success":
+        return "border-green-200 bg-green-50";
+      case "error":
+        return "border-red-200 bg-red-50";
+      case "warning":
+        return "border-yellow-200 bg-yellow-50";
+      case "info":
+        return "border-blue-200 bg-blue-50";
     }
   };
 
@@ -82,23 +82,19 @@ export function Toast({
         pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg border shadow-lg
         transition-all duration-300 ease-in-out
         ${getStyles()}
-        ${isVisible && !isLeaving ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
+        ${
+          isVisible && !isLeaving
+            ? "translate-x-0 opacity-100"
+            : "translate-x-full opacity-0"
+        }
       `}
     >
       <div className="p-4">
         <div className="flex items-start">
-          <div className="flex-shrink-0">
-            {getIcon()}
-          </div>
+          <div className="flex-shrink-0">{getIcon()}</div>
           <div className="ml-3 w-0 flex-1">
-            <p className="text-sm font-medium text-gray-900">
-              {title}
-            </p>
-            {message && (
-              <p className="mt-1 text-sm text-gray-500">
-                {message}
-              </p>
-            )}
+            <p className="text-sm font-medium text-gray-900">{title}</p>
+            {message && <p className="mt-1 text-sm text-gray-500">{message}</p>}
             {action && (
               <div className="mt-3">
                 <button
@@ -131,6 +127,17 @@ export interface ToastContainerProps {
 }
 
 export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Prevent hydration mismatch by not rendering on server
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <div
       aria-live="assertive"

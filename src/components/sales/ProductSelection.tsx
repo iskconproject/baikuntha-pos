@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { SearchInterface } from '@/components/search/SearchInterface';
 import { useCartStore } from '@/stores/cartStore';
 import type { Product, ProductVariant } from '@/types';
+import type { ProductSearchResult } from '@/types/search';
 
 interface ProductSelectionProps {
   className?: string;
@@ -36,59 +37,86 @@ export function ProductSelection({ className = '' }: ProductSelectionProps) {
     { id: '4', name: 'Krishna T-Shirt', price: 450, image: '👕' },
   ];
 
-  const handleProductSelect = (product: any) => {
-    const productData: Product = {
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      basePrice: product.basePrice,
-      categoryId: product.categoryId,
-      keywords: product.keywords || [],
-      metadata: product.metadata || { customAttributes: {} },
-      isActive: product.isActive,
-      createdAt: new Date(product.createdAt),
-      updatedAt: new Date(product.updatedAt),
-      variants: product.variants || [],
-    };
+  const handleProductSelect = async (product: ProductSearchResult) => {
+    // Fetch full product details including variants
+    try {
+      const response = await fetch(`/api/products/${product.id}`);
+      const result = await response.json();
+      
+      if (!result.success) {
+        console.error('Error fetching product:', result.error);
+        return;
+      }
+      
+      const fullProduct = result.data;
+      
+      const productData: Product = {
+        id: fullProduct.id,
+        name: fullProduct.name,
+        description: fullProduct.description,
+        basePrice: fullProduct.basePrice,
+        categoryId: fullProduct.categoryId,
+        keywords: fullProduct.keywords || [],
+        metadata: fullProduct.metadata || { customAttributes: {} },
+        isActive: fullProduct.isActive,
+        createdAt: new Date(fullProduct.createdAt),
+        updatedAt: new Date(fullProduct.updatedAt),
+        variants: fullProduct.variants || [],
+      };
 
-    setSelectedProduct(productData);
-    
-    // If product has variants, show variant selection modal
-    if (productData.variants && productData.variants.length > 0) {
-      setShowVariantModal(true);
-    } else {
-      // Add product directly to cart
-      addItem(productData, undefined, quantity);
-      setQuantity(1);
+      setSelectedProduct(productData);
+      
+      // If product has variants, show variant selection modal
+      if (productData.variants && productData.variants.length > 0) {
+        setShowVariantModal(true);
+      } else {
+        // Add product directly to cart
+        addItem(productData, undefined, quantity);
+        setQuantity(1);
+      }
+    } catch (error) {
+      console.error('Error fetching product details:', error);
     }
   };
 
-  const handleAddToCart = (product: any, variant?: any) => {
-    const productData: Product = {
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      basePrice: product.basePrice,
-      categoryId: product.categoryId,
-      keywords: product.keywords || [],
-      metadata: product.metadata || { customAttributes: {} },
-      isActive: product.isActive,
-      createdAt: new Date(product.createdAt),
-      updatedAt: new Date(product.updatedAt),
-      variants: product.variants || [],
-    };
+  const handleAddToCart = async (product: ProductSearchResult, variant?: any) => {
+    // For direct add to cart from search results, fetch full product details
+    try {
+      const response = await fetch(`/api/products/${product.id}`);
+      const result = await response.json();
+      
+      if (!result.success) {
+        console.error('Error fetching product:', result.error);
+        return;
+      }
+      
+      const fullProduct = result.data;
+      
+      const productData: Product = {
+        id: fullProduct.id,
+        name: fullProduct.name,
+        description: fullProduct.description,
+        basePrice: fullProduct.basePrice,
+        categoryId: fullProduct.categoryId,
+        keywords: fullProduct.keywords || [],
+        metadata: fullProduct.metadata || { customAttributes: {} },
+        isActive: fullProduct.isActive,
+        createdAt: new Date(fullProduct.createdAt),
+        updatedAt: new Date(fullProduct.updatedAt),
+        variants: fullProduct.variants || [],
+      };
 
-    const variantData = variant ? {
-      id: variant.id,
-      productId: variant.productId,
-      name: variant.name,
-      price: variant.price,
-      stockQuantity: variant.stockQuantity,
-      attributes: variant.attributes || {},
-      keywords: variant.keywords || [],
-    } : undefined;
-
-    addItem(productData, variantData, 1);
+      // If product has variants, show variant selection modal
+      if (productData.variants && productData.variants.length > 0) {
+        setSelectedProduct(productData);
+        setShowVariantModal(true);
+      } else {
+        // Add product directly to cart
+        addItem(productData, undefined, 1);
+      }
+    } catch (error) {
+      console.error('Error adding product to cart:', error);
+    }
   };
 
   const handleVariantSelect = (variant: ProductVariant) => {
@@ -169,75 +197,11 @@ export function ProductSelection({ className = '' }: ProductSelectionProps) {
         {/* Tab Content */}
         <div className="p-4">
           {activeTab === 'search' && (
-            <div className="space-y-4">
-              <div className="space-y-4">
-                {/* Search Input */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search products, books, accessories..."
-                    className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base"
-                  />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Mock Products Display */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
-                  {[
-                    { id: '1', name: 'Bhagavad Gita As It Is', price: 350, description: 'Complete edition with Sanskrit verses and purports', stock: 50 },
-                    { id: '2', name: 'Tulsi Japa Mala', price: 150, description: 'Hand-crafted 108 bead japa mala', stock: 75 },
-                    { id: '3', name: 'Srimad Bhagavatam Set', price: 4500, description: 'Complete 12 canto set', stock: 10 },
-                    { id: '4', name: 'Japa Mala Bag', price: 50, description: 'Cotton bag with drawstring', stock: 40 },
-                  ].map((product) => (
-                    <div
-                      key={product.id}
-                      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                    >
-                      <div className="space-y-3">
-                        <div>
-                          <h3 className="font-semibold text-gray-900 text-sm">{product.name}</h3>
-                          <p className="text-xs text-gray-600 mt-1">{product.description}</p>
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-lg font-bold text-orange-600">₹{product.price}</span>
-                            <p className="text-xs text-gray-500">Stock: {product.stock}</p>
-                          </div>
-                          
-                          <button
-                            onClick={() => {
-                              // Mock add to cart
-                              const mockProduct = {
-                                id: product.id,
-                                name: product.name,
-                                description: product.description,
-                                basePrice: product.price,
-                                categoryId: '1',
-                                keywords: [],
-                                metadata: { customAttributes: {} },
-                                isActive: true,
-                                createdAt: new Date(),
-                                updatedAt: new Date(),
-                                variants: [],
-                              };
-                              handleAddToCart(mockProduct);
-                            }}
-                            className="px-3 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors text-sm font-medium"
-                          >
-                            Add to Cart
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <SearchInterface
+              onProductSelect={handleProductSelect}
+              onAddToCart={handleAddToCart}
+              className="border-0 shadow-none bg-transparent p-0"
+            />
           )}
 
           {activeTab === 'categories' && (
