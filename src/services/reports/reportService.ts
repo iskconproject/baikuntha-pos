@@ -1,4 +1,4 @@
-import { getLocalDb } from '@/lib/db/connection';
+import { getDb } from '@/lib/db/connection';
 import { 
   transactions, 
   transactionItems, 
@@ -96,7 +96,7 @@ export interface ReportFilters {
 }
 
 export class ReportService {
-  private db = getLocalDb();
+  private db = getDb();
 
   // Allow overriding the database connection for testing
   public setDb(database: any) {

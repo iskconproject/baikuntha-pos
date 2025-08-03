@@ -20,7 +20,7 @@ export {
 } from './sync';
 
 // Re-export database connection utilities
-export { getLocalDb } from '@/lib/db/connection';
+export { getDb } from '@/lib/db/connection';
 
 // Re-export migration utilities
 export { runMigrations } from '@/lib/db/migrate';

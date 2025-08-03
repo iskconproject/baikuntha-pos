@@ -1,8 +1,8 @@
-import { getLocalDb } from "@/lib/db/connection";
+import { getDb } from "@/lib/db/connection";
 import type { SearchLanguage, LanguageMapping, TransliterationResult } from "@/types/search";
 
 export class TranslationService {
-  private db = getLocalDb();
+  private db = getDb();
   
   // Common Hindi transliterations
   private hindiTransliterations: Record<string, string[]> = {

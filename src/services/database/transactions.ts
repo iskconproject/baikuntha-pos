@@ -1,4 +1,4 @@
-import { getLocalDb } from '@/lib/db/connection';
+import { getDb } from '@/lib/db/connection';
 import { transactions, transactionItems, products, productVariants, users, type Transaction, type NewTransaction, type NewTransactionItem } from '@/lib/db/schema';
 import { v4 as uuidv4 } from 'uuid';
 import { eq, desc, and, gte, lte, sql } from 'drizzle-orm';
@@ -41,7 +41,7 @@ export interface TopSellingProduct {
 }
 
 export class TransactionService {
-  private db = getLocalDb();
+  private db = getDb();
 
   // Allow overriding the database connection for testing
   public setDb(database: any) {
@@ -290,7 +290,7 @@ export class TransactionService {
         .set({ status, updatedAt: new Date() })
         .where(eq(transactions.id, id));
 
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       console.error('Error updating transaction status:', error);
       throw error;
@@ -307,7 +307,7 @@ export class TransactionService {
         .set({ syncStatus, updatedAt: new Date() })
         .where(eq(transactions.id, id));
 
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       console.error('Error updating sync status:', error);
       throw error;

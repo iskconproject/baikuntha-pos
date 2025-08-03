@@ -30,12 +30,12 @@ export class UserActivityService extends BaseService<UserActivity, NewUserActivi
   }
 
   private async getDb() {
-    if (typeof this.localDb === 'undefined') {
+    if (typeof this.db === 'undefined') {
       // Use relative import to avoid alias issues in test
-      const { getLocalDb } = await import('../../lib/db/connection');
-      this.localDb = getLocalDb();
+      const { getDb } = await import('../../lib/db/connection');
+      this.db = getDb();
     }
-    return this.localDb;
+    return this.db;
   }
 
   

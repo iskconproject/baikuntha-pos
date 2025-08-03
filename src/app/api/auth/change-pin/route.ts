@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { withAuth } from "@/lib/auth/middleware";
 import { authService } from "@/services/auth/authService";
-import { getLocalDb } from "@/lib/db/connection";
+import { getDb } from "@/lib/db/connection";
 import { users } from "@/lib/db/schema";
 import { changePinSchema } from "@/lib/validation/user";
 
@@ -15,7 +15,7 @@ export async function PUT(request: NextRequest) {
       try {
         let db;
         try {
-          db = getLocalDb();
+          db = getDb();
         } catch (error) {
           console.error("Database connection error:", error);
           return NextResponse.json(

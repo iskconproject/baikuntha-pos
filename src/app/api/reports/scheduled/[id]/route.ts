@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth/middleware';
-import { getLocalDb } from '@/lib/db/connection';
+import { getDb } from '@/lib/db/connection';
 import { scheduledReports } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
@@ -37,7 +37,7 @@ export async function PATCH(
       );
     }
 
-    const db = getLocalDb();
+    const db = getDb();
     
     const result = await db
       .update(scheduledReports)
@@ -83,7 +83,7 @@ export async function DELETE(
     }
 
     const { id } = params;
-    const db = getLocalDb();
+    const db = getDb();
     
     await db
       .delete(scheduledReports)

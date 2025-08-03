@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
-import { getLocalDb } from '@/lib/db/connection';
+import { getDb } from '@/lib/db/connection';
 import { users } from '@/lib/db/schema';
 import type { AuthUser, LoginRequest, LoginResponse, UserRole, Permission } from '@/types/auth';
 import { ROLE_PERMISSIONS, DEFAULT_AUTH_CONFIG } from '@/types/auth';
@@ -8,13 +8,13 @@ import { ROLE_PERMISSIONS, DEFAULT_AUTH_CONFIG } from '@/types/auth';
 export class AuthService {
   private static instance: AuthService;
   private loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
-  private db: ReturnType<typeof getLocalDb> | null = null;
+  private db: ReturnType<typeof getDb> | null = null;
 
   private constructor() {}
 
   private getDb() {
     if (!this.db) {
-      this.db = getLocalDb();
+      this.db = getDb();
     }
     return this.db;
   }

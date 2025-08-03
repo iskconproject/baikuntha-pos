@@ -8,7 +8,7 @@ import {
   type ProductVariant,
   type Category,
 } from "@/lib/db/schema";
-import { getLocalDb } from "@/lib/db/connection";
+import { getDb } from "@/lib/db/connection";
 import { searchService } from "@/services/database/search";
 import type {
   SearchQuery,
@@ -27,7 +27,7 @@ import type {
 } from "@/types/search";
 
 export class SearchEngine {
-  private db = getLocalDb();
+  private db = getDb();
   private config: SearchConfig = {
     maxResults: 50,
     suggestionLimit: 10,

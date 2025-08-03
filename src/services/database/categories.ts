@@ -55,7 +55,7 @@ export class CategoryService extends BaseService<Category, NewCategory> {
   // Category-specific methods
   async findByName(name: string): Promise<Category | null> {
     try {
-      const result = await this.localDb
+      const result = await this.db
         .select()
         .from(categories)
         .where(eq(categories.name, name))
@@ -70,7 +70,7 @@ export class CategoryService extends BaseService<Category, NewCategory> {
   
   async findRootCategories(): Promise<Category[]> {
     try {
-      return await this.localDb
+      return await this.db
         .select()
         .from(categories)
         .where(and(
@@ -86,7 +86,7 @@ export class CategoryService extends BaseService<Category, NewCategory> {
   
   async findSubcategories(parentId: string): Promise<Category[]> {
     try {
-      return await this.localDb
+      return await this.db
         .select()
         .from(categories)
         .where(and(
@@ -102,7 +102,7 @@ export class CategoryService extends BaseService<Category, NewCategory> {
   
   async findActiveCategories(): Promise<Category[]> {
     try {
-      return await this.localDb
+      return await this.db
         .select()
         .from(categories)
         .where(eq(categories.isActive, true))
@@ -121,7 +121,7 @@ export class CategoryService extends BaseService<Category, NewCategory> {
       
       const searchTerm = `%${query.toLowerCase()}%`;
       
-      return await this.localDb
+      return await this.db
         .select()
         .from(categories)
         .where(and(
@@ -208,17 +208,17 @@ export class CategoryService extends BaseService<Category, NewCategory> {
         throw new Error('Cannot deactivate category with active subcategories');
       }
       
-      const result = await this.localDb
+      const result = await this.db
         .update(categories)
         .set({ 
           isActive: false,
-          updatedAt: new Date()
+          updatedAt: this.getCurrentTimestamp()
         })
         .where(eq(categories.id, id));
       
-      await this.queueForSync('update', id);
+
       
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       console.error('Error deactivating category:', error);
       throw error;
@@ -233,7 +233,7 @@ export class CategoryService extends BaseService<Category, NewCategory> {
       
       if (includeProductCount) {
         // Get categories with product counts
-        const categoriesWithCounts = await this.localDb
+        const categoriesWithCounts = await this.db
           .select({
             category: categories,
             productCount: sql<number>`count(${products.id})`,
@@ -307,7 +307,7 @@ export class CategoryService extends BaseService<Category, NewCategory> {
       }
 
       // Build base query
-      let query = this.localDb
+      let query = this.db
         .select({
           category: categories,
           productCount: sql<number>`count(${products.id})`,
@@ -331,7 +331,7 @@ export class CategoryService extends BaseService<Category, NewCategory> {
       query = query.orderBy(sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn)) as any;
 
       // Get total count
-      let countQuery = this.localDb
+      let countQuery = this.db
         .select({ count: sql<number>`count(*)` })
         .from(categories);
       
@@ -458,17 +458,17 @@ export class CategoryService extends BaseService<Category, NewCategory> {
         }
       }
 
-      const result = await this.localDb
+      const result = await this.db
         .update(categories)
         .set({
           parentId: newParentId || null,
-          updatedAt: new Date(),
+          updatedAt: this.getCurrentTimestamp(),
         })
         .where(eq(categories.id, categoryId));
 
-      await this.queueForSync('update', categoryId);
 
-      return result.changes > 0;
+
+      return result.rowsAffected > 0;
     } catch (error) {
       console.error('Error moving category:', error);
       throw error;

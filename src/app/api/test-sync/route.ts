@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { testCloudConnection } from '@/lib/db/cloudConnection';
+import { testConnection } from '@/lib/db/connection';
 import { syncService } from '@/services/database/sync';
 
 export async function GET() {
@@ -9,7 +9,7 @@ export async function GET() {
     console.log('TURSO_AUTH_TOKEN exists:', !!process.env.TURSO_AUTH_TOKEN);
     
     console.log('Testing cloud connection...');
-    const canConnect = await testCloudConnection();
+    const canConnect = await testConnection();
     
     if (!canConnect) {
       return NextResponse.json({ 
@@ -27,7 +27,7 @@ export async function GET() {
     
     return NextResponse.json({
       success: true,
-      cloudConnection: canConnect,
+      databaseConnection: canConnect,
       syncResult
     });
   } catch (error) {

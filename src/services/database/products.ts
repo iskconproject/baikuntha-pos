@@ -12,14 +12,14 @@ import {
   type NewSearchAnalytics,
 } from "@/lib/db/schema";
 import { BaseService } from "./base";
-import type { 
-  ProductSearchInput, 
-  ProductQueryInput, 
+import type {
+  ProductSearchInput,
+  ProductQueryInput,
   StockUpdateInput,
   LowStockAlertInput,
   ProductMetadata,
   CreateProductInput,
-  UpdateProductInput
+  UpdateProductInput,
 } from "@/lib/validation/product";
 
 export class ProductService extends BaseService<Product, NewProduct> {
@@ -32,34 +32,44 @@ export class ProductService extends BaseService<Product, NewProduct> {
   }
 
   // Helper method to transform validation input to database format
-  private transformProductInput(input: CreateProductInput | UpdateProductInput): Partial<NewProduct> {
+  private transformProductInput(
+    input: CreateProductInput | UpdateProductInput
+  ): Partial<NewProduct> {
     const result: Partial<NewProduct> = {};
-    
+
     // Copy primitive fields
     if (input.name !== undefined) result.name = input.name;
     if (input.description !== undefined) result.description = input.description;
     if (input.basePrice !== undefined) result.basePrice = input.basePrice;
     if (input.categoryId !== undefined) result.categoryId = input.categoryId;
     if (input.isActive !== undefined) result.isActive = input.isActive;
-    
+
     // Transform complex fields to JSON strings, with defaults
     if (input.keywords !== undefined) {
-      result.keywords = input.keywords && input.keywords.length > 0 ? JSON.stringify(input.keywords) : JSON.stringify([]);
+      result.keywords =
+        input.keywords && input.keywords.length > 0
+          ? JSON.stringify(input.keywords)
+          : JSON.stringify([]);
     } else {
       result.keywords = JSON.stringify([]);
     }
-    
+
     if (input.metadata !== undefined) {
-      result.metadata = input.metadata ? JSON.stringify(input.metadata) : JSON.stringify({ customAttributes: {} });
+      result.metadata = input.metadata
+        ? JSON.stringify(input.metadata)
+        : JSON.stringify({ customAttributes: {} });
     } else {
       result.metadata = JSON.stringify({ customAttributes: {} });
     }
-    
+
     return result;
   }
 
   // Helper method to transform database output to enhanced format
-  private transformProductOutput(product: Product, variants: ProductVariant[] = []): EnhancedProduct {
+  private transformProductOutput(
+    product: Product,
+    variants: ProductVariant[] = []
+  ): EnhancedProduct {
     return {
       id: product.id,
       name: product.name,
@@ -70,8 +80,10 @@ export class ProductService extends BaseService<Product, NewProduct> {
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
       keywords: product.keywords ? JSON.parse(product.keywords) : [],
-      metadata: product.metadata ? JSON.parse(product.metadata) : { customAttributes: {} },
-      variants: variants.map(v => ({
+      metadata: product.metadata
+        ? JSON.parse(product.metadata)
+        : { customAttributes: {} },
+      variants: variants.map((v) => ({
         ...v,
         attributes: v.attributes ? JSON.parse(v.attributes) : {},
         keywords: v.keywords ? JSON.parse(v.keywords) : [],
@@ -97,7 +109,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
   // Product-specific methods
   async findByName(name: string): Promise<Product | null> {
     try {
-      const result = await this.localDb
+      const result = await this.db
         .select()
         .from(products)
         .where(eq(products.name, name))
@@ -112,7 +124,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
 
   async findByCategory(categoryId: string): Promise<Product[]> {
     try {
-      return await this.localDb
+      return await this.db
         .select()
         .from(products)
         .where(
@@ -127,7 +139,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
 
   async findActiveProducts(): Promise<Product[]> {
     try {
-      return await this.localDb
+      return await this.db
         .select()
         .from(products)
         .where(eq(products.isActive, true))
@@ -142,7 +154,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
     productId?: string
   ): Promise<ProductWithVariants[]> {
     try {
-      const baseQuery = this.localDb
+      const baseQuery = this.db
         .select({
           product: products,
           variant: productVariants,
@@ -187,13 +199,16 @@ export class ProductService extends BaseService<Product, NewProduct> {
     }
   }
 
-  async searchProducts(searchInput: ProductSearchInput, userId?: string): Promise<ProductSearchResult> {
+  async searchProducts(
+    searchInput: ProductSearchInput,
+    userId?: string
+  ): Promise<ProductSearchResult> {
     try {
       const { query, categoryId, filters, sortBy, limit, offset } = searchInput;
-      
+
       // Build base query conditions
       const conditions = [eq(products.isActive, true)];
-      
+
       // Add text search conditions
       if (query && query.trim()) {
         const searchTerm = `%${query.toLowerCase()}%`;
@@ -205,12 +220,12 @@ export class ProductService extends BaseService<Product, NewProduct> {
           )!
         );
       }
-      
+
       // Add category filter
       if (categoryId) {
         conditions.push(eq(products.categoryId, categoryId));
       }
-      
+
       // Add price range filters
       if (filters.priceMin !== undefined) {
         conditions.push(gte(products.basePrice, filters.priceMin));
@@ -218,9 +233,9 @@ export class ProductService extends BaseService<Product, NewProduct> {
       if (filters.priceMax !== undefined) {
         conditions.push(lte(products.basePrice, filters.priceMax));
       }
-      
+
       // Build the main query
-      let baseQuery = this.localDb
+      let baseQuery = this.db
         .select({
           product: products,
           category: categories,
@@ -228,37 +243,37 @@ export class ProductService extends BaseService<Product, NewProduct> {
         .from(products)
         .leftJoin(categories, eq(products.categoryId, categories.id))
         .where(and(...conditions));
-      
+
       // Add sorting
       switch (sortBy) {
-        case 'price_asc':
+        case "price_asc":
           baseQuery = (baseQuery as any).orderBy(asc(products.basePrice));
           break;
-        case 'price_desc':
+        case "price_desc":
           baseQuery = (baseQuery as any).orderBy(desc(products.basePrice));
           break;
-        case 'name':
+        case "name":
           baseQuery = (baseQuery as any).orderBy(asc(products.name));
           break;
-        case 'popularity':
+        case "popularity":
           // TODO: Implement popularity sorting based on sales data
           baseQuery = (baseQuery as any).orderBy(asc(products.name));
           break;
         default: // relevance
           baseQuery = (baseQuery as any).orderBy(asc(products.name));
       }
-      
+
       // Get total count
-      const countQuery = this.localDb
+      const countQuery = this.db
         .select({ count: sql<number>`count(*)` })
         .from(products)
         .where(and(...conditions));
-      
+
       const [{ count }] = await countQuery;
-      
+
       // Get paginated results
       const results = await baseQuery.limit(limit).offset(offset);
-      
+
       // Get variants for each product
       const productsWithVariants = await Promise.all(
         results.map(async (row) => {
@@ -270,34 +285,42 @@ export class ProductService extends BaseService<Product, NewProduct> {
           };
         })
       );
-      
+
       // Apply metadata filters if specified
       let filteredProducts = productsWithVariants;
       if (filters.attributes && Object.keys(filters.attributes).length > 0) {
-        filteredProducts = productsWithVariants.filter(product => {
+        filteredProducts = productsWithVariants.filter((product) => {
           return Object.entries(filters.attributes!).every(([key, values]) => {
             const productValue = product.metadata[key as keyof ProductMetadata];
-            return productValue && typeof productValue === 'string' && values.includes(productValue);
+            return (
+              productValue &&
+              typeof productValue === "string" &&
+              values.includes(productValue)
+            );
           });
         });
       }
-      
+
       // Apply stock filter
       if (filters.inStock) {
-        filteredProducts = filteredProducts.filter(product => {
+        filteredProducts = filteredProducts.filter((product) => {
           if (product.variants.length > 0) {
-            return product.variants.some(variant => (variant.stockQuantity || 0) > 0);
+            return product.variants.some(
+              (variant) => (variant.stockQuantity || 0) > 0
+            );
           }
           return true; // Products without variants are considered in stock
         });
       }
-      
+
       // Generate search suggestions
-      const suggestions = await this.generateSearchSuggestions(query || '');
-      
+      const suggestions = await this.generateSearchSuggestions(query || "");
+
       // Generate dynamic filters
-      const dynamicFilters = await this.generateSearchFilters(productsWithVariants);
-      
+      const dynamicFilters = await this.generateSearchFilters(
+        productsWithVariants
+      );
+
       // Log search analytics
       if (query && userId) {
         await this.logSearchAnalytics({
@@ -306,7 +329,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
           userId,
         });
       }
-      
+
       return {
         products: filteredProducts,
         totalCount: filteredProducts.length,
@@ -324,46 +347,63 @@ export class ProductService extends BaseService<Product, NewProduct> {
     limit: number = 20
   ): Promise<ProductSearchResultItem[]> {
     try {
-      // Use FTS5 for full-text search
-      const results = this.localDb.all(sql`
-        SELECT 
-          p.*,
-          c.name as category_name,
-          fts.rank
-        FROM product_search_fts fts
-        JOIN products p ON fts.product_id = p.id
-        LEFT JOIN categories c ON p.category_id = c.id
-        WHERE product_search_fts MATCH ${query}
-        AND p.is_active = 1
-        ORDER BY fts.rank
-        LIMIT ${limit}
-      `);
+      // Use FTS5 for full-text search - fallback to regular search for now
+      // TODO: Implement FTS5 search with proper LibSQL integration
+      const searchResult = await this.searchProducts({
+        query,
+        filters: {},
+        sortBy: "relevance",
+        limit,
+        offset: 0,
+      });
 
-      return results as ProductSearchResultItem[];
+      return searchResult.products.map(
+        (item): ProductSearchResultItem => ({
+          id: item.id,
+          name: item.name,
+          description: item.description || null,
+          basePrice: item.basePrice,
+          categoryId: item.categoryId || null,
+          isActive: item.isActive || null,
+          createdAt: item.createdAt || null,
+          updatedAt: item.updatedAt || null,
+          keywords: Array.isArray(item.keywords)
+            ? item.keywords.join(", ")
+            : item.keywords || null,
+          metadata:
+            typeof item.metadata === "string"
+              ? item.metadata
+              : JSON.stringify(item.metadata),
+          rank: 1.0,
+          category_name: item.category?.name || null,
+        })
+      );
     } catch (error) {
       console.error("Error in full-text search:", error);
       // Fallback to regular search
       const searchResult = await this.searchProducts({
         query,
         filters: {},
-        sortBy: 'relevance',
+        sortBy: "relevance",
         limit,
-        offset: 0
+        offset: 0,
       });
-      return searchResult.products.map((p): ProductSearchResultItem => ({
-        id: p.id,
-        name: p.name,
-        description: p.description || null,
-        basePrice: p.basePrice,
-        categoryId: p.categoryId || null,
-        isActive: p.isActive || null,
-        createdAt: p.createdAt || null,
-        updatedAt: p.updatedAt || null,
-        keywords: JSON.stringify(p.keywords),
-        metadata: JSON.stringify(p.metadata),
-        rank: 0,
-        category_name: p.category?.name
-      }));
+      return searchResult.products.map(
+        (p): ProductSearchResultItem => ({
+          id: p.id,
+          name: p.name,
+          description: p.description || null,
+          basePrice: p.basePrice,
+          categoryId: p.categoryId || null,
+          isActive: p.isActive || null,
+          createdAt: p.createdAt || null,
+          updatedAt: p.updatedAt || null,
+          keywords: JSON.stringify(p.keywords),
+          metadata: JSON.stringify(p.metadata),
+          rank: 0,
+          category_name: p.category?.name,
+        })
+      );
     }
   }
 
@@ -372,7 +412,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
     maxPrice: number
   ): Promise<Product[]> {
     try {
-      return await this.localDb
+      return await this.db
         .select()
         .from(products)
         .where(
@@ -394,7 +434,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
       // Validate category exists if provided
       if (productData.categoryId) {
         // Use a separate category service instance to check category existence
-        const { categoryService } = await import('./categories');
+        const { categoryService } = await import("./categories");
         const category = await categoryService.findById(productData.categoryId);
         if (!category) {
           throw new Error("Category not found");
@@ -411,12 +451,12 @@ export class ProductService extends BaseService<Product, NewProduct> {
       const dbData = this.transformProductInput(productData);
       // Ensure required fields are present
       if (!dbData.name) {
-        throw new Error('Product name is required');
+        throw new Error("Product name is required");
       }
-      
+
       // Create the product first
-      const product = await this.create(dbData as Omit<NewProduct, 'id'>);
-      
+      const product = await this.create(dbData as Omit<NewProduct, "id">);
+
       // Create variants if provided
       if (productData.variants && productData.variants.length > 0) {
         for (const variantData of productData.variants) {
@@ -430,7 +470,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
           });
         }
       }
-      
+
       return product;
     } catch (error) {
       console.error("Error creating product:", error);
@@ -445,7 +485,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
     try {
       // Validate category exists if being updated
       if (productData.categoryId) {
-        const { categoryService } = await import('./categories');
+        const { categoryService } = await import("./categories");
         const category = await categoryService.findById(productData.categoryId);
         if (!category) {
           throw new Error("Category not found");
@@ -463,14 +503,14 @@ export class ProductService extends BaseService<Product, NewProduct> {
       // Transform input to database format
       const dbData = this.transformProductInput(productData);
       const product = await this.update(id, dbData);
-      
+
       // Handle variants if provided
       if (productData.variants !== undefined) {
         // Get existing variants
         const existingVariants = await this.findVariantsByProduct(id);
-        const existingVariantIds = new Set(existingVariants.map(v => v.id));
+        const existingVariantIds = new Set(existingVariants.map((v) => v.id));
         const updatedVariantIds = new Set();
-        
+
         // Process each variant in the update
         for (const variantData of productData.variants) {
           if (variantData.id && existingVariantIds.has(variantData.id)) {
@@ -479,8 +519,12 @@ export class ProductService extends BaseService<Product, NewProduct> {
               name: variantData.name,
               price: variantData.price,
               stockQuantity: variantData.stockQuantity || 0,
-              attributes: variantData.attributes ? JSON.stringify(variantData.attributes) : null,
-              keywords: variantData.keywords ? JSON.stringify(variantData.keywords) : null,
+              attributes: variantData.attributes
+                ? JSON.stringify(variantData.attributes)
+                : null,
+              keywords: variantData.keywords
+                ? JSON.stringify(variantData.keywords)
+                : null,
             });
             updatedVariantIds.add(variantData.id);
           } else {
@@ -496,7 +540,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
             updatedVariantIds.add(newVariant.id);
           }
         }
-        
+
         // Delete variants that are no longer in the update
         for (const existingVariant of existingVariants) {
           if (!updatedVariantIds.has(existingVariant.id)) {
@@ -504,7 +548,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
           }
         }
       }
-      
+
       return product;
     } catch (error) {
       console.error("Error updating product:", error);
@@ -514,7 +558,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
 
   async deactivateProduct(id: string): Promise<boolean> {
     try {
-      const result = await this.localDb
+      const result = await this.db
         .update(products)
         .set({
           isActive: false,
@@ -522,9 +566,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
         })
         .where(eq(products.id, id));
 
-      await this.queueForSync("update", id);
-
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       console.error("Error deactivating product:", error);
       throw error;
@@ -534,7 +576,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
   // Product variant methods
   async findVariantsByProduct(productId: string): Promise<ProductVariant[]> {
     try {
-      return await this.localDb
+      return await this.db
         .select()
         .from(productVariants)
         .where(eq(productVariants.productId, productId))
@@ -547,7 +589,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
 
   async findVariantById(variantId: string): Promise<ProductVariant | null> {
     try {
-      const result = await this.localDb
+      const result = await this.db
         .select()
         .from(productVariants)
         .where(eq(productVariants.id, variantId))
@@ -560,16 +602,14 @@ export class ProductService extends BaseService<Product, NewProduct> {
     }
   }
 
-  async createVariant(
-    variantData: {
-      productId: string;
-      name: string;
-      price: number;
-      stockQuantity?: number;
-      attributes?: Record<string, string>;
-      keywords?: string[];
-    }
-  ): Promise<ProductVariant> {
+  async createVariant(variantData: {
+    productId: string;
+    name: string;
+    price: number;
+    stockQuantity?: number;
+    attributes?: Record<string, string>;
+    keywords?: string[];
+  }): Promise<ProductVariant> {
     try {
       // Validate product exists
       const product = await this.findById(variantData.productId);
@@ -584,14 +624,17 @@ export class ProductService extends BaseService<Product, NewProduct> {
         name: variantData.name,
         price: variantData.price,
         stockQuantity: variantData.stockQuantity || 0,
-        attributes: variantData.attributes ? JSON.stringify(variantData.attributes) : null,
-        keywords: variantData.keywords ? JSON.stringify(variantData.keywords) : null,
+        attributes: variantData.attributes
+          ? JSON.stringify(variantData.attributes)
+          : null,
+        keywords: variantData.keywords
+          ? JSON.stringify(variantData.keywords)
+          : null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      await this.localDb.insert(productVariants).values(insertData);
-      await this.queueForSync("create", id);
+      await this.db.insert(productVariants).values(insertData);
 
       return (await this.findVariantById(id)) as ProductVariant;
     } catch (error) {
@@ -610,12 +653,10 @@ export class ProductService extends BaseService<Product, NewProduct> {
         updatedAt: new Date(),
       };
 
-      await this.localDb
+      await this.db
         .update(productVariants)
         .set(updateData)
         .where(eq(productVariants.id, id));
-
-      await this.queueForSync("update", id);
 
       return await this.findVariantById(id);
     } catch (error) {
@@ -626,13 +667,11 @@ export class ProductService extends BaseService<Product, NewProduct> {
 
   async deleteVariant(id: string): Promise<boolean> {
     try {
-      const result = await this.localDb
+      const result = await this.db
         .delete(productVariants)
         .where(eq(productVariants.id, id));
 
-      await this.queueForSync("delete", id);
-
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       console.error("Error deleting variant:", error);
       throw error;
@@ -644,7 +683,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
     quantity: number
   ): Promise<boolean> {
     try {
-      const result = await this.localDb
+      const result = await this.db
         .update(productVariants)
         .set({
           stockQuantity: quantity,
@@ -652,9 +691,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
         })
         .where(eq(productVariants.id, variantId));
 
-      await this.queueForSync("update", variantId);
-
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       console.error("Error updating variant stock:", error);
       throw error;
@@ -668,10 +705,13 @@ export class ProductService extends BaseService<Product, NewProduct> {
         if (!variant) continue;
 
         let newQuantity = update.quantity;
-        if (update.operation === 'add') {
+        if (update.operation === "add") {
           newQuantity = (variant.stockQuantity || 0) + update.quantity;
-        } else if (update.operation === 'subtract') {
-          newQuantity = Math.max(0, (variant.stockQuantity || 0) - update.quantity);
+        } else if (update.operation === "subtract") {
+          newQuantity = Math.max(
+            0,
+            (variant.stockQuantity || 0) - update.quantity
+          );
         }
 
         await this.updateVariantStock(update.variantId, newQuantity);
@@ -683,11 +723,13 @@ export class ProductService extends BaseService<Product, NewProduct> {
     }
   }
 
-  async getLowStockItems(options: LowStockAlertInput = { threshold: 5, includeVariants: true }): Promise<LowStockItem[]> {
+  async getLowStockItems(
+    options: LowStockAlertInput = { threshold: 5, includeVariants: true }
+  ): Promise<LowStockItem[]> {
     try {
       const { threshold = 5, includeVariants = true } = options;
-      
-      const lowStockVariants = await this.localDb
+
+      const lowStockVariants = await this.db
         .select({
           variant: productVariants,
           product: products,
@@ -704,7 +746,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
         )
         .orderBy(asc(productVariants.stockQuantity));
 
-      return lowStockVariants.map(row => ({
+      return lowStockVariants.map((row) => ({
         productId: row.product.id,
         productName: row.product.name,
         variantId: row.variant.id,
@@ -719,7 +761,9 @@ export class ProductService extends BaseService<Product, NewProduct> {
     }
   }
 
-  async getProductsByQuery(queryInput: ProductQueryInput): Promise<PaginatedProductResult> {
+  async getProductsByQuery(
+    queryInput: ProductQueryInput
+  ): Promise<PaginatedProductResult> {
     try {
       const {
         search,
@@ -769,7 +813,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
       }
 
       // Build base query
-      let query = this.localDb
+      let query = this.db
         .select({
           product: products,
           category: categories,
@@ -782,19 +826,26 @@ export class ProductService extends BaseService<Product, NewProduct> {
       }
 
       // Add sorting
-      const sortColumn = sortBy === 'price' ? products.basePrice :
-                        sortBy === 'category' ? categories.name :
-                        sortBy === 'created' ? products.createdAt :
-                        sortBy === 'updated' ? products.updatedAt :
-                        products.name;
+      const sortColumn =
+        sortBy === "price"
+          ? products.basePrice
+          : sortBy === "category"
+          ? categories.name
+          : sortBy === "created"
+          ? products.createdAt
+          : sortBy === "updated"
+          ? products.updatedAt
+          : products.name;
 
-      query = query.orderBy(sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn)) as any;
+      query = query.orderBy(
+        sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn)
+      ) as any;
 
       // Get total count
-      let countQuery = this.localDb
+      let countQuery = this.db
         .select({ count: sql<number>`count(*)` })
         .from(products);
-      
+
       if (conditions.length > 0) {
         countQuery = countQuery.where(and(...conditions)) as any;
       }
@@ -808,7 +859,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
       const enhancedProducts = await Promise.all(
         results.map(async (row) => {
           const variants = await this.findVariantsByProduct(row.product.id);
-          
+
           // Apply hasVariants filter
           if (hasVariants !== undefined) {
             const productHasVariants = variants.length > 0;
@@ -819,7 +870,9 @@ export class ProductService extends BaseService<Product, NewProduct> {
 
           // Apply inStock filter
           if (inStock !== undefined) {
-            const productInStock = variants.length === 0 || variants.some(v => (v.stockQuantity || 0) > 0);
+            const productInStock =
+              variants.length === 0 ||
+              variants.some((v) => (v.stockQuantity || 0) > 0);
             if (inStock !== productInStock) {
               return null;
             }
@@ -834,7 +887,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
       );
 
       // Filter out null results from hasVariants/inStock filtering
-      const filteredProducts = enhancedProducts.filter(p => p !== null);
+      const filteredProducts = enhancedProducts.filter((p) => p !== null);
 
       return {
         products: filteredProducts,
@@ -854,41 +907,35 @@ export class ProductService extends BaseService<Product, NewProduct> {
       if (!query || query.length < 2) return [];
 
       const searchTerm = `%${query.toLowerCase()}%`;
-      
+
       // Get suggestions from product names
-      const productSuggestions = await this.localDb
+      const productSuggestions = await this.db
         .select({ name: products.name })
         .from(products)
         .where(
-          and(
-            eq(products.isActive, true),
-            like(products.name, searchTerm)
-          )
+          and(eq(products.isActive, true), like(products.name, searchTerm))
         )
         .limit(5);
 
       // Get suggestions from keywords
-      const keywordSuggestions = await this.localDb
+      const keywordSuggestions = await this.db
         .select({ keywords: products.keywords })
         .from(products)
         .where(
-          and(
-            eq(products.isActive, true),
-            like(products.keywords, searchTerm)
-          )
+          and(eq(products.isActive, true), like(products.keywords, searchTerm))
         )
         .limit(5);
 
       const suggestions = new Set<string>();
-      
+
       // Add product names
-      productSuggestions.forEach(p => suggestions.add(p.name));
-      
+      productSuggestions.forEach((p) => suggestions.add(p.name));
+
       // Add matching keywords
-      keywordSuggestions.forEach(p => {
+      keywordSuggestions.forEach((p) => {
         if (p.keywords) {
           const keywords = JSON.parse(p.keywords) as string[];
-          keywords.forEach(keyword => {
+          keywords.forEach((keyword) => {
             if (keyword.toLowerCase().includes(query.toLowerCase())) {
               suggestions.add(keyword);
             }
@@ -903,9 +950,14 @@ export class ProductService extends BaseService<Product, NewProduct> {
     }
   }
 
-  async generateSearchFilters(products: EnhancedProduct[]): Promise<SearchFilters> {
+  async generateSearchFilters(
+    products: EnhancedProduct[]
+  ): Promise<SearchFilters> {
     try {
-      const categoryMap = new Map<string, { id: string; name: string; count: number }>();
+      const categoryMap = new Map<
+        string,
+        { id: string; name: string; count: number }
+      >();
       const attributeMap = new Map<string, Map<string, number>>();
       const priceRanges = [
         { min: 0, max: 100, count: 0 },
@@ -915,7 +967,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
         { min: 5000, max: Infinity, count: 0 },
       ];
 
-      products.forEach(product => {
+      products.forEach((product) => {
         // Count categories
         if (product.category) {
           const existing = categoryMap.get(product.category.id);
@@ -932,7 +984,7 @@ export class ProductService extends BaseService<Product, NewProduct> {
 
         // Count price ranges
         const price = product.basePrice;
-        priceRanges.forEach(range => {
+        priceRanges.forEach((range) => {
           if (price >= range.min && price < range.max) {
             range.count++;
           }
@@ -941,7 +993,11 @@ export class ProductService extends BaseService<Product, NewProduct> {
         // Count metadata attributes
         if (product.metadata) {
           Object.entries(product.metadata).forEach(([key, value]) => {
-            if (value && key !== 'customAttributes' && typeof value === 'string') {
+            if (
+              value &&
+              key !== "customAttributes" &&
+              typeof value === "string"
+            ) {
               if (!attributeMap.has(key)) {
                 attributeMap.set(key, new Map());
               }
@@ -952,15 +1008,17 @@ export class ProductService extends BaseService<Product, NewProduct> {
 
           // Handle custom attributes
           if (product.metadata.customAttributes) {
-            Object.entries(product.metadata.customAttributes).forEach(([key, value]) => {
-              if (value && typeof value === 'string') {
-                if (!attributeMap.has(key)) {
-                  attributeMap.set(key, new Map());
+            Object.entries(product.metadata.customAttributes).forEach(
+              ([key, value]) => {
+                if (value && typeof value === "string") {
+                  if (!attributeMap.has(key)) {
+                    attributeMap.set(key, new Map());
+                  }
+                  const valueMap = attributeMap.get(key)!;
+                  valueMap.set(value, (valueMap.get(value) || 0) + 1);
                 }
-                const valueMap = attributeMap.get(key)!;
-                valueMap.set(value, (valueMap.get(value) || 0) + 1);
               }
-            });
+            );
           }
         }
       });
@@ -968,17 +1026,19 @@ export class ProductService extends BaseService<Product, NewProduct> {
       // Convert maps to arrays
       const categories = Array.from(categoryMap.values());
       const attributes: Record<string, { value: string; count: number }[]> = {};
-      
+
       attributeMap.forEach((valueMap, key) => {
-        attributes[key] = Array.from(valueMap.entries()).map(([value, count]) => ({
-          value,
-          count,
-        }));
+        attributes[key] = Array.from(valueMap.entries()).map(
+          ([value, count]) => ({
+            value,
+            count,
+          })
+        );
       });
 
       return {
         categories,
-        priceRanges: priceRanges.filter(range => range.count > 0),
+        priceRanges: priceRanges.filter((range) => range.count > 0),
         attributes,
       };
     } catch (error) {
@@ -987,23 +1047,27 @@ export class ProductService extends BaseService<Product, NewProduct> {
     }
   }
 
-  async logSearchAnalytics(analyticsData: Omit<NewSearchAnalytics, 'id'>): Promise<void> {
+  async logSearchAnalytics(
+    analyticsData: Omit<NewSearchAnalytics, "id">
+  ): Promise<void> {
     try {
       const id = this.generateUUID();
-      await this.localDb.insert(searchAnalytics).values({
+      await this.db.insert(searchAnalytics).values({
         ...analyticsData,
         id,
       });
-      await this.queueForSync('create', id);
     } catch (error) {
       console.error("Error logging search analytics:", error);
       // Don't throw error for analytics logging
     }
   }
 
-  async getSearchAnalytics(userId?: string, limit: number = 100): Promise<SearchAnalytics[]> {
+  async getSearchAnalytics(
+    userId?: string,
+    limit: number = 100
+  ): Promise<SearchAnalytics[]> {
     try {
-      let query = this.localDb
+      let query = this.db
         .select()
         .from(searchAnalytics)
         .orderBy(desc(searchAnalytics.timestamp))

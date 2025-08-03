@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getLocalDb } from '@/lib/db/connection';
+import { getDb } from '@/lib/db/connection';
 import { categories, products } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
-    const db = getLocalDb();
+    const db = getDb();
     
     const categoryCounts = await db
       .select({

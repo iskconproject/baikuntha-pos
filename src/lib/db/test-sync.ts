@@ -3,7 +3,7 @@
  */
 
 import { syncService } from '@/services/database/sync';
-import { testCloudConnection } from './cloudConnection';
+import { testConnection } from './connection';
 
 export async function testSyncImplementation() {
   console.log('🔄 Testing sync implementation...');
@@ -11,7 +11,7 @@ export async function testSyncImplementation() {
   try {
     // 1. Test cloud connection
     console.log('1. Testing cloud connection...');
-    const cloudConnected = await testCloudConnection();
+    const cloudConnected = await testConnection();
     console.log(`   Cloud connection: ${cloudConnected ? '✅ Connected' : '❌ Failed'}`);
     
     if (!cloudConnected) {

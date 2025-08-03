@@ -1,32 +1,22 @@
 import { NextResponse } from 'next/server';
-import { getLocalDb } from '@/lib/db/connection';
-import { getCloudDb } from '@/lib/db/cloudConnection';
+import { getDb } from '@/lib/db/connection';
 import { users } from '@/lib/db/schema';
 
 export async function GET() {
   try {
     console.log('Testing simple sync...');
     
-    const localDb = getLocalDb();
-    const cloudDb = getCloudDb();
+    const db = getDb();
     
-    // Get all users from local database
-    const localUsers = await localDb.select().from(users);
-    console.log('Local users:', localUsers.length);
-    
-    // Get all users from cloud database
-    const cloudUsers = await cloudDb.select().from(users);
-    console.log('Cloud users:', cloudUsers.length);
+    // Get all users from database
+    const allUsers = await db.select().from(users);
+    console.log('Users:', allUsers.length);
     
     return NextResponse.json({
       success: true,
-      local: {
-        count: localUsers.length,
-        users: localUsers.map(u => ({ id: u.id, username: u.username, updatedAt: u.updatedAt }))
-      },
-      cloud: {
-        count: cloudUsers.length,
-        users: cloudUsers.map(u => ({ id: u.id, username: u.username, updatedAt: u.updatedAt }))
+      users: {
+        count: allUsers.length,
+        data: allUsers.map(u => ({ id: u.id, username: u.username, updatedAt: u.updatedAt }))
       }
     });
   } catch (error) {

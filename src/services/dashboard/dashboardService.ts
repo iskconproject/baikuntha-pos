@@ -1,10 +1,10 @@
-import { getLocalDb } from '@/lib/db/connection';
+import { getDb } from '@/lib/db/connection';
 import { transactions, products, users, categories, transactionItems, productVariants } from '@/lib/db/schema';
 import { sql, eq, and, gte, desc, count } from 'drizzle-orm';
 import type { DashboardMetrics, QuickStats } from '@/types';
 
 export class DashboardService {
-  private db = getLocalDb();
+  private db = getDb();
 
   /**
    * Get comprehensive dashboard metrics for admin users

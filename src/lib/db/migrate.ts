@@ -1,9 +1,8 @@
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import { getLocalDb } from './connection';
-import Database from 'better-sqlite3';
+import { migrate } from 'drizzle-orm/libsql/migrator';
+import { getDb, getClient } from './connection';
 
 export async function runMigrations() {
-  const db = getLocalDb();
+  const db = getDb();
   
   try {
     // Run standard Drizzle migrations
@@ -20,22 +19,22 @@ export async function runMigrations() {
 }
 
 async function setupFTS5Table() {
-  const db = getLocalDb();
+  const client = getClient();
   
   try {
     // Drop existing triggers if they exist
-    await db.run(`DROP TRIGGER IF EXISTS products_fts_insert`);
-    await db.run(`DROP TRIGGER IF EXISTS products_fts_update`);
-    await db.run(`DROP TRIGGER IF EXISTS products_fts_delete`);
-    await db.run(`DROP TRIGGER IF EXISTS variants_fts_insert`);
-    await db.run(`DROP TRIGGER IF EXISTS variants_fts_update`);
-    await db.run(`DROP TRIGGER IF EXISTS variants_fts_delete`);
+    await client.execute(`DROP TRIGGER IF EXISTS products_fts_insert`);
+    await client.execute(`DROP TRIGGER IF EXISTS products_fts_update`);
+    await client.execute(`DROP TRIGGER IF EXISTS products_fts_delete`);
+    await client.execute(`DROP TRIGGER IF EXISTS variants_fts_insert`);
+    await client.execute(`DROP TRIGGER IF EXISTS variants_fts_update`);
+    await client.execute(`DROP TRIGGER IF EXISTS variants_fts_delete`);
     
     // Drop existing FTS table if it exists
-    await db.run(`DROP TABLE IF EXISTS product_search_fts`);
+    await client.execute(`DROP TABLE IF EXISTS product_search_fts`);
     
     // Create FTS5 virtual table for full-text search
-    await db.run(`
+    await client.execute(`
       CREATE VIRTUAL TABLE product_search_fts USING fts5(
         product_id UNINDEXED,
         content,
@@ -45,7 +44,7 @@ async function setupFTS5Table() {
     `);
     
     // Create triggers to maintain FTS index
-    await db.run(`
+    await client.execute(`
       CREATE TRIGGER products_fts_insert AFTER INSERT ON products BEGIN
         INSERT INTO product_search_fts(product_id, content) 
         VALUES (
@@ -57,7 +56,7 @@ async function setupFTS5Table() {
       END
     `);
     
-    await db.run(`
+    await client.execute(`
       CREATE TRIGGER products_fts_update AFTER UPDATE ON products BEGIN
         DELETE FROM product_search_fts WHERE product_id = OLD.id;
         INSERT INTO product_search_fts(product_id, content) 
@@ -70,14 +69,14 @@ async function setupFTS5Table() {
       END
     `);
     
-    await db.run(`
+    await client.execute(`
       CREATE TRIGGER products_fts_delete AFTER DELETE ON products BEGIN
         DELETE FROM product_search_fts WHERE product_id = OLD.id;
       END
     `);
     
     // Create triggers for product variants
-    await db.run(`
+    await client.execute(`
       CREATE TRIGGER variants_fts_insert AFTER INSERT ON product_variants BEGIN
         UPDATE product_search_fts 
         SET content = content || ' ' || NEW.name || ' ' || COALESCE(NEW.keywords, '')
@@ -85,7 +84,7 @@ async function setupFTS5Table() {
       END
     `);
     
-    await db.run(`
+    await client.execute(`
       CREATE TRIGGER variants_fts_update AFTER UPDATE ON product_variants BEGIN
         -- Rebuild FTS content for the product
         DELETE FROM product_search_fts WHERE product_id = NEW.product_id;
@@ -103,7 +102,7 @@ async function setupFTS5Table() {
       END
     `);
     
-    await db.run(`
+    await client.execute(`
       CREATE TRIGGER variants_fts_delete AFTER DELETE ON product_variants BEGIN
         -- Rebuild FTS content for the product
         DELETE FROM product_search_fts WHERE product_id = OLD.product_id;
@@ -130,14 +129,14 @@ async function setupFTS5Table() {
 
 // Utility to rebuild FTS index
 export async function rebuildFTSIndex() {
-  const db = getLocalDb();
+  const client = getClient();
   
   try {
     // Clear existing FTS data
-    await db.run(`DELETE FROM product_search_fts`);
+    await client.execute(`DELETE FROM product_search_fts`);
     
     // Rebuild FTS index from current products and variants
-    await db.run(`
+    await client.execute(`
       INSERT INTO product_search_fts(product_id, content)
       SELECT 
         p.id,

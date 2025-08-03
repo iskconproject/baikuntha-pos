@@ -1,10 +1,10 @@
-import { getLocalDb } from '@/lib/db/connection';
+import { getDb } from '@/lib/db/connection';
 import { searchAnalytics } from '@/lib/db/schema';
 import { v4 as uuidv4 } from 'uuid';
 import { sql, desc, eq, and, gte } from 'drizzle-orm';
 
 export class SearchService {
-  private db = getLocalDb();
+  private db = getDb();
 
   /**
    * Record a search query for analytics

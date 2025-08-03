@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth/middleware';
-import { getLocalDb } from '@/lib/db/connection';
+import { getDb } from '@/lib/db/connection';
 import { syncMetadata } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = getLocalDb();
+    const db = getDb();
 
     // In a real implementation, this would trigger the actual sync service
     // For now, we'll just update the sync metadata to simulate a sync

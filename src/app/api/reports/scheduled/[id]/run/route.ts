@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth/middleware';
-import { getLocalDb } from '@/lib/db/connection';
+import { getDb } from '@/lib/db/connection';
 import { scheduledReports } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { reportService } from '@/services/reports/reportService';
@@ -29,7 +29,7 @@ export async function POST(
     }
 
     const { id } = params;
-    const db = getLocalDb();
+    const db = getDb();
     
     // Get the scheduled report
     const report = await db

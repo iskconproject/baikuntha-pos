@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth/middleware';
-import { getLocalDb } from '@/lib/db/connection';
+import { getDb } from '@/lib/db/connection';
 import { scheduledReports } from '@/lib/db/schema';
 import { desc } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const db = getLocalDb();
+    const db = getDb();
     
     const reports = await db
       .select()
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
         break;
     }
 
-    const db = getLocalDb();
+    const db = getDb();
     
     const reportId = uuidv4();
     await db.insert(scheduledReports).values({

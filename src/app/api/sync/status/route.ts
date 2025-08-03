@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth/middleware';
-import { getLocalDb } from '@/lib/db/connection';
+import { getDb } from '@/lib/db/connection';
 import { syncMetadata, transactions } from '@/lib/db/schema';
 import { eq, count } from 'drizzle-orm';
 
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const db = getLocalDb();
+    const db = getDb();
 
     // Get sync metadata
     const syncData = await db

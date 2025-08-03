@@ -16,7 +16,7 @@ export class UserService extends BaseService<User, NewUser> {
   // User-specific methods
   async findByUsername(username: string): Promise<User | null> {
     try {
-      const result = await this.localDb
+      const result = await this.db
         .select()
         .from(users)
         .where(eq(users.username, username))
@@ -31,7 +31,7 @@ export class UserService extends BaseService<User, NewUser> {
   
   async findByRole(role: string): Promise<User[]> {
     try {
-      return await this.localDb
+      return await this.db
         .select()
         .from(users)
         .where(eq(users.role, role))
@@ -44,7 +44,7 @@ export class UserService extends BaseService<User, NewUser> {
   
   async findActiveUsers(): Promise<User[]> {
     try {
-      return await this.localDb
+      return await this.db
         .select()
         .from(users)
         .where(eq(users.isActive, true))
@@ -143,7 +143,7 @@ export class UserService extends BaseService<User, NewUser> {
   
   async updateLastLogin(userId: string): Promise<void> {
     try {
-      await this.localDb
+      await this.db
         .update(users)
         .set({ 
           lastLoginAt: new Date(),
@@ -151,7 +151,7 @@ export class UserService extends BaseService<User, NewUser> {
         })
         .where(eq(users.id, userId));
       
-      await this.queueForSync('update', userId);
+      
     } catch (error) {
       console.error('Error updating last login:', error);
       throw error;
@@ -173,7 +173,7 @@ export class UserService extends BaseService<User, NewUser> {
       const saltRounds = parseInt(process.env.PIN_HASH_ROUNDS || '12');
       const pinHash = await bcrypt.hash(newPin, saltRounds);
       
-      const result = await this.localDb
+      const result = await this.db
         .update(users)
         .set({ 
           pinHash,
@@ -181,7 +181,7 @@ export class UserService extends BaseService<User, NewUser> {
         })
         .where(eq(users.id, userId));
       
-      await this.queueForSync('update', userId);
+      
       
       // Log activity
       const actorUserId = changedByUserId || userId;
@@ -198,7 +198,7 @@ export class UserService extends BaseService<User, NewUser> {
         }
       );
       
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       console.error('Error changing PIN:', error);
       throw error;
@@ -216,7 +216,7 @@ export class UserService extends BaseService<User, NewUser> {
         throw new Error('User not found');
       }
       
-      const result = await this.localDb
+      const result = await this.db
         .update(users)
         .set({ 
           isActive: false,
@@ -224,7 +224,7 @@ export class UserService extends BaseService<User, NewUser> {
         })
         .where(eq(users.id, userId));
       
-      await this.queueForSync('update', userId);
+      
       
       // Log activity
       await userActivityService.logActivity(
@@ -240,7 +240,7 @@ export class UserService extends BaseService<User, NewUser> {
         }
       );
       
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       console.error('Error deactivating user:', error);
       throw error;
@@ -258,7 +258,7 @@ export class UserService extends BaseService<User, NewUser> {
         throw new Error('User not found');
       }
       
-      const result = await this.localDb
+      const result = await this.db
         .update(users)
         .set({ 
           isActive: true,
@@ -266,7 +266,7 @@ export class UserService extends BaseService<User, NewUser> {
         })
         .where(eq(users.id, userId));
       
-      await this.queueForSync('update', userId);
+      
       
       // Log activity
       await userActivityService.logActivity(
@@ -282,7 +282,7 @@ export class UserService extends BaseService<User, NewUser> {
         }
       );
       
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       console.error('Error reactivating user:', error);
       throw error;
@@ -310,7 +310,7 @@ export class UserService extends BaseService<User, NewUser> {
         }
       }
       
-      const result = await this.localDb
+      const result = await this.db
         .update(users)
         .set({ 
           ...updateData,
@@ -318,11 +318,11 @@ export class UserService extends BaseService<User, NewUser> {
         })
         .where(eq(users.id, userId));
       
-      if (result.changes === 0) {
+      if (result.rowsAffected === 0) {
         return null;
       }
       
-      await this.queueForSync('update', userId);
+      
       
       // Log activity
       await userActivityService.logActivity(
@@ -372,21 +372,21 @@ export class UserService extends BaseService<User, NewUser> {
       
       // Get users
       const usersQuery = conditions.length > 0
-        ? this.localDb
+        ? this.db
             .select()
             .from(users)
             .where(and(...conditions))
-        : this.localDb
+        : this.db
             .select()
             .from(users);
       let userResults = await usersQuery;
 
       // If running in a test/mock environment, return mock data directly
       const isMockDb =
-        typeof this.localDb === 'object' &&
-        (typeof (this.localDb as any).mockReturnValue !== 'undefined' ||
-          typeof (this.localDb as any)._isMockFunction === 'boolean' ||
-          typeof (this.localDb as any).getMockImplementation === 'function');
+        typeof this.db === 'object' &&
+        (typeof (this.db as any).mockReturnValue !== 'undefined' ||
+          typeof (this.db as any)._isMockFunction === 'boolean' ||
+          typeof (this.db as any).getMockImplementation === 'function');
 
       if (isMockDb || (Array.isArray(userResults) && userResults.length === 0 && !search && !role && typeof isActive === 'undefined')) {
         // For test: return mockUsers if present in test context
