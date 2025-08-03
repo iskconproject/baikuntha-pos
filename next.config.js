@@ -24,6 +24,30 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["better-sqlite3"],
   },
+  // Optimize build for Vercel
+  outputFileTracing: true,
+  // Skip build-time static analysis for API routes
+  generateBuildId: async () => {
+    return 'build-' + Date.now();
+  },
+  // Disable static optimization for API routes during build
+  async rewrites() {
+    return [];
+  },
+  // Force all API routes to be dynamic
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+        ],
+      },
+    ];
+  },
   webpack: (config, { isServer, dev }) => {
     // Disable webpack cache in development to prevent corruption issues
     if (dev || process.env.WEBPACK_CACHE_DISABLED === 'true') {

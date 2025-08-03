@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:vercel": "SKIP_BUILD_STATIC_GENERATION=true next build",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",

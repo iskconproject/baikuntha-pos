@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { categoryService } from '@/services/database/categories';
-import { updateCategorySchema } from '@/lib/validation/category';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -11,8 +9,10 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const categoryId = params.id;
+    // Dynamic import to avoid build-time issues
+    const { categoryService } = await import('@/services/database/categories');
     
+    const categoryId = params.id;
     const category = await categoryService.findById(categoryId);
     
     if (!category) {
@@ -47,6 +47,15 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Dynamic imports to avoid build-time issues
+    const [categoryModule, validationModule] = await Promise.all([
+      import('@/services/database/categories'),
+      import('@/lib/validation/category')
+    ]);
+    
+    const { categoryService } = categoryModule;
+    const { updateCategorySchema } = validationModule;
+    
     const categoryId = params.id;
     const body = await request.json();
     
@@ -110,6 +119,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Dynamic import to avoid build-time issues
+    const { categoryService } = await import('@/services/database/categories');
+    
     const categoryId = params.id;
     
     // Check if category exists

@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "build": {
+    "env": {
+      "SKIP_BUILD_STATIC_GENERATION": "true",
+      "NEXT_TELEMETRY_DISABLED": "1"
+    }
+  },
+  "buildCommand": "pnpm run build:vercel"
+}
