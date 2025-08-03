@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth/middleware';
 import { getLocalDb } from '@/lib/db/connection';
 import { scheduledReports } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { desc } from 'drizzle-orm';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function GET(request: NextRequest) {
   try {
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
 
     const db = getLocalDb();
     
-    const reportId = nanoid();
+    const reportId = uuidv4();
     await db.insert(scheduledReports).values({
       id: reportId,
       name,
