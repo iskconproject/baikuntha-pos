@@ -5,6 +5,7 @@ import { ProductSelection } from '@/components/sales/ProductSelection';
 import { CartManager } from '@/components/sales/CartManager';
 import { PaymentProcessor } from '@/components/sales/PaymentProcessor';
 import { TransactionHistory } from '@/components/sales/TransactionHistory';
+import { NotificationProvider } from '@/components/providers/NotificationProvider';
 import type { Transaction } from '@/types';
 
 type SalesStep = 'selection' | 'payment' | 'receipt';
@@ -48,6 +49,7 @@ export default function SalesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <NotificationProvider />
       {/* Mobile-First Header */}
       <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -163,19 +165,17 @@ export default function SalesPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         {currentStep === 'selection' && (
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-4">
             {/* Mobile-First Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
-              {/* Product Selection - Takes full width on mobile, 3/4 on desktop */}
-              <div className="lg:col-span-3 order-2 lg:order-1">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              {/* Product Selection - Takes full width on mobile, 2/3 on desktop */}
+              <div className="xl:col-span-2 order-2 xl:order-1">
                 <ProductSelection />
               </div>
               
-              {/* Cart - Sticky on mobile, sidebar on desktop */}
-              <div className="lg:col-span-1 order-1 lg:order-2">
-                <div className="lg:sticky lg:top-24">
-                  <CartManager onCheckout={handleCheckout} />
-                </div>
+              {/* Cart - Prominent position */}
+              <div className="xl:col-span-1 order-1 xl:order-2">
+                <CartManager onCheckout={handleCheckout} />
               </div>
             </div>
             

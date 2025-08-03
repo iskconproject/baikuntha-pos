@@ -60,125 +60,159 @@ export function CartManager({ className = '', onCheckout }: CartManagerProps) {
 
   if (items.length === 0) {
     return (
-      <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
-        <div className="p-4 sm:p-6 text-center">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className={`bg-white rounded-lg shadow-sm border border-gray-200 sticky top-4 ${className}`}>
+        <div className="p-6 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5M7 13l-1.1 5m0 0h9.1M6 18a2 2 0 100 4 2 2 0 000-4zm12 0a2 2 0 100 4 2 2 0 000-4z" />
             </svg>
           </div>
-          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Cart is Empty</h3>
-          <p className="text-sm text-gray-600">Add products to start a transaction</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Cart is Empty</h3>
+          <p className="text-sm text-gray-600">Search and add products to start a transaction</p>
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-xs text-blue-700 font-medium">💡 Tip: Press Enter after searching to quickly add the first result</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
-      {/* Header */}
-      <div className="p-3 sm:p-4 border-b border-gray-200">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-base sm:text-lg font-semibold text-gray-900">Cart</h2>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1">
-              {getItemCount()} {getItemCount() === 1 ? 'item' : 'items'}
-            </p>
-          </div>
+    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 sticky top-4 ${className}`}>
+      {/* Header with prominent total */}
+      <div className="p-4 border-b border-gray-200 bg-orange-50">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-lg font-bold text-gray-900">Shopping Cart</h2>
           <button
             onClick={() => setShowClearConfirm(true)}
-            className="text-xs sm:text-sm text-red-600 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
+            className="text-sm text-red-600 hover:text-red-700 font-medium px-3 py-1 rounded-full hover:bg-red-50 transition-colors"
           >
-            Clear
+            Clear All
           </button>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-gray-600">
+            {getItemCount()} {getItemCount() === 1 ? 'item' : 'items'}
+          </span>
+          <span className="text-2xl font-bold text-orange-600">
+            {formatCurrency(total)}
+          </span>
         </div>
       </div>
 
       {/* Cart Items */}
-      <div className="max-h-64 sm:max-h-96 overflow-y-auto">
+      <div className="max-h-80 overflow-y-auto">
         {items.map((item) => (
-          <div key={`${item.productId}-${item.variantId || 'base'}`} className="p-3 sm:p-4 border-b border-gray-100 last:border-b-0">
-            <div className="space-y-2">
-              {/* Product Info */}
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0 pr-2">
-                  <h4 className="text-sm font-medium text-gray-900 truncate">
-                    {getItemName(item)}
-                  </h4>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-sm font-semibold text-orange-600">
-                      {formatCurrency(getItemPrice(item))}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      Stock: {getStockQuantity(item)}
-                    </span>
-                  </div>
+          <div key={`${item.productId}-${item.variantId || 'base'}`} className="p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex-1 min-w-0">
+                <h4 className="text-base font-medium text-gray-900 truncate">
+                  {getItemName(item)}
+                </h4>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-lg font-bold text-orange-600">
+                    {formatCurrency(getItemPrice(item))}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    Stock: {getStockQuantity(item)}
+                  </span>
                 </div>
-                
-                {/* Remove Button */}
+              </div>
+              
+              {/* Remove Button */}
+              <button
+                onClick={() => handleRemoveItem(item)}
+                className="ml-3 text-red-600 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition-colors"
+                title="Remove item"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Quantity Controls and Total */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3 bg-gray-100 rounded-lg p-1">
                 <button
-                  onClick={() => handleRemoveItem(item)}
-                  className="text-red-600 hover:text-red-700 p-1 hover:bg-red-50 rounded transition-colors"
-                  title="Remove item"
+                  onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                  disabled={item.quantity <= 1}
+                  className="w-10 h-10 rounded-lg bg-white border border-gray-300 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                  </svg>
+                </button>
+                
+                <span className="w-12 text-center text-lg font-bold text-gray-900">
+                  {item.quantity}
+                </span>
+                
+                <button
+                  onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                  disabled={item.quantity >= getStockQuantity(item)}
+                  className="w-10 h-10 rounded-lg bg-white border border-gray-300 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </button>
               </div>
 
-              {/* Quantity Controls and Total */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handleQuantityChange(item, item.quantity - 1)}
-                    disabled={item.quantity <= 1}
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                    </svg>
-                  </button>
-                  
-                  <span className="w-8 text-center text-sm font-medium">
-                    {item.quantity}
-                  </span>
-                  
-                  <button
-                    onClick={() => handleQuantityChange(item, item.quantity + 1)}
-                    disabled={item.quantity >= getStockQuantity(item)}
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Item Total */}
-                <span className="text-sm font-semibold text-gray-900">
+              {/* Item Total */}
+              <div className="text-right">
+                <div className="text-lg font-bold text-gray-900">
                   {formatCurrency(getItemPrice(item) * item.quantity)}
-                </span>
+                </div>
+                <div className="text-xs text-gray-500">
+                  {item.quantity} × {formatCurrency(getItemPrice(item))}
+                </div>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Cart Summary */}
-      <div className="p-3 sm:p-4 border-t border-gray-200 bg-gray-50">
-        <div className="flex justify-between items-center text-lg font-bold text-gray-900 mb-3">
-          <span>Total</span>
-          <span className="text-orange-600">{formatCurrency(total)}</span>
+      {/* Checkout Section */}
+      <div className="p-4 border-t-2 border-orange-200 bg-gradient-to-r from-orange-50 to-orange-100">
+        {/* Quick Actions */}
+        <div className="flex space-x-2 mb-4">
+          <button
+            onClick={() => setShowClearConfirm(true)}
+            className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
+          >
+            Clear Cart
+          </button>
+          <button
+            className="flex-1 px-3 py-2 text-sm font-medium text-orange-700 bg-white border border-orange-300 rounded-lg hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
+          >
+            Save for Later
+          </button>
+        </div>
+
+        {/* Total Summary */}
+        <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
+          <div className="flex justify-between items-center text-2xl font-bold">
+            <span className="text-gray-900">Total</span>
+            <span className="text-orange-600">{formatCurrency(total)}</span>
+          </div>
+          <div className="text-sm text-gray-600 mt-1">
+            {getItemCount()} {getItemCount() === 1 ? 'item' : 'items'} • Tax included
+          </div>
         </div>
 
         {/* Checkout Button */}
         {onCheckout && (
           <button
             onClick={onCheckout}
-            className="w-full px-4 py-3 sm:py-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 font-semibold text-base transition-colors"
+            className="w-full px-6 py-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-xl hover:from-orange-700 hover:to-orange-800 focus:outline-none focus:ring-4 focus:ring-orange-500 focus:ring-offset-2 font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
           >
-            Checkout • {formatCurrency(total)}
+            <div className="flex items-center justify-center space-x-2">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span>Proceed to Payment</span>
+            </div>
           </button>
         )}
       </div>

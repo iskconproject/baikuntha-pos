@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Product, ProductVariant } from '@/types';
+import { useNotificationStore } from './notificationStore';
 
 export interface CartItem {
   productId: string;
@@ -53,6 +54,14 @@ export const useCartStore = create<CartStore>((set, get) => ({
     }, 0);
 
     set({ items: newItems, total });
+
+    // Show notification
+    const productName = variant ? `${product.name} - ${variant.name}` : product.name;
+    useNotificationStore.getState().addNotification({
+      message: `${productName} added to cart`,
+      type: 'success',
+      duration: 2000,
+    });
   },
 
   removeItem: (productId: string, variantId?: string) => {
