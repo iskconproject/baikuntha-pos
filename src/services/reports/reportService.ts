@@ -9,6 +9,7 @@ import {
   type Transaction 
 } from '@/lib/db/schema';
 import { eq, desc, and, gte, lte, sql, count, sum } from 'drizzle-orm';
+import { formatDateOnly } from '@/lib/utils';
 
 // Report types
 export interface DailySalesReport {
@@ -523,8 +524,8 @@ export class ReportService {
           const { transactions: transactionData } = await this.getTransactionHistory(filters, 1000, 0);
           return transactionData.map(t => ({
             'Transaction ID': t.id,
-            'Date': t.createdAt.toISOString().split('T')[0],
-            'Time': t.createdAt.toTimeString().split(' ')[0],
+            'Date': formatDateOnly(t.createdAt),
+            'Time': t.createdAt instanceof Date ? t.createdAt.toTimeString().split(' ')[0] : new Date(t.createdAt).toTimeString().split(' ')[0],
             'User': t.userName,
             'Subtotal': t.subtotal,
             'Tax': t.tax,
@@ -548,7 +549,7 @@ export class ReportService {
             'Transaction Count': p.transactionCount,
             'Average Order Value': p.averageOrderValue.toFixed(2),
             'Current Stock': p.currentStock,
-            'Last Sold': p.lastSoldAt ? p.lastSoldAt.toISOString().split('T')[0] : 'Never',
+            'Last Sold': p.lastSoldAt ? formatDateOnly(p.lastSoldAt) : 'Never',
           }));
 
         case 'daily-sales':
@@ -559,7 +560,7 @@ export class ReportService {
           for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
             const report = await this.getDailySalesReport(new Date(d));
             dailyReports.push({
-              'Date': report.date.toISOString().split('T')[0],
+              'Date': formatDateOnly(report.date),
               'Total Sales': report.totalSales,
               'Total Transactions': report.totalTransactions,
               'Total Tax': report.totalTax,

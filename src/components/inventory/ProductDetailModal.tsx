@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { AlertDialog } from '@/components/ui/AlertDialog';
 import { Input } from '@/components/ui/Input';
+import { formatDate } from '@/lib/utils';
 import type { EnhancedProduct } from '@/services/database/products';
 
 interface ProductDetailModalProps {
@@ -97,15 +98,7 @@ export function ProductDetailModal({ product, onClose, onEdit, onDelete }: Produ
     onClose();
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+
 
   const getTotalStock = () => {
     return product.variants.reduce((total, variant) => total + (variant.stockQuantity || 0), 0);
@@ -210,7 +203,7 @@ export function ProductDetailModal({ product, onClose, onEdit, onDelete }: Produ
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Created</label>
-                    <p className="mt-1 text-sm text-gray-900">{product.createdAt ? formatDate(product.createdAt.toISOString()) : 'Unknown'}</p>
+                    <p className="mt-1 text-sm text-gray-900">{formatDate(product.createdAt)}</p>
                   </div>
                 </div>
               </div>
@@ -353,7 +346,7 @@ export function ProductDetailModal({ product, onClose, onEdit, onDelete }: Produ
               <div className="space-y-3">
                 <div className="border-l-4 border-blue-500 pl-4 py-2">
                   <div className="font-medium text-gray-900">Product Created</div>
-                  <div className="text-sm text-gray-600">{product.createdAt ? formatDate(product.createdAt.toISOString()) : 'Unknown'}</div>
+                  <div className="text-sm text-gray-600">{formatDate(product.createdAt)}</div>
                   <div className="text-sm text-gray-500">Initial product setup completed</div>
                 </div>
 
