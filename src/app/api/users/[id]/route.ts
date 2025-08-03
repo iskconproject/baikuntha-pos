@@ -5,6 +5,9 @@ import { updateUserSchema } from '@/lib/validation/user';
 import { getSessionUser } from '@/lib/auth/session';
 import { authService } from '@/services/auth/authService';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 interface RouteParams {
   params: {
     id: string;

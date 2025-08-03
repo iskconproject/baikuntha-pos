@@ -5,6 +5,9 @@ import { createUserSchema, userQuerySchema } from '@/lib/validation/user';
 import { getSessionUser } from '@/lib/auth/session';
 import { authService } from '@/services/auth/authService';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // GET /api/users - List users with filtering and pagination
 export async function GET(request: NextRequest) {
   try {

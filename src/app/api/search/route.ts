@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { searchEngine } from '@/services/search/searchEngine';
 import type { SearchQuery } from '@/types/search';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

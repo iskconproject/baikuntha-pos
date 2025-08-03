@@ -3,6 +3,9 @@ import { categoryService } from '@/services/database/categories';
 import { createCategorySchema } from '@/lib/validation/category';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
