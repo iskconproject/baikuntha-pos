@@ -8,9 +8,16 @@ import { ROLE_PERMISSIONS, DEFAULT_AUTH_CONFIG } from '@/types/auth';
 export class AuthService {
   private static instance: AuthService;
   private loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
-  private db = getLocalDb();
+  private db: ReturnType<typeof getLocalDb> | null = null;
 
   private constructor() {}
+
+  private getDb() {
+    if (!this.db) {
+      this.db = getLocalDb();
+    }
+    return this.db;
+  }
 
   static getInstance(): AuthService {
     if (!AuthService.instance) {
@@ -50,7 +57,7 @@ export class AuthService {
 
     try {
       // Find user by username
-      const userResult = await this.db
+      const userResult = await this.getDb()
         .select()
         .from(users)
         .where(eq(users.username, username))
@@ -88,7 +95,7 @@ export class AuthService {
       this.loginAttempts.delete(username);
 
       // Update last login timestamp
-      await this.db
+      await this.getDb()
         .update(users)
         .set({ 
           lastLoginAt: new Date(),
@@ -123,7 +130,7 @@ export class AuthService {
    */
   async getUserById(userId: string): Promise<AuthUser | null> {
     try {
-      const userResult = await this.db
+      const userResult = await this.getDb()
         .select()
         .from(users)
         .where(eq(users.id, userId))

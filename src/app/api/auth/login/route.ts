@@ -3,6 +3,9 @@ import { authService } from '@/services/auth/authService';
 import { createSession, setSessionCookie } from '@/lib/auth/session';
 import type { LoginRequest } from '@/types/auth';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const body: LoginRequest = await request.json();
