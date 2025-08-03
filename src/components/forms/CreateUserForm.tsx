@@ -81,7 +81,7 @@ export const CreateUserForm: React.FC<CreateUserFormProps> = ({
         placeholder="Enter username"
         required
         disabled={loading}
-        helperText="3-20 characters, letters, numbers, and underscores only"
+        hint="3-20 characters, letters, numbers, and underscores only"
       />
       
       <Select
@@ -92,7 +92,7 @@ export const CreateUserForm: React.FC<CreateUserFormProps> = ({
         options={roleOptions}
         required
         disabled={loading}
-        helperText="Select the user's access level"
+        hint="Select the user's access level"
       />
       
       <Input
@@ -104,7 +104,7 @@ export const CreateUserForm: React.FC<CreateUserFormProps> = ({
         placeholder="Enter 4-8 digit PIN"
         required
         disabled={loading}
-        helperText="4-8 digits, no sequential or repeated numbers"
+        hint="4-8 digits, no sequential or repeated numbers"
       />
       
       <Input

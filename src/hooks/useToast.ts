@@ -17,6 +17,10 @@ export interface ToastOptions {
 export function useToast() {
   const [toasts, setToasts] = useState<ToastProps[]>([]);
 
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
+
   const addToast = useCallback((options: ToastOptions) => {
     const id = Math.random().toString(36).substr(2, 9);
     const toast: ToastProps = {
@@ -27,11 +31,7 @@ export function useToast() {
 
     setToasts((prev) => [...prev, toast]);
     return id;
-  }, []);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  }, []);
+  }, [removeToast]);
 
   const removeAllToasts = useCallback(() => {
     setToasts([]);

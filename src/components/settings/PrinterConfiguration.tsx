@@ -129,7 +129,7 @@ export function PrinterConfiguration({ settings, onChange }: PrinterConfiguratio
           <div className="bg-gray-50 rounded-xl p-4">
             <FormField
               label="Printer Enabled"
-              helperText="Enable or disable receipt printing"
+              hint="Enable or disable receipt printing"
             >
               <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
                 <input
@@ -148,7 +148,7 @@ export function PrinterConfiguration({ settings, onChange }: PrinterConfiguratio
 
           <FormField
             label="Printer Type"
-            helperText="Select the type of printer to use"
+            hint="Select the type of printer to use"
           >
             <div className="relative">
               <Select
@@ -166,7 +166,7 @@ export function PrinterConfiguration({ settings, onChange }: PrinterConfiguratio
 
           <FormField
             label="Paper Width"
-            helperText="Width of the thermal paper in millimeters"
+            hint="Width of the thermal paper in millimeters"
           >
             <div className="relative">
               <Select
@@ -184,7 +184,7 @@ export function PrinterConfiguration({ settings, onChange }: PrinterConfiguratio
 
           <FormField
             label="Character Width"
-            helperText="Number of characters per line"
+            hint="Number of characters per line"
           >
             <div className="relative">
               <Input
@@ -225,7 +225,7 @@ export function PrinterConfiguration({ settings, onChange }: PrinterConfiguratio
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
               <FormField
                 label="Connected Device"
-                helperText="Currently connected thermal printer"
+                hint="Currently connected thermal printer"
               >
                 <div className="space-y-3">
                   <div className="relative">
@@ -257,7 +257,7 @@ export function PrinterConfiguration({ settings, onChange }: PrinterConfiguratio
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
               <FormField
                 label="Available Devices"
-                helperText="Scan for available USB devices"
+                hint="Scan for available USB devices"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">

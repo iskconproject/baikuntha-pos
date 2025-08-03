@@ -129,7 +129,7 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Enable Auto Backup"
-            helperText="Automatically create backups at regular intervals"
+            hint="Automatically create backups at regular intervals"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -144,7 +144,7 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
 
           <FormField
             label="Backup Interval"
-            helperText="Hours between automatic backups"
+            hint="Hours between automatic backups"
           >
             <Input
               type="number"
@@ -158,7 +158,7 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
 
           <FormField
             label="Max Backups"
-            helperText="Maximum number of backups to keep"
+            hint="Maximum number of backups to keep"
           >
             <Input
               type="number"
@@ -172,7 +172,7 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
 
           <FormField
             label="Include Images"
-            helperText="Include product images in backups"
+            hint="Include product images in backups"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -188,7 +188,7 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
 
           <FormField
             label="Compression"
-            helperText="Compress backups to reduce file size"
+            hint="Compress backups to reduce file size"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -212,7 +212,7 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Create Backup"
-            helperText="Download a complete backup of your data"
+            hint="Download a complete backup of your data"
           >
             <Button
               onClick={handleCreateBackup}
@@ -225,7 +225,7 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
 
           <FormField
             label="Restore Backup"
-            helperText="Upload and restore from a backup file"
+            hint="Upload and restore from a backup file"
           >
             <input
               type="file"
@@ -252,7 +252,7 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Clear Local Data"
-            helperText="Remove all locally stored data"
+            hint="Remove all locally stored data"
           >
             <Button
               onClick={handleClearLocalData}
@@ -265,7 +265,7 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
 
           <FormField
             label="Storage Usage"
-            helperText="Current local storage usage"
+            hint="Current local storage usage"
           >
             <div className="text-sm text-gray-600 dark:text-gray-400">
               <p>Database: ~2.5 MB</p>

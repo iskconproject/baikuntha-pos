@@ -95,7 +95,7 @@ export function NotificationSettings({ settings, onChange }: NotificationSetting
         <div className="space-y-4">
           <FormField
             label="Sync Status Notifications"
-            helperText="Get notified about data synchronization status"
+            hint="Get notified about data synchronization status"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -110,7 +110,7 @@ export function NotificationSettings({ settings, onChange }: NotificationSetting
 
           <FormField
             label="Low Stock Alerts"
-            helperText="Get notified when products are running low"
+            hint="Get notified when products are running low"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -125,7 +125,7 @@ export function NotificationSettings({ settings, onChange }: NotificationSetting
 
           <FormField
             label="System Alerts"
-            helperText="Get notified about system errors and important updates"
+            hint="Get notified about system errors and important updates"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -140,7 +140,7 @@ export function NotificationSettings({ settings, onChange }: NotificationSetting
 
           <FormField
             label="Transaction Alerts"
-            helperText="Get notified about transaction completions and failures"
+            hint="Get notified about transaction completions and failures"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -163,7 +163,7 @@ export function NotificationSettings({ settings, onChange }: NotificationSetting
         <div className="space-y-4">
           <FormField
             label="Push Notifications"
-            helperText="Receive notifications even when the app is not active"
+            hint="Receive notifications even when the app is not active"
           >
             <div className="space-y-3">
               <label className="flex items-center space-x-2">
@@ -193,7 +193,7 @@ export function NotificationSettings({ settings, onChange }: NotificationSetting
 
           <FormField
             label="Sound Notifications"
-            helperText="Play sound when notifications are received"
+            hint="Play sound when notifications are received"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -208,7 +208,7 @@ export function NotificationSettings({ settings, onChange }: NotificationSetting
 
           <FormField
             label="Vibration"
-            helperText="Vibrate device when notifications are received (mobile only)"
+            hint="Vibrate device when notifications are received (mobile only)"
           >
             <label className="flex items-center space-x-2">
               <input

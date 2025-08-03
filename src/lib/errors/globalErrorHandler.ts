@@ -1,5 +1,5 @@
-import { errorLogger } from '@/services/logging/errorLogger';
-import { AppError, normalizeError } from './AppError';
+import { errorLogger } from "@/services/logging/errorLogger";
+import { AppError, normalizeError } from "./AppError";
 
 /**
  * Global error handler for unhandled errors and promise rejections
@@ -11,15 +11,15 @@ class GlobalErrorHandler {
    * Initialize global error handling
    */
   initialize() {
-    if (this.initialized || typeof window === 'undefined') {
+    if (this.initialized || typeof window === "undefined") {
       return;
     }
 
     // Handle unhandled JavaScript errors
-    window.addEventListener('error', this.handleError);
+    window.addEventListener("error", this.handleError);
 
     // Handle unhandled promise rejections
-    window.addEventListener('unhandledrejection', this.handlePromiseRejection);
+    window.addEventListener("unhandledrejection", this.handlePromiseRejection);
 
     this.initialized = true;
   }
@@ -28,12 +28,15 @@ class GlobalErrorHandler {
    * Clean up global error handlers
    */
   cleanup() {
-    if (!this.initialized || typeof window === 'undefined') {
+    if (!this.initialized || typeof window === "undefined") {
       return;
     }
 
-    window.removeEventListener('error', this.handleError);
-    window.removeEventListener('unhandledrejection', this.handlePromiseRejection);
+    window.removeEventListener("error", this.handleError);
+    window.removeEventListener(
+      "unhandledrejection",
+      this.handlePromiseRejection
+    );
 
     this.initialized = false;
   }
@@ -43,17 +46,19 @@ class GlobalErrorHandler {
    */
   private handleError = (event: ErrorEvent) => {
     const error = normalizeError(event.error || new Error(event.message));
-    
+
     errorLogger.logError(error, {
       url: event.filename,
-      line: event.lineno,
-      column: event.colno,
-      component: 'GlobalErrorHandler',
-      action: 'unhandled_error',
+      component: "GlobalErrorHandler",
+      action: "unhandled_error",
+      metadata: {
+        line: event.lineno,
+        column: event.colno,
+      },
     });
 
     // Prevent default browser error handling in production
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       event.preventDefault();
     }
   };
@@ -63,14 +68,14 @@ class GlobalErrorHandler {
    */
   private handlePromiseRejection = (event: PromiseRejectionEvent) => {
     const error = normalizeError(event.reason);
-    
+
     errorLogger.logError(error, {
-      component: 'GlobalErrorHandler',
-      action: 'unhandled_promise_rejection',
+      component: "GlobalErrorHandler",
+      action: "unhandled_promise_rejection",
     });
 
     // Prevent default browser handling in production
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       event.preventDefault();
     }
   };
@@ -82,8 +87,8 @@ class GlobalErrorHandler {
     const normalizedError = normalizeError(error);
     return errorLogger.logError(normalizedError, {
       ...context,
-      component: 'ManualReport',
-      action: 'manual_error_report',
+      component: "ManualReport",
+      action: "manual_error_report",
     });
   }
 }

@@ -61,7 +61,7 @@ export function SecuritySettings({ settings, onChange }: SecuritySettingsProps) 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Session Timeout"
-            helperText="Minutes of inactivity before automatic logout"
+            hint="Minutes of inactivity before automatic logout"
           >
             <Input
               type="number"
@@ -74,7 +74,7 @@ export function SecuritySettings({ settings, onChange }: SecuritySettingsProps) 
 
           <FormField
             label="Auto Lock Screen"
-            helperText="Automatically lock screen when idle"
+            hint="Automatically lock screen when idle"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -89,7 +89,7 @@ export function SecuritySettings({ settings, onChange }: SecuritySettingsProps) 
 
           <FormField
             label="Lock Timeout"
-            helperText="Minutes before screen locks automatically"
+            hint="Minutes before screen locks automatically"
           >
             <Input
               type="number"
@@ -111,7 +111,7 @@ export function SecuritySettings({ settings, onChange }: SecuritySettingsProps) 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Minimum PIN Length"
-            helperText="Minimum number of digits required for PINs"
+            hint="Minimum number of digits required for PINs"
           >
             <Input
               type="number"
@@ -125,7 +125,7 @@ export function SecuritySettings({ settings, onChange }: SecuritySettingsProps) 
           <div className="space-y-4">
             <FormField
               label="PIN Requirements"
-              helperText="Additional security requirements for PINs"
+              hint="Additional security requirements for PINs"
             >
               <div className="space-y-2">
                 <label className="flex items-center space-x-2">
@@ -161,7 +161,7 @@ export function SecuritySettings({ settings, onChange }: SecuritySettingsProps) 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Enable Trusted Devices"
-            helperText="Allow users to mark devices as trusted"
+            hint="Allow users to mark devices as trusted"
           >
             <label className="flex items-center space-x-2">
               <input
@@ -176,7 +176,7 @@ export function SecuritySettings({ settings, onChange }: SecuritySettingsProps) 
 
           <FormField
             label="Max Trusted Devices"
-            helperText="Maximum number of devices per user"
+            hint="Maximum number of devices per user"
           >
             <Input
               type="number"
@@ -190,7 +190,7 @@ export function SecuritySettings({ settings, onChange }: SecuritySettingsProps) 
 
           <FormField
             label="Trust Expiry"
-            helperText="Days before trusted device expires"
+            hint="Days before trusted device expires"
           >
             <Input
               type="number"
@@ -204,7 +204,7 @@ export function SecuritySettings({ settings, onChange }: SecuritySettingsProps) 
 
           <FormField
             label="Manage Trusted Devices"
-            helperText="Clear all trusted devices from system"
+            hint="Clear all trusted devices from system"
           >
             <Button
               onClick={clearAllTrustedDevices}

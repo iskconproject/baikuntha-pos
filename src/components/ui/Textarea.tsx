@@ -4,11 +4,11 @@ import { cn } from '@/lib/utils';
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
-  helperText?: string;
+  hint?: string;
 }
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, label, error, helperText, id, required, rows = 3, ...props }, ref) => {
+  ({ className, label, error, hint, id, required, rows = 3, ...props }, ref) => {
     const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
     const errorId = `${textareaId}-error`;
     const helperId = `${textareaId}-helper`;
@@ -62,7 +62,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             aria-invalid={error ? 'true' : 'false'}
             aria-describedby={cn(
               error && errorId,
-              helperText && helperId
+              hint && helperId
             ).trim() || undefined}
             aria-required={required}
             {...props}
@@ -102,12 +102,12 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
         
         {/* Helper text */}
-        {helperText && !error && (
+        {hint && !error && (
           <p
             id={helperId}
             className="text-sm text-gray-500"
           >
-            {helperText}
+            {hint}
           </p>
         )}
       </div>

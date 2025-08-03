@@ -73,7 +73,7 @@ export function SystemPreferences({ settings, onChange }: SystemPreferencesProps
           <div className="space-y-2">
             <FormField
               label="Language"
-              helperText="Select the primary language for the interface"
+              hint="Select the primary language for the interface"
             >
               <div className="relative">
                 <Select
@@ -92,7 +92,7 @@ export function SystemPreferences({ settings, onChange }: SystemPreferencesProps
           <div className="space-y-2">
             <FormField
               label="Currency"
-              helperText="Default currency for pricing and transactions"
+              hint="Default currency for pricing and transactions"
             >
               <div className="relative">
                 <Select
@@ -130,7 +130,7 @@ export function SystemPreferences({ settings, onChange }: SystemPreferencesProps
           <div className="space-y-2">
             <FormField
               label="Timezone"
-              helperText="Timezone for timestamps and scheduling"
+              hint="Timezone for timestamps and scheduling"
             >
               <div className="relative">
                 <Select
@@ -149,7 +149,7 @@ export function SystemPreferences({ settings, onChange }: SystemPreferencesProps
           <div className="space-y-2">
             <FormField
               label="Date Format"
-              helperText="How dates are displayed throughout the application"
+              hint="How dates are displayed throughout the application"
             >
               <div className="relative">
                 <Select
@@ -168,7 +168,7 @@ export function SystemPreferences({ settings, onChange }: SystemPreferencesProps
           <div className="space-y-2">
             <FormField
               label="Time Format"
-              helperText="12-hour or 24-hour time display"
+              hint="12-hour or 24-hour time display"
             >
               <div className="relative">
                 <Select

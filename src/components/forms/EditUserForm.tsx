@@ -105,7 +105,7 @@ export const EditUserForm: React.FC<EditUserFormProps> = ({
         placeholder="Enter username"
         required
         disabled={loading}
-        helperText="3-20 characters, letters, numbers, and underscores only"
+        hint="3-20 characters, letters, numbers, and underscores only"
       />
       
       <Select
@@ -116,7 +116,7 @@ export const EditUserForm: React.FC<EditUserFormProps> = ({
         options={roleOptions}
         required
         disabled={loading}
-        helperText="Select the user's access level"
+        hint="Select the user's access level"
       />
       
       <div className="flex justify-end space-x-3 pt-4">

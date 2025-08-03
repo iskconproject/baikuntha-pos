@@ -11,10 +11,12 @@ export function handleApiError(error: unknown, request: NextRequest): NextRespon
   // Log the error
   errorLogger.logError(normalizedError, {
     url: request.url,
-    method: request.method,
     userAgent: request.headers.get('user-agent') || undefined,
     component: 'APIErrorHandler',
     action: 'api_error',
+    metadata: {
+      method: request.method,
+    },
   });
 
   // Return appropriate error response
