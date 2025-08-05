@@ -5,6 +5,7 @@ import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { SystemSettings } from '@/types/settings';
+import { settingsService } from '@/services/settings/settingsService';
 
 interface BackupRestoreProps {
   settings: SystemSettings;
@@ -30,24 +31,33 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
     setBackupStatus(null);
 
     try {
-      // Simulate backup creation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // Get all data from local storage and IndexedDB
+      const localStorageData: Record<string, any> = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key) {
+          localStorageData[key] = localStorage.getItem(key);
+        }
+      }
+
+      // Create backup data structure
       const backupData = {
         timestamp: new Date().toISOString(),
         version: '1.0.0',
+        type: 'baikunthapos-backup',
         data: {
-          // This would include actual database data
-          users: [],
-          products: [],
-          transactions: [],
+          localStorage: localStorageData,
           settings: settings,
+          metadata: {
+            userAgent: navigator.userAgent,
+            url: window.location.origin,
+            backupSize: JSON.stringify(localStorageData).length,
+          }
         }
       };
 
-      const blob = new Blob([JSON.stringify(backupData, null, 2)], {
-        type: 'application/json'
-      });
+      const backupJson = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([backupJson], { type: 'application/json' });
       
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -60,6 +70,7 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
 
       setBackupStatus('✅ Backup created successfully and downloaded');
     } catch (error) {
+      console.error('Backup creation failed:', error);
       setBackupStatus(`❌ Backup failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setBackupInProgress(false);
@@ -78,20 +89,39 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
       const backupData = JSON.parse(text);
 
       // Validate backup format
-      if (!backupData.data || !backupData.timestamp) {
-        throw new Error('Invalid backup file format');
+      if (!backupData.data || !backupData.timestamp || backupData.type !== 'baikunthapos-backup') {
+        throw new Error('Invalid backup file format. Please select a valid BaikunthaPOS backup file.');
       }
 
-      if (confirm('Are you sure you want to restore from this backup? This will overwrite current data.')) {
-        // Simulate restore process
-        await new Promise(resolve => setTimeout(resolve, 2000));
+      const confirmMessage = `Are you sure you want to restore from this backup?\n\nBackup Date: ${new Date(backupData.timestamp).toLocaleString()}\nVersion: ${backupData.version}\n\nThis will overwrite ALL current data and cannot be undone.`;
+      
+      if (confirm(confirmMessage)) {
+        // Clear current localStorage
+        localStorage.clear();
         
-        // In a real implementation, this would restore the database
-        console.log('Restoring backup:', backupData);
+        // Restore localStorage data
+        if (backupData.data.localStorage) {
+          Object.entries(backupData.data.localStorage).forEach(([key, value]) => {
+            if (typeof value === 'string') {
+              localStorage.setItem(key, value);
+            }
+          });
+        }
+
+        // Update settings if available
+        if (backupData.data.settings) {
+          onChange(backupData.data.settings);
+        }
         
-        setBackupStatus('✅ Backup restored successfully. Please refresh the page.');
+        setBackupStatus('✅ Backup restored successfully. The page will reload in 3 seconds...');
+        
+        // Reload the page after a short delay to apply all changes
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
       }
     } catch (error) {
+      console.error('Restore failed:', error);
       setBackupStatus(`❌ Restore failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setRestoreInProgress(false);
@@ -101,19 +131,55 @@ export function BackupRestore({ settings, onChange }: BackupRestoreProps) {
   };
 
   const handleClearLocalData = async () => {
-    if (confirm('Are you sure you want to clear all local data? This action cannot be undone.')) {
+    const confirmMessage = 'Are you sure you want to clear ALL local data?\n\nThis will remove:\n• All settings and preferences\n• Cached data\n• User session\n• Local database\n\nThis action cannot be undone and you will be logged out.';
+    
+    if (confirm(confirmMessage)) {
       try {
         // Clear localStorage
         localStorage.clear();
         
-        // Clear IndexedDB (if used)
+        // Clear sessionStorage
+        sessionStorage.clear();
+        
+        // Clear IndexedDB databases
         if ('indexedDB' in window) {
-          // This would clear the local database
-          console.log('Clearing local database...');
+          try {
+            // Get list of databases (if supported)
+            if ('databases' in indexedDB) {
+              const databases = await indexedDB.databases();
+              for (const db of databases) {
+                if (db.name) {
+                  indexedDB.deleteDatabase(db.name);
+                }
+              }
+            } else {
+              // Fallback: try to delete common database names
+              const commonDbNames = ['baikunthapos', 'pos-data', 'local-db'];
+              commonDbNames.forEach(name => {
+                indexedDB.deleteDatabase(name);
+              });
+            }
+          } catch (dbError) {
+            console.warn('Could not clear IndexedDB:', dbError);
+          }
         }
 
-        setBackupStatus('✅ Local data cleared successfully. Please refresh the page.');
+        // Clear service worker cache if available
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(
+            cacheNames.map(cacheName => caches.delete(cacheName))
+          );
+        }
+
+        setBackupStatus('✅ All local data cleared successfully. The page will reload in 3 seconds...');
+        
+        // Reload the page after a short delay
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3000);
       } catch (error) {
+        console.error('Failed to clear data:', error);
         setBackupStatus(`❌ Failed to clear data: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }

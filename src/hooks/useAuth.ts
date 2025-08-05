@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { AuthUser } from '@/types/auth';
 import { DEFAULT_AUTH_CONFIG } from '@/types/auth';
+import { settingsService } from '@/services/settings/settingsService';
 
 interface UseAuthReturn {
   user: AuthUser | null;
@@ -89,7 +90,8 @@ export function useAuth(): UseAuthReturn {
       return;
     }
 
-    const timeoutMs = DEFAULT_AUTH_CONFIG.sessionTimeoutMinutes * 60 * 1000;
+    const settings = settingsService.getSettings();
+    const timeoutMs = settings.security.sessionTimeout * 60 * 1000;
     
     const updateTimer = () => {
       const timeSinceActivity = Date.now() - lastActivity;

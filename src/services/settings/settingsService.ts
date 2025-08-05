@@ -19,6 +19,11 @@ export class SettingsService {
   }
 
   private loadSettings(): SystemSettings {
+    // Check if we're in a browser environment
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return { ...DEFAULT_SETTINGS };
+    }
+
     try {
       const stored = localStorage.getItem(SETTINGS_KEY);
       if (stored) {
@@ -55,6 +60,12 @@ export class SettingsService {
   }
 
   private saveSettings(): void {
+    // Check if we're in a browser environment
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      this.notifyListeners();
+      return;
+    }
+
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings));
       this.notifyListeners();
@@ -75,6 +86,11 @@ export class SettingsService {
   updateSettings(updates: Partial<SystemSettings>): void {
     this.settings = this.mergeWithDefaults({ ...this.settings, ...updates });
     this.saveSettings();
+    
+    // Apply theme changes immediately if display settings were updated
+    if (updates.display) {
+      this.applyTheme();
+    }
   }
 
   updateNestedSetting<T extends keyof SystemSettings>(
@@ -175,9 +191,15 @@ export class SettingsService {
 
   // Apply theme changes
   applyTheme(): void {
-    const { theme } = this.settings.display;
+    // Check if we're in a browser environment
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
+    const { theme, fontSize, highContrast, colorBlindMode } = this.settings.display;
     const root = document.documentElement;
 
+    // Apply theme
     if (theme === 'dark') {
       root.classList.add('dark');
     } else if (theme === 'light') {
@@ -198,13 +220,31 @@ export class SettingsService {
       medium: '16px',
       large: '18px',
     };
-    root.style.fontSize = fontSizeMap[this.settings.display.fontSize];
+    root.style.fontSize = fontSizeMap[fontSize];
 
     // Apply high contrast
-    if (this.settings.display.highContrast) {
+    if (highContrast) {
       root.classList.add('high-contrast');
     } else {
       root.classList.remove('high-contrast');
+    }
+
+    // Apply color blind mode
+    if (colorBlindMode) {
+      root.classList.add('color-blind-mode');
+    } else {
+      root.classList.remove('color-blind-mode');
+    }
+
+    // Store theme preference for system auto-detection
+    if (theme === 'auto') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = () => {
+        if (this.settings.display.theme === 'auto') {
+          this.applyTheme();
+        }
+      };
+      mediaQuery.addEventListener('change', handleChange);
     }
   }
 

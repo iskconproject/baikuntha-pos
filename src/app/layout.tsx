@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ErrorProvider } from "@/components/providers/ErrorProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,9 +29,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ErrorProvider>
-          {children}
-        </ErrorProvider>
+        <ThemeProvider>
+          <ErrorProvider>
+            {children}
+          </ErrorProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

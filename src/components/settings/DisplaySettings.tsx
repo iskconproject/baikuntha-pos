@@ -1,10 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
 import { FormField } from '@/components/ui/FormField';
 import { Select } from '@/components/ui/Select';
 import { SystemSettings } from '@/types/settings';
-import { settingsService } from '@/services/settings/settingsService';
 
 interface DisplaySettingsProps {
   settings: SystemSettings;
@@ -40,10 +38,7 @@ export function DisplaySettings({ settings, onChange }: DisplaySettingsProps) {
     onChange(newSettings);
   };
 
-  // Apply theme changes immediately for preview
-  useEffect(() => {
-    settingsService.applyTheme();
-  }, [settings.display.theme, settings.display.fontSize, settings.display.highContrast]);
+  // Theme changes are applied automatically by the settings service
 
   return (
     <div className="space-y-6">

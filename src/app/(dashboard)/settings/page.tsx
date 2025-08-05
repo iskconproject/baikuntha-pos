@@ -25,6 +25,7 @@ import { BackupRestore } from '@/components/settings/BackupRestore';
 import { DisplaySettings } from '@/components/settings/DisplaySettings';
 import { NotificationSettings } from '@/components/settings/NotificationSettings';
 import { AuditLogSettings } from '@/components/settings/AuditLogSettings';
+import { SettingsTest } from '@/components/settings/SettingsTest';
 import { settingsService } from '@/services/settings/settingsService';
 import { SystemSettings, SettingsCategory } from '@/types/settings';
 
@@ -293,6 +294,13 @@ export default function SettingsPage() {
               {/* Category Content */}
               <div className="p-6">
                 {renderCategoryContent()}
+                
+                {/* Development Test Component - Remove in production */}
+                {process.env.NODE_ENV === 'development' && activeCategory === 'system' && (
+                  <div className="mt-8 border-t pt-6">
+                    <SettingsTest />
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}

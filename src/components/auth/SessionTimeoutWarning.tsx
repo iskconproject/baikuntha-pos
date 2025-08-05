@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { settingsService } from '@/services/settings/settingsService';
 
 interface SessionTimeoutWarningProps {
   timeUntilLogout: number | null; // seconds until logout
@@ -129,7 +130,7 @@ export const SessionTimeoutWarning: React.FC<SessionTimeoutWarningProps> = ({
         {/* Additional Info */}
         <div className="text-xs text-gray-500 border-t pt-4">
           <p>
-            For security, you are automatically signed out after 30 minutes of inactivity.
+            For security, you are automatically signed out after {settingsService.getSettings().security.sessionTimeout} minutes of inactivity.
           </p>
         </div>
       </div>
