@@ -133,6 +133,16 @@ export function BulkOperations({
               customAttributes: {},
             },
             isActive: item.isActive !== 'false',
+            variants: item.variants ? (() => {
+              try {
+                // Parse variants JSON string
+                const variantsData = JSON.parse(item.variants.replace(/""/g, '"'));
+                return Array.isArray(variantsData) ? variantsData : [];
+              } catch (error) {
+                console.warn('Failed to parse variants for product:', item.name, error);
+                return [];
+              }
+            })() : [],
           };
 
           const response = await fetch('/api/products', {
@@ -177,25 +187,40 @@ export function BulkOperations({
       // CSV export
       const headers = [
         'id', 'name', 'description', 'basePrice', 'categoryId', 'categoryName',
-        'keywords', 'author', 'publisher', 'language', 'material', 'isActive'
+        'keywords', 'author', 'publisher', 'language', 'material', 'isActive',
+        'variantCount', 'variants'
       ];
       
       const csvRows = [
         headers.join(','),
-        ...dataToExport.map(product => [
-          product.id,
-          `"${product.name}"`,
-          `"${product.description || ''}"`,
-          product.basePrice,
-          product.category?.id || '',
-          `"${product.category?.name || ''}"`,
-          `"${product.keywords.join(', ')}"`,
-          `"${product.metadata.author || ''}"`,
-          `"${product.metadata.publisher || ''}"`,
-          `"${product.metadata.language || ''}"`,
-          `"${product.metadata.material || ''}"`,
-          product.isActive
-        ].join(','))
+        ...dataToExport.map(product => {
+          // Format variants as JSON string for CSV
+          const variantsData = product.variants.map(variant => ({
+            id: variant.id,
+            name: variant.name,
+            price: variant.price,
+            stockQuantity: variant.stockQuantity,
+            attributes: variant.attributes,
+            keywords: variant.keywords
+          }));
+          
+          return [
+            product.id,
+            `"${product.name}"`,
+            `"${product.description || ''}"`,
+            product.basePrice,
+            product.category?.id || '',
+            `"${product.category?.name || ''}"`,
+            `"${product.keywords.join(', ')}"`,
+            `"${product.metadata.author || ''}"`,
+            `"${product.metadata.publisher || ''}"`,
+            `"${product.metadata.language || ''}"`,
+            `"${product.metadata.material || ''}"`,
+            product.isActive,
+            product.variants.length,
+            `"${JSON.stringify(variantsData).replace(/"/g, '""')}"` // Escape quotes for CSV
+          ].join(',');
+        })
       ];
 
       const csvData = csvRows.join('\n');
@@ -487,6 +512,7 @@ export function BulkOperations({
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Variants</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -495,6 +521,7 @@ export function BulkOperations({
                       <td className="px-3 py-2 text-sm text-gray-900">{item.name}</td>
                       <td className="px-3 py-2 text-sm text-gray-900">₹{item.basePrice || item.price || '0'}</td>
                       <td className="px-3 py-2 text-sm text-gray-900">{item.categoryId || 'None'}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{item.variantCount || '0'}</td>
                     </tr>
                   ))}
                 </tbody>
