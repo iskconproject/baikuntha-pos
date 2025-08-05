@@ -29,7 +29,7 @@ export function SmartPaymentSuggestions({
     suggestions.unshift(amount);
     
     // Remove duplicates and sort
-    return [...new Set(suggestions)].sort((a, b) => a - b).slice(0, 4);
+    return Array.from(new Set(suggestions)).sort((a, b) => a - b).slice(0, 4);
   };
 
   const suggestions = generateSuggestions(total);

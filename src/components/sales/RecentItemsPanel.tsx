@@ -40,6 +40,7 @@ export function RecentItemsPanel({ onAddItem, className = '' }: RecentItemsPanel
             isActive: true,
             createdAt: new Date(),
             updatedAt: new Date(),
+            variants: [],
           },
           lastUsed: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
           frequency: 15,
@@ -55,6 +56,7 @@ export function RecentItemsPanel({ onAddItem, className = '' }: RecentItemsPanel
             isActive: true,
             createdAt: new Date(),
             updatedAt: new Date(),
+            variants: [],
           },
           lastUsed: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
           frequency: 8,

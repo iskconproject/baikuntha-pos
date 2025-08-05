@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useCartStore } from '@/stores/cartStore';
+import { Lightbulb } from 'lucide-react';
 import type { CartItem } from '@/types';
 
 interface CartManagerProps {
@@ -70,7 +71,10 @@ export function CartManager({ className = '', onCheckout }: CartManagerProps) {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Cart is Empty</h3>
           <p className="text-sm text-gray-600">Search and add products to start a transaction</p>
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-xs text-blue-700 font-medium">💡 Tip: Press Enter after searching to quickly add the first result</p>
+            <p className="text-xs text-blue-700 font-medium flex items-center">
+              <Lightbulb className="w-3 h-3 mr-1" />
+              Tip: Press Enter after searching to quickly add the first result
+            </p>
           </div>
         </div>
       </div>

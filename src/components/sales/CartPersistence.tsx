@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useCartStore } from '@/stores/cartStore';
+import { Save, FileText } from 'lucide-react';
 import type { CartItem } from '@/stores/cartStore';
 
 interface SavedCart {
@@ -90,7 +91,8 @@ export function CartPersistence() {
             onClick={() => saveCurrentCart()}
             className="w-full px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
           >
-            💾 Save Cart for Later
+            <Save className="w-4 h-4 mr-2" />
+            Save Cart for Later
           </button>
         </div>
       )}
@@ -102,7 +104,8 @@ export function CartPersistence() {
             onClick={() => setShowSavedCarts(true)}
             className="w-full px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
           >
-            📋 Saved Carts ({savedCarts.length})
+            <FileText className="w-4 h-4 mr-2" />
+            Saved Carts ({savedCarts.length})
           </button>
         </div>
       )}

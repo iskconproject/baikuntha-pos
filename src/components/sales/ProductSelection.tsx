@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useCartStore } from "@/stores/cartStore";
 import { useDebounce } from "@/hooks/useDebounce";
 import { VariantSelector } from "./VariantSelector";
+import { Store, Book, Gem, Flame, Shirt, Crown } from "lucide-react";
 import type { Product, ProductVariant } from "@/types";
 import type { ProductSearchResult } from "@/types/search";
 
@@ -36,32 +37,53 @@ export function ProductSelection({ className = "" }: ProductSelectionProps) {
     }
   }, []);
 
+  // Icon mapping function
+  const renderCategoryIcon = (iconName: string) => {
+    const iconProps = { className: "w-4 h-4" };
+    switch (iconName) {
+      case "Store":
+        return <Store {...iconProps} />;
+      case "Book":
+        return <Book {...iconProps} />;
+      case "Gem":
+        return <Gem {...iconProps} />;
+      case "Flame":
+        return <Flame {...iconProps} />;
+      case "Shirt":
+        return <Shirt {...iconProps} />;
+      case "Crown":
+        return <Crown {...iconProps} />;
+      default:
+        return <Store {...iconProps} />;
+    }
+  };
+
   // Quick access categories
   const quickCategories = [
-    { id: "", name: "All", icon: "🏪", color: "bg-gray-100 text-gray-700" },
-    { id: "1", name: "Books", icon: "📚", color: "bg-blue-100 text-blue-700" },
+    { id: "", name: "All", icon: "Store", color: "bg-gray-100 text-gray-700" },
+    { id: "1", name: "Books", icon: "Book", color: "bg-blue-100 text-blue-700" },
     {
       id: "2",
       name: "Accessories",
-      icon: "📿",
+      icon: "Gem",
       color: "bg-purple-100 text-purple-700",
     },
     {
       id: "3",
       name: "Incense",
-      icon: "🕯️",
+      icon: "Flame",
       color: "bg-yellow-100 text-yellow-700",
     },
     {
       id: "4",
       name: "Clothing",
-      icon: "👕",
+      icon: "Shirt",
       color: "bg-green-100 text-green-700",
     },
     {
       id: "5",
       name: "Jewelry",
-      icon: "💍",
+      icon: "Crown",
       color: "bg-pink-100 text-pink-700",
     },
   ];
@@ -252,13 +274,13 @@ export function ProductSelection({ className = "" }: ProductSelectionProps) {
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center ${
                 selectedCategory === category.id
                   ? "bg-orange-600 text-white"
                   : `${category.color} hover:opacity-80`
               }`}
             >
-              <span className="mr-2">{category.icon}</span>
+              <span className="mr-2">{renderCategoryIcon(category.icon)}</span>
               {category.name}
             </button>
           ))}
@@ -281,38 +303,41 @@ export function ProductSelection({ className = "" }: ProductSelectionProps) {
             {searchResults.map((product) => (
               <div
                 key={product.id}
-                className="p-4 border-b border-gray-100 last:border-b-0"
+                className={`p-4 border-b border-gray-100 last:border-b-0 transition-colors ${
+                  showVariantSelector === product.id 
+                    ? 'bg-orange-25 border-orange-200' 
+                    : 'hover:bg-gray-50'
+                }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
+                    {/* Category Badge */}
+                    <div className="mb-2">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                        {product.categoryName}
+                      </span>
+                    </div>
+                    
                     <h4 className="text-lg font-medium text-gray-900 truncate">
                       {product.name}
                     </h4>
+                    
                     <div className="flex items-center justify-between mt-1">
                       <span className="text-xl font-bold text-orange-600">
                         ₹{product.basePrice.toFixed(2)}
                       </span>
-                      <span className="text-sm text-gray-500">
-                        {product.categoryName}
-                      </span>
-                    </div>
-                    {product.stockQuantity <= 5 &&
-                      product.stockQuantity > 0 && (
+                      {product.stockQuantity <= 5 && product.stockQuantity > 0 && (
                         <span className="text-xs text-amber-600 font-medium">
                           Only {product.stockQuantity} left
                         </span>
                       )}
+                    </div>
                   </div>
 
                   <div className="ml-4 flex items-center space-x-2">
                     {showVariantSelector === product.id ? (
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => setShowVariantSelector(null)}
-                          className="px-3 py-2 text-gray-600 hover:text-gray-800 text-sm"
-                        >
-                          Cancel
-                        </button>
+                      <div className="text-sm text-gray-600 font-medium">
+                        Select variant below
                       </div>
                     ) : (
                       <button
@@ -354,7 +379,7 @@ export function ProductSelection({ className = "" }: ProductSelectionProps) {
                 {/* Inline Variant Selector */}
                 {showVariantSelector === product.id &&
                   productVariants[product.id] && (
-                    <div className="mt-4">
+                    <div className="mt-4 animate-in slide-in-from-top-2 duration-200">
                       <VariantSelector
                         variants={productVariants[product.id]}
                         onSelect={(variant) =>
