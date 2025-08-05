@@ -68,9 +68,8 @@ export function PaymentProcessor({ onPaymentComplete, onCancel, className = '' }
         newErrors.cashReceived = 'Cash received cannot be less than the total amount';
       }
     } else if (formData.paymentMethod === 'upi') {
-      if (!formData.upiTransactionId?.trim()) {
-        newErrors.upiTransactionId = 'Please enter the UPI transaction ID';
-      }
+      // UPI transaction ID is optional - can be added later if needed
+      // No validation required
     }
 
     setErrors(newErrors);
@@ -97,7 +96,7 @@ export function PaymentProcessor({ onPaymentComplete, onCancel, className = '' }
         })),
         paymentMethod: formData.paymentMethod,
         paymentReference: formData.paymentMethod === 'upi' 
-          ? formData.upiTransactionId 
+          ? (formData.upiTransactionId || `UPI-${Date.now()}`)
           : `CASH-${Date.now()}`,
         tax: 0, // No tax for temple store
         discount: 0, // No discount for now
@@ -284,7 +283,10 @@ export function PaymentProcessor({ onPaymentComplete, onCancel, className = '' }
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <span className="font-medium">UPI</span>
+                  <div>
+                    <span className="font-medium">UPI</span>
+                    <p className="text-xs text-gray-600 mt-1">Digital payment</p>
+                  </div>
                 </div>
               </label>
             </div>
@@ -333,20 +335,18 @@ export function PaymentProcessor({ onPaymentComplete, onCancel, className = '' }
           {formData.paymentMethod === 'upi' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                UPI Transaction ID
+                UPI Transaction ID <span className="text-gray-500 text-sm">(Optional)</span>
               </label>
               <input
                 type="text"
                 value={formData.upiTransactionId || ''}
                 onChange={(e) => handleInputChange('upiTransactionId', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                  errors.upiTransactionId ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter UPI transaction ID"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="Enter UPI transaction ID (optional)"
               />
-              {errors.upiTransactionId && (
-                <p className="mt-1 text-sm text-red-600">{errors.upiTransactionId}</p>
-              )}
+              <p className="mt-1 text-xs text-gray-600">
+                You can add the transaction ID now or leave it blank to add later
+              </p>
             </div>
           )}
 
