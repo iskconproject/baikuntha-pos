@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import { Edit } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -415,7 +416,9 @@ export function BulkOperations({
         {/* Bulk Edit */}
         <div className="bg-white p-6 rounded-lg border h-full flex flex-col">
           <div className="flex items-start mb-4">
-            <div className="text-2xl mr-3 mt-1">✏️</div>
+            <div className="mr-3 mt-1">
+              <Edit className="w-6 h-6 text-gray-600" />
+            </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900 mb-1">Bulk Edit</h3>
               <p className="text-sm text-gray-600 leading-relaxed">Edit multiple products at once</p>

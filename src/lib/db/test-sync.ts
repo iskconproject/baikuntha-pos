@@ -6,13 +6,13 @@ import { syncService } from '@/services/database/sync';
 import { testConnection } from './connection';
 
 export async function testSyncImplementation() {
-  console.log('🔄 Testing sync implementation...');
+  console.log('[SYNC] Testing sync implementation...');
   
   try {
     // 1. Test cloud connection
     console.log('1. Testing cloud connection...');
     const cloudConnected = await testConnection();
-    console.log(`   Cloud connection: ${cloudConnected ? '✅ Connected' : '❌ Failed'}`);
+    console.log(`   Cloud connection: ${cloudConnected ? '[SUCCESS] Connected' : '[FAILED] Failed'}`);
     
     if (!cloudConnected) {
       console.log('   Skipping sync tests - cloud not available');
@@ -51,13 +51,13 @@ export async function testSyncImplementation() {
     await new Promise(resolve => setTimeout(resolve, 100));
     unsubscribe();
     
-    console.log(`   Status listener: ${statusReceived ? '✅ Working' : '❌ Failed'}`);
+    console.log(`   Status listener: ${statusReceived ? '[SUCCESS] Working' : '[FAILED] Failed'}`);
     
-    console.log('✅ Sync implementation test completed');
+    console.log('[SUCCESS] Sync implementation test completed');
     return true;
     
   } catch (error) {
-    console.error('❌ Sync test failed:', error);
+    console.error('[ERROR] Sync test failed:', error);
     return false;
   }
 }

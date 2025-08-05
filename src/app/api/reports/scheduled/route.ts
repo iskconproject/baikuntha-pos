@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth/middleware';
-import { getDb } from '@/lib/db/connection';
-import { scheduledReports } from '@/lib/db/schema';
-import { desc } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid';
+import { scheduledReportsService } from '@/services/database/scheduledReports';
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,12 +21,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const db = getDb();
-    
-    const reports = await db
-      .select()
-      .from(scheduledReports)
-      .orderBy(desc(scheduledReports.createdAt));
+    const reports = await scheduledReportsService.getAll();
 
     return NextResponse.json({
       success: true,
@@ -121,11 +113,7 @@ export async function POST(request: NextRequest) {
         break;
     }
 
-    const db = getDb();
-    
-    const reportId = uuidv4();
-    await db.insert(scheduledReports).values({
-      id: reportId,
+    const report = await scheduledReportsService.create({
       name,
       reportType,
       frequency,
@@ -134,14 +122,12 @@ export async function POST(request: NextRequest) {
       filters: JSON.stringify(filters),
       isActive: true,
       nextRun,
-      createdAt: now,
-      updatedAt: now,
       createdBy: authResult.user.id,
     });
 
     return NextResponse.json({
       success: true,
-      data: { id: reportId },
+      data: { id: report.id },
     });
   } catch (error) {
     console.error('Error creating scheduled report:', error);

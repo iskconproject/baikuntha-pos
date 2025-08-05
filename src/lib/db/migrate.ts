@@ -11,9 +11,9 @@ export async function runMigrations() {
     // Set up FTS5 virtual table manually since Drizzle doesn't fully support it
     await setupFTS5Table();
     
-    console.log('✅ Database migrations completed successfully');
+    console.log('[SUCCESS] Database migrations completed successfully');
   } catch (error) {
-    console.error('❌ Migration failed:', error);
+    console.error('[ERROR] Migration failed:', error);
     throw error;
   }
 }

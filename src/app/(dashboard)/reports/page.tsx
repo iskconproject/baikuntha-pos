@@ -2,13 +2,20 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
+import { 
+  BarChart3, 
+  FileText, 
+  Package, 
+  TrendingUp, 
+  Clock 
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { DailySalesReport } from '@/components/reports/DailySalesReport';
 import { TransactionHistory } from '@/components/reports/TransactionHistory';
 import { ProductPerformance } from '@/components/reports/ProductPerformance';
 import { ReportScheduler } from '@/components/reports/ReportScheduler';
-import { OfflineReportStatus } from '@/components/reports/OfflineReportStatus';
+import { ReportStatus } from '@/components/reports/OfflineReportStatus';
 
 type ReportTab = 'daily' | 'transactions' | 'products' | 'analytics' | 'scheduler';
 
@@ -16,6 +23,7 @@ export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<ReportTab>('daily');
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [isOnline, setIsOnline] = useState(true);
+  const [productReportType, setProductReportType] = useState<'performance' | 'top-selling'>('performance');
 
   // Monitor online status
   useEffect(() => {
@@ -31,11 +39,11 @@ export default function ReportsPage() {
   }, []);
 
   const tabs = [
-    { id: 'daily' as ReportTab, label: 'Daily Sales', icon: '📊' },
-    { id: 'transactions' as ReportTab, label: 'Transaction History', icon: '📋' },
-    { id: 'products' as ReportTab, label: 'Product Performance', icon: '📦' },
-    { id: 'analytics' as ReportTab, label: 'Analytics', icon: '📈' },
-    { id: 'scheduler' as ReportTab, label: 'Scheduled Reports', icon: '⏰' },
+    { id: 'daily' as ReportTab, label: 'Daily Sales', icon: BarChart3 },
+    { id: 'transactions' as ReportTab, label: 'Transaction History', icon: FileText },
+    { id: 'products' as ReportTab, label: 'Product Performance', icon: Package },
+    { id: 'analytics' as ReportTab, label: 'Analytics', icon: TrendingUp },
+    { id: 'scheduler' as ReportTab, label: 'Scheduled Reports', icon: Clock },
   ];
 
   return (
@@ -50,7 +58,7 @@ export default function ReportsPage() {
                 View sales reports, transaction history, and product performance analytics
               </p>
             </div>
-            <OfflineReportStatus isOnline={isOnline} />
+            <ReportStatus isOnline={isOnline} />
           </div>
         </div>
 
@@ -58,20 +66,23 @@ export default function ReportsPage() {
         <div className="mb-8">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? 'border-orange-500 text-orange-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <span className="mr-2">{tab.icon}</span>
-                  {tab.label}
-                </button>
-              ))}
+              {tabs.map((tab) => {
+                const IconComponent = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap flex items-center ${
+                      activeTab === tab.id
+                        ? 'border-orange-500 text-orange-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <IconComponent className="w-4 h-4 mr-2" />
+                    {tab.label}
+                  </button>
+                );
+              })}
             </nav>
           </div>
         </div>
@@ -106,24 +117,22 @@ export default function ReportsPage() {
               <div className="mb-6">
                 <div className="flex gap-4">
                   <Button
-                    variant={activeTab === 'products' ? 'primary' : 'outline'}
+                    variant={productReportType === 'performance' ? 'primary' : 'outline'}
                     size="sm"
-                    onClick={() => setActiveTab('products')}
+                    onClick={() => setProductReportType('performance')}
                   >
                     Performance Analytics
                   </Button>
                   <Button
-                    variant="outline"
+                    variant={productReportType === 'top-selling' ? 'primary' : 'outline'}
                     size="sm"
-                    onClick={() => {
-                      // We'll handle this by passing a prop to ProductPerformance
-                    }}
+                    onClick={() => setProductReportType('top-selling')}
                   >
                     Top Selling Products
                   </Button>
                 </div>
               </div>
-              <ProductPerformance reportType="performance" />
+              <ProductPerformance reportType={productReportType} />
             </div>
           )}
 

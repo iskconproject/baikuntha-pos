@@ -9,8 +9,7 @@
 
 ## Database & ORM
 
-- **SQLite** (better-sqlite3) for local offline database
-- **Turso LibSQL** for cloud database and multi-device sync
+- **Turso LibSQL** for cloud database with offline queue for intermittent connectivity
 - **Drizzle ORM** for type-safe database operations and migrations
 - **SQLite FTS5** for full-text search capabilities
 
@@ -86,8 +85,8 @@ pnpm sw:update       # Update service worker
 
 ## Architecture Patterns
 
-- **Offline-first architecture** with local SQLite as primary data store
-- **Dual-database sync** pattern for local/cloud data consistency
+- **Cloud-first architecture** with Turso LibSQL as primary data store
+- **Offline queue pattern** for handling intermittent connectivity
 - **Service layer pattern** for business logic separation
 - **Repository pattern** for data access abstraction
 - **Error boundary pattern** for React error handling

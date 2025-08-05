@@ -4,7 +4,7 @@ import {
   type SyncMetadata,
   type NewSyncMetadata,
 } from "@/lib/db/schema";
-import { getDb, testConnection } from "@/lib/db/connection";
+import { testConnection } from "@/lib/db/connection";
 import { BaseService } from "./base";
 import { connectionMonitor } from "@/lib/utils/connection";
 import { offlineQueue } from "./offlineQueue";
@@ -106,6 +106,8 @@ export class SyncService extends BaseService<SyncMetadata, NewSyncMetadata> {
   async performFullSync(): Promise<SyncResult> {
     return this.processOfflineQueue();
   }
+
+
 
   async processOfflineQueue(): Promise<SyncResult> {
     if (this.syncInProgress) {
