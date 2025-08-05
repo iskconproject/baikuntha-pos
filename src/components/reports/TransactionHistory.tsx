@@ -5,6 +5,8 @@ import { format } from 'date-fns';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { ReceiptPrinter } from '@/components/sales/ReceiptPrinter';
+import type { ReceiptData } from '@/types/receipt';
 
 interface TransactionItem {
   id: string;
@@ -45,6 +47,8 @@ export function TransactionHistory({ onExport }: TransactionHistoryProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedTransaction, setExpandedTransaction] = useState<string | null>(null);
+  const [showReceiptPrinter, setShowReceiptPrinter] = useState(false);
+  const [selectedTransactionForPrint, setSelectedTransactionForPrint] = useState<TransactionItem | null>(null);
 
   // Filters
   const [filters, setFilters] = useState({
@@ -154,6 +158,42 @@ export function TransactionHistory({ onExport }: TransactionHistoryProps) {
     );
   };
 
+  const handlePrintReceipt = (transaction: TransactionItem) => {
+    setSelectedTransactionForPrint(transaction);
+    setShowReceiptPrinter(true);
+  };
+
+  const generateReceiptData = (transaction: TransactionItem): ReceiptData => {
+    return {
+      id: `receipt-${transaction.id}`,
+      transactionId: transaction.id,
+      receiptNumber: transaction.id,
+      storeName: "ISKCON Asansol Temple",
+      storeAddress: "Gift & Book Store",
+      storePhone: "+91-XXXXXXXXXX",
+      storeEmail: "store@iskconasansol.org",
+      cashier: {
+        id: transaction.userId,
+        username: transaction.userName,
+      },
+      items: transaction.items.map(item => ({
+        name: item.productName,
+        variant: item.variantName,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalPrice: item.totalPrice,
+      })),
+      subtotal: transaction.subtotal,
+      tax: transaction.tax,
+      discount: transaction.discount,
+      total: transaction.total,
+      paymentMethod: transaction.paymentMethod,
+      paymentReference: transaction.paymentReference,
+      timestamp: new Date(transaction.createdAt),
+      footer: "Thank you for your visit!\nHare Krishna!",
+    };
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -171,6 +211,27 @@ export function TransactionHistory({ onExport }: TransactionHistoryProps) {
           Retry
         </Button>
       </div>
+    );
+  }
+
+  if (showReceiptPrinter && selectedTransactionForPrint) {
+    return (
+      <ReceiptPrinter
+        receiptData={generateReceiptData(selectedTransactionForPrint)}
+        onPrintComplete={(result) => {
+          if (result.success) {
+            console.log('Receipt printed successfully');
+          } else {
+            console.error('Print failed:', result.error);
+          }
+          setShowReceiptPrinter(false);
+          setSelectedTransactionForPrint(null);
+        }}
+        onClose={() => {
+          setShowReceiptPrinter(false);
+          setSelectedTransactionForPrint(null);
+        }}
+      />
     );
   }
 
@@ -307,13 +368,26 @@ export function TransactionHistory({ onExport }: TransactionHistoryProps) {
                           {formatCurrency(transaction.total)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleTransactionDetails(transaction.id)}
-                          >
-                            {expandedTransaction === transaction.id ? 'Hide' : 'Details'}
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleTransactionDetails(transaction.id)}
+                            >
+                              {expandedTransaction === transaction.id ? 'Hide' : 'Details'}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handlePrintReceipt(transaction)}
+                              className="text-orange-600 hover:text-orange-700"
+                              title="Print Receipt"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                              </svg>
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                       {expandedTransaction === transaction.id && (

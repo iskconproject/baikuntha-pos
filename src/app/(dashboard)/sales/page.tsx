@@ -299,12 +299,21 @@ export default function SalesPage() {
             {showReceiptPrinter ? (
               <ReceiptPrinter
                 receiptData={{
+                  id: `receipt-${enhancedTransaction.id}`,
+                  transactionId: enhancedTransaction.id,
+                  receiptNumber: enhancedTransaction.id,
                   storeName: "ISKCON Asansol Temple",
                   storeAddress: "Gift & Book Store",
-                  receiptNumber: enhancedTransaction.id,
-                  timestamp: enhancedTransaction.createdAt,
+                  storePhone: "+91-XXXXXXXXXX",
+                  storeEmail: "store@iskconasansol.org",
+                  cashier: {
+                    id: enhancedTransaction.userId,
+                    username: "Current User", // We'll need to get this from auth context
+                  },
+                  timestamp: new Date(enhancedTransaction.createdAt),
                   items: enhancedTransaction.items.map(item => ({
                     name: item.variantName ? `${item.productName} (${item.variantName})` : item.productName,
+                    variant: item.variantName,
                     quantity: item.quantity,
                     unitPrice: item.unitPrice,
                     totalPrice: item.totalPrice,
@@ -315,6 +324,7 @@ export default function SalesPage() {
                   total: enhancedTransaction.total,
                   paymentMethod: enhancedTransaction.paymentMethod,
                   paymentReference: enhancedTransaction.paymentReference,
+                  footer: "Thank you for your visit!\nHare Krishna!",
                 }}
                 onPrintComplete={(result) => {
                   if (result.success) {
