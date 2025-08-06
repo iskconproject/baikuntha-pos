@@ -16,7 +16,7 @@ import {
 import type { DashboardMetrics } from "@/types";
 
 export default function ManagerDashboard() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [metrics, setMetrics] = useState<Omit<
     DashboardMetrics,
     "users"
@@ -46,11 +46,24 @@ export default function ManagerDashboard() {
       }
     };
 
-    loadMetrics();
-  }, []);
+    // Only load metrics if user has manager or admin role
+    if (user?.role === "manager" || user?.role === "admin") {
+      loadMetrics();
+    }
+  }, [user?.role]);
 
-  // Redirect if not manager or admin
-  if (user?.role !== "manager" && user?.role !== "admin") {
+  // Show loading while authentication is in progress
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" />
+        <span className="ml-2 text-gray-600">Loading...</span>
+      </div>
+    );
+  }
+
+  // Show access denied only after auth is complete and user doesn't have required role
+  if (!authLoading && user?.role !== "manager" && user?.role !== "admin") {
     return (
       <div className="text-center py-12">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
@@ -74,7 +87,7 @@ export default function ManagerDashboard() {
       {/* Welcome Header */}
       <div className="bg-white rounded-xl shadow-sm p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Welcome back, {user.username}!
+          Welcome back, {user?.username}!
         </h1>
         <p className="text-gray-600">
           Manager Dashboard - Inventory, sales, and reporting access

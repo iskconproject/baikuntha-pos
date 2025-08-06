@@ -44,7 +44,7 @@ const flattenCategories = (categories: CategoryHierarchy[]): Array<{ id: string;
 
 export default function InventoryPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'stock' | 'bulk' | 'reports'>('products');
   const [products, setProducts] = useState<EnhancedProduct[]>([]);
   const [categories, setCategories] = useState<CategoryHierarchy[]>([]);
@@ -70,6 +70,11 @@ export default function InventoryPage() {
   const canManageInventory = user?.role === 'manager' || user?.role === 'admin';
 
   useEffect(() => {
+    // Wait for authentication to complete
+    if (authLoading) {
+      return;
+    }
+
     if (!canManageInventory) {
       setError('You do not have permission to access inventory management.');
       setIsLoading(false);
@@ -77,7 +82,7 @@ export default function InventoryPage() {
     }
 
     loadData();
-  }, [canManageInventory]);
+  }, [canManageInventory, authLoading]);
 
   const loadData = async () => {
     try {
@@ -234,7 +239,20 @@ export default function InventoryPage() {
     }
   };
 
-  if (!canManageInventory) {
+  // Show loading while authentication is in progress
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-saffron-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied only after auth is complete and user doesn't have required role
+  if (!authLoading && !canManageInventory) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

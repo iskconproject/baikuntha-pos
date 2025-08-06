@@ -54,7 +54,7 @@ interface DashboardMetrics {
 }
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -90,11 +90,24 @@ export default function AdminDashboard() {
       }
     };
 
-    loadMetrics();
-  }, []);
+    // Only load metrics if user is authenticated and has admin role
+    if (user?.role === 'admin') {
+      loadMetrics();
+    }
+  }, [user?.role]);
 
-  // Redirect if not admin (this should be handled by middleware in production)
-  if (user?.role !== 'admin') {
+  // Show loading while authentication is in progress
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" />
+        <span className="ml-2 text-gray-600">Loading...</span>
+      </div>
+    );
+  }
+
+  // Show access denied only after auth is complete and user doesn't have admin role
+  if (!authLoading && user?.role !== 'admin') {
     return (
       <div className="text-center py-12">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
