@@ -8,6 +8,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Load environment variables to get tokens
+require('dotenv').config({ path: '.env.local' });
+
 const STAGING_CONFIG = {
   url: 'libsql://baikuntha-gift-house-staging-iskconproject.aws-ap-south-1.turso.io',
   token: process.env.TURSO_STAGING_AUTH_TOKEN
@@ -21,9 +24,22 @@ const PRODUCTION_CONFIG = {
 const ENV_FILE = path.join(process.cwd(), '.env.local');
 
 function updateEnvFile(config, environment) {
+  if (!config.token) {
+    console.error(`❌ Missing ${environment.toUpperCase()} database token in environment variables`);
+    console.error('💡 Please ensure your .env.local file contains the required tokens');
+    console.error('   See .env.example for the required format');
+    process.exit(1);
+  }
+
   const envContent = `# Turso Database Configuration - ${environment.toUpperCase()}
 TURSO_DATABASE_URL=${config.url}
 TURSO_AUTH_TOKEN=${config.token}
+
+# Database Tokens for Scripts
+TURSO_STAGING_DATABASE_URL=libsql://baikuntha-gift-house-staging-iskconproject.aws-ap-south-1.turso.io
+TURSO_STAGING_AUTH_TOKEN=${process.env.TURSO_STAGING_AUTH_TOKEN || 'your-staging-token-here'}
+TURSO_PRODUCTION_DATABASE_URL=libsql://baikuntha-gift-house-iskconproject.aws-ap-south-1.turso.io
+TURSO_PRODUCTION_AUTH_TOKEN=${process.env.TURSO_PRODUCTION_AUTH_TOKEN || 'your-production-token-here'}
 
 # Next.js Configuration
 NEXTAUTH_SECRET=your-secret-key-here

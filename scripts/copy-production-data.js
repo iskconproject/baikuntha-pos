@@ -11,14 +11,37 @@ const { createClient } = require('@libsql/client');
 require('dotenv').config({ path: '.env.local' });
 require('dotenv').config({ path: '.env.production' });
 
+// Validate required environment variables
+function validateEnvironment() {
+  const required = [
+    'TURSO_PRODUCTION_DATABASE_URL',
+    'TURSO_PRODUCTION_AUTH_TOKEN',
+    'TURSO_STAGING_DATABASE_URL',
+    'TURSO_STAGING_AUTH_TOKEN'
+  ];
+
+  const missing = required.filter(key => !process.env[key]);
+  
+  if (missing.length > 0) {
+    console.error('❌ Missing required environment variables:');
+    missing.forEach(key => console.error(`   - ${key}`));
+    console.error('\n💡 Please ensure your .env.local file contains all required database tokens.');
+    console.error('   See .env.example for the required format.');
+    process.exit(1);
+  }
+}
+
+// Validate environment before proceeding
+validateEnvironment();
+
 const PRODUCTION_CONFIG = {
-  url: process.env.TURSO_PRODUCTION_DATABASE_URL || 'libsql://baikuntha-gift-house-iskconproject.aws-ap-south-1.turso.io',
-  authToken: process.env.TURSO_PRODUCTION_AUTH_TOKEN || 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NTQxODkyNjEsImlkIjoiNGM4NGQ1MmUtMjBhMi00MzFmLWE4MzYtNDY4ZjQ2YmFhNzY1IiwicmlkIjoiMzU0YmNhYjQtMzUyZi00ZjJlLThhYzktMmQzNDBkNWE0M2YxIn0.cJrrWdZbpa4oEpuNvy6um4vxx99cfxB5hbrG2ezvoYexI3Bf2MMEDf-BTmq98hxDo2ER7glFkBIJH_LX8AqRBw'
+  url: process.env.TURSO_PRODUCTION_DATABASE_URL,
+  authToken: process.env.TURSO_PRODUCTION_AUTH_TOKEN
 };
 
 const STAGING_CONFIG = {
-  url: process.env.TURSO_STAGING_DATABASE_URL || 'libsql://baikuntha-gift-house-staging-iskconproject.aws-ap-south-1.turso.io',
-  authToken: process.env.TURSO_STAGING_AUTH_TOKEN || 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NTQ0NjY5NjcsImlkIjoiYTgxYTI1OWMtNDdiZS00YWNkLWIyYTgtMzVlN2MyNmUxZWMwIiwicmlkIjoiNjA2OWVhMGItN2IzZC00MWRhLTgwOTItZmUyYjdjY2EwMjZkIn0.bs9BZrWtrZwmYFesiIGbErkrCokKIWtjvFyXq5IgjRCMrt_IoNC65oDe9hOXGdYvlNZvVQDy0dyvlwEPl5YcDw'
+  url: process.env.TURSO_STAGING_DATABASE_URL,
+  authToken: process.env.TURSO_STAGING_AUTH_TOKEN
 };
 
 async function copyData() {
