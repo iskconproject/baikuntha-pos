@@ -12,11 +12,13 @@ require('dotenv').config({ path: '.env.local' });
 require('dotenv').config({ path: '.env.production' });
 
 const PRODUCTION_CONFIG = {
-  url: process.env.TURSO_PRODUCTION_DATABASE_URL
+  url: process.env.TURSO_PRODUCTION_DATABASE_URL || 'libsql://baikuntha-gift-house-iskconproject.aws-ap-south-1.turso.io',
+  authToken: process.env.TURSO_PRODUCTION_AUTH_TOKEN || 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NTQxODkyNjEsImlkIjoiNGM4NGQ1MmUtMjBhMi00MzFmLWE4MzYtNDY4ZjQ2YmFhNzY1IiwicmlkIjoiMzU0YmNhYjQtMzUyZi00ZjJlLThhYzktMmQzNDBkNWE0M2YxIn0.cJrrWdZbpa4oEpuNvy6um4vxx99cfxB5hbrG2ezvoYexI3Bf2MMEDf-BTmq98hxDo2ER7glFkBIJH_LX8AqRBw'
 };
 
 const STAGING_CONFIG = {
-  url: process.env.TURSO_STAGING_DATABASE_URL
+  url: process.env.TURSO_STAGING_DATABASE_URL || 'libsql://baikuntha-gift-house-staging-iskconproject.aws-ap-south-1.turso.io',
+  authToken: process.env.TURSO_STAGING_AUTH_TOKEN || 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NTQ0NjY5NjcsImlkIjoiYTgxYTI1OWMtNDdiZS00YWNkLWIyYTgtMzVlN2MyNmUxZWMwIiwicmlkIjoiNjA2OWVhMGItN2IzZC00MWRhLTgwOTItZmUyYjdjY2EwMjZkIn0.bs9BZrWtrZwmYFesiIGbErkrCokKIWtjvFyXq5IgjRCMrt_IoNC65oDe9hOXGdYvlNZvVQDy0dyvlwEPl5YcDw'
 };
 
 async function copyData() {
