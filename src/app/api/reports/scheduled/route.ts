@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const reports = await scheduledReportsService.getAll();
+    const reports = await scheduledReportsService.findAll();
 
     return NextResponse.json({
       success: true,
@@ -114,6 +114,7 @@ export async function POST(request: NextRequest) {
     }
 
     const report = await scheduledReportsService.create({
+      id: scheduledReportsService.generateId(),
       name,
       reportType,
       frequency,

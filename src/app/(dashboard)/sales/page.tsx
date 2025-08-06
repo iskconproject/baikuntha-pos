@@ -49,51 +49,34 @@ export default function SalesPage() {
     transaction: Transaction
   ): Promise<EnhancedTransaction> => {
     try {
-      const enhancedItems: EnhancedTransactionItem[] = await Promise.all(
-        transaction.items.map(async (item) => {
-          try {
-            // Fetch product details
-            const productResponse = await fetch(
-              `/api/products/${item.productId}`
-            );
-            const productData = await productResponse.json();
-
-            let productName = `Product ${item.productId}`;
-            let variantName: string | undefined;
-
-            if (productResponse.ok && productData.success) {
-              const product: Product = productData.data;
-              productName = product.name;
-
-              // If there's a variant, get its name
-              if (item.variantId && product.variants) {
-                const variant = product.variants.find(
-                  (v: ProductVariant) => v.id === item.variantId
-                );
-                if (variant) {
-                  variantName = variant.name;
-                }
-              }
-            }
-
-            return {
-              ...item,
-              productName,
-              variantName,
-            };
-          } catch (error) {
-            console.error("Error fetching product details:", error);
-            return {
-              ...item,
-              productName: `Product ${item.productId}`,
-            };
-          }
-        })
+      // Fetch the transaction with full product details from the database
+      const response = await fetch(
+        `/api/transactions/${transaction.id}/details`
       );
 
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          const transactionWithItems = result.data;
+
+          return {
+            ...transaction,
+            items: transactionWithItems.items.map((item: any) => ({
+              ...item,
+              productName: item.product?.name || `Product ${item.productId}`,
+              variantName: item.variant?.name,
+            })),
+          };
+        }
+      }
+
+      // Fallback: return transaction with basic product names
       return {
         ...transaction,
-        items: enhancedItems,
+        items: transaction.items.map((item) => ({
+          ...item,
+          productName: `Product ${item.productId}`,
+        })),
       };
     } catch (error) {
       console.error("Error enhancing transaction:", error);

@@ -19,6 +19,8 @@ interface TransactionWithDetails {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
+    productName?: string;
+    variantName?: string;
   }>;
   subtotal: number;
   tax: number;
@@ -83,42 +85,7 @@ export function TransactionHistory({
       setTransactions(result.data || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
-      // Mock data for development
-      setTransactions([
-        {
-          id: "txn-1",
-          userId: "user-1",
-          userName: "Cashier 1",
-          subtotal: 500,
-          tax: 0,
-          discount: 0,
-          total: 500,
-          paymentMethod: "cash",
-          paymentReference: "CASH-1234567890",
-          status: "completed",
-          createdAt: new Date(),
-          syncStatus: "synced",
-          itemCount: 2,
-          items: [
-            {
-              id: "item-1",
-              productId: "prod-1",
-              variantId: "variant-1",
-              quantity: 1,
-              unitPrice: 300,
-              totalPrice: 300,
-            },
-            {
-              id: "item-2",
-              productId: "prod-2",
-              variantId: "variant-2",
-              quantity: 1,
-              unitPrice: 200,
-              totalPrice: 200,
-            },
-          ],
-        },
-      ]);
+      setTransactions([]);
     } finally {
       setLoading(false);
     }
@@ -423,9 +390,12 @@ export function TransactionHistory({
                             >
                               <div>
                                 <span className="font-medium">
-                                  Product ID: {item.productId}
-                                  {item.variantId &&
-                                    ` - Variant: ${item.variantId}`}
+                                  {item.productName || `Product ${item.productId}`}
+                                  {item.variantName && (
+                                    <span className="text-gray-600">
+                                      {" "}({item.variantName})
+                                    </span>
+                                  )}
                                 </span>
                                 <p className="text-gray-600">
                                   Qty: {item.quantity} ×{" "}

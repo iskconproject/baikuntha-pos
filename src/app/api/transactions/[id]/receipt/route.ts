@@ -1,54 +1,75 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { receiptService } from '@/services/printer/receiptService';
+import { getSessionUser } from '@/lib/auth/session';
+import { transactionService } from '@/services/database/transactions';
+import type { ReceiptData } from '@/types/receipt';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Get authenticated user
+    const user = await getSessionUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const transactionId = params.id;
-    
-    // Mock transaction data for testing
-    const mockTransaction = {
-      id: transactionId,
-      userId: 'test-user',
-      subtotal: 500,
-      tax: 0,
-      discount: 0,
-      total: 500,
-      paymentMethod: 'cash',
-      paymentReference: `CASH-${Date.now()}`,
-      status: 'completed',
-      createdAt: new Date(),
-      items: [
-        {
-          id: 'item-1',
-          productId: 'product-1',
-          quantity: 2,
-          unitPrice: 250,
-          totalPrice: 500,
-          product: { name: 'Bhagavad Gita' }
-        }
-      ]
+
+    // Get transaction with full product details
+    const transactionWithItems = await transactionService.findTransactionWithItems(transactionId);
+
+    if (!transactionWithItems) {
+      return NextResponse.json(
+        { error: 'Transaction not found' },
+        { status: 404 }
+      );
+    }
+
+    // Generate receipt data
+    const receiptData: ReceiptData = {
+      id: `receipt-${transactionWithItems.id}`,
+      transactionId: transactionWithItems.id,
+      receiptNumber: transactionWithItems.id,
+      storeName: "ISKCON Asansol Temple",
+      storeAddress: "Gift & Book Store",
+      storePhone: "+91-XXXXXXXXXX",
+      storeEmail: "store@iskconasansol.org",
+      cashier: {
+        id: transactionWithItems.userId,
+        username: user.username, // Use the current user's username
+      },
+      timestamp: transactionWithItems.createdAt,
+      items: transactionWithItems.items.map(item => ({
+        name: item.variant?.name 
+          ? `${item.product.name} - ${item.variant.name}`
+          : item.product.name,
+        variant: item.variant?.name,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalPrice: item.totalPrice,
+      })),
+      subtotal: transactionWithItems.subtotal,
+      tax: transactionWithItems.tax || 0,
+      discount: transactionWithItems.discount || 0,
+      total: transactionWithItems.total,
+      paymentMethod: transactionWithItems.paymentMethod,
+      paymentReference: transactionWithItems.paymentReference || undefined,
+      footer: "Thank you for your visit!\nHare Krishna!",
     };
 
-    const mockCashier = {
-      id: 'user-1',
-      username: 'cashier1'
-    };
-
-    const receiptData = receiptService.generateReceiptData(
-      mockTransaction,
-      mockCashier,
-      500
-    );
-    
     return NextResponse.json({
       success: true,
-      data: receiptData
+      data: receiptData,
     });
   } catch (error) {
-    console.error('Receipt API error:', error);
+    console.error('Receipt generation API error:', error);
     return NextResponse.json(
       { error: 'Failed to generate receipt' },
       { status: 500 }

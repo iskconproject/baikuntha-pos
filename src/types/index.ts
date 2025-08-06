@@ -81,6 +81,9 @@ export interface TransactionItem {
   quantity: number
   unitPrice: number
   totalPrice: number
+  // Optional fields for enhanced transaction items with product details
+  productName?: string
+  variantName?: string
 }
 
 export interface SearchQuery {

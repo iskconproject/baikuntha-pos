@@ -96,7 +96,7 @@ class ReportManager {
     }
     
     const { scheduledReportsService } = await import('@/services/database/scheduledReports');
-    return await scheduledReportsService.getAll();
+    return await scheduledReportsService.findAll();
   }
 
   /**
@@ -126,7 +126,7 @@ class ReportManager {
   /**
    * Delete scheduled report (server-side only)
    */
-  async deleteScheduledReport(id: string): Promise<void> {
+  async deleteScheduledReport(id: string): Promise<boolean> {
     if (typeof window !== 'undefined') {
       throw new Error('Scheduled reports access must be done server-side via API routes');
     }

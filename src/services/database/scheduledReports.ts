@@ -30,6 +30,10 @@ export class ScheduledReportsService extends BaseService<ScheduledReport, NewSch
   async update(id: string, data: Partial<NewScheduledReport>): Promise<ScheduledReport> {
     const result = await super.update(id, data);
     
+    if (!result) {
+      throw new Error('Failed to update scheduled report');
+    }
+    
     // Queue for sync if offline
     if (typeof window !== 'undefined' && !navigator.onLine) {
       syncService.queueOperation('update', 'scheduledReports', result);
@@ -38,13 +42,15 @@ export class ScheduledReportsService extends BaseService<ScheduledReport, NewSch
     return result;
   }
 
-  async delete(id: string): Promise<void> {
-    await super.delete(id);
+  async delete(id: string): Promise<boolean> {
+    const result = await super.delete(id);
     
     // Queue for sync if offline
     if (typeof window !== 'undefined' && !navigator.onLine) {
       syncService.queueOperation('delete', 'scheduledReports', { id });
     }
+    
+    return result;
   }
 
   async getActiveReports(): Promise<ScheduledReport[]> {
