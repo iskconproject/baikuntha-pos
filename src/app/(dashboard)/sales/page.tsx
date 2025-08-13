@@ -7,6 +7,7 @@ import { PaymentProcessor } from "@/components/sales/PaymentProcessor";
 import { TransactionHistory } from "@/components/sales/TransactionHistory";
 import { ReceiptPrinter } from "@/components/sales/ReceiptPrinter";
 import { NotificationProvider } from "@/components/providers/NotificationProvider";
+import { PrinterStatusIndicator } from "@/components/common/PrinterStatusIndicator";
 import type { Transaction, Product, ProductVariant } from "@/types";
 
 type SalesStep = "selection" | "payment" | "receipt";
@@ -132,7 +133,14 @@ export default function SalesPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
+              {/* Printer Status Indicator */}
+              <PrinterStatusIndicator 
+                showLabel={false} 
+                size="md"
+                className="hidden sm:flex"
+              />
+              
               {currentStep === "selection" && (
                 <>
                   <button
