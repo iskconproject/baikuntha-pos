@@ -324,11 +324,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
         {/* Printer Status */}
         <div className="px-4 py-3 border-t border-gray-200">
-          <PrinterStatusIndicator 
-            showLabel={true} 
-            size="sm"
-            className="mb-3"
-          />
+          <PrinterStatusIndicator showLabel={true} size="sm" className="mb-3" />
         </div>
 
         {/* User info / logout */}
@@ -442,8 +438,8 @@ export const Navigation: React.FC<NavigationProps> = ({
 
                 {/* Printer Status */}
                 <div className="px-4 py-3 border-t border-gray-200">
-                  <PrinterStatusIndicator 
-                    showLabel={true} 
+                  <PrinterStatusIndicator
+                    showLabel={true}
                     size="md"
                     className="mb-3"
                   />
