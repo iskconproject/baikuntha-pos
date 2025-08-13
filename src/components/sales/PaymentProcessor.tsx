@@ -92,7 +92,11 @@ export function PaymentProcessor({ onPaymentComplete, onCancel, className = '' }
           productId: item.productId,
           variantId: item.variantId,
           quantity: item.quantity,
-          unitPrice: item.variant?.price || item.product.basePrice,
+          unitPrice: item.isCustomVariant && item.customVariantData
+            ? item.customVariantData.customPrice
+            : item.variant?.price || item.product.basePrice,
+          isCustomVariant: item.isCustomVariant || false,
+          customVariantData: item.customVariantData,
         })),
         paymentMethod: formData.paymentMethod,
         paymentReference: formData.paymentMethod === 'upi' 
@@ -216,11 +220,18 @@ export function PaymentProcessor({ onPaymentComplete, onCancel, className = '' }
               <div key={`${item.productId}-${item.variantId || 'base'}`} className="flex justify-between text-sm">
                 <span className="text-gray-600">
                   {item.product.name}
-                  {item.variant && ` - ${item.variant.name}`}
+                  {item.isCustomVariant 
+                    ? ` - Custom${item.customVariantData?.customDescription ? ` (${item.customVariantData.customDescription})` : ''}`
+                    : item.variant && ` - ${item.variant.name}`
+                  }
                   {item.quantity > 1 && ` × ${item.quantity}`}
                 </span>
                 <span className="font-medium">
-                  {formatCurrency((item.variant?.price || item.product.basePrice) * item.quantity)}
+                  {formatCurrency((
+                    item.isCustomVariant && item.customVariantData
+                      ? item.customVariantData.customPrice
+                      : item.variant?.price || item.product.basePrice
+                  ) * item.quantity)}
                 </span>
               </div>
             ))}

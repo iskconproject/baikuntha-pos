@@ -6,11 +6,12 @@ import type { ProductVariant } from '@/types';
 interface VariantSelectorProps {
   variants: ProductVariant[];
   onSelect: (variant: ProductVariant) => void;
+  onSelectCustom?: () => void;
   onCancel: () => void;
   className?: string;
 }
 
-export function VariantSelector({ variants, onSelect, onCancel, className = '' }: VariantSelectorProps) {
+export function VariantSelector({ variants, onSelect, onSelectCustom, onCancel, className = '' }: VariantSelectorProps) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
 
   // Auto-focus first available variant for keyboard navigation
@@ -115,6 +116,36 @@ export function VariantSelector({ variants, onSelect, onCancel, className = '' }
             </div>
           </button>
         ))}
+        
+        {/* Custom Variant Option */}
+        {onSelectCustom && (
+          <button
+            onClick={onSelectCustom}
+            className="p-3 text-left border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg transition-all duration-200 hover:border-blue-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <div className="flex justify-between items-center">
+              <div className="flex-1 min-w-0">
+                <span className="font-medium text-sm block text-blue-900 flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                  Custom Price
+                </span>
+                <div className="text-xs mt-1 text-blue-700">
+                  Set your own price
+                </div>
+              </div>
+              <div className="text-right ml-2">
+                <span className="font-bold text-sm text-blue-600">
+                  Custom
+                </span>
+                <div className="text-xs text-blue-600 font-medium">
+                  On-the-fly
+                </div>
+              </div>
+            </div>
+          </button>
+        )}
       </div>
       
       {/* Quick info for many variants */}

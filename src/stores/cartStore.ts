@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Product, ProductVariant } from '@/types';
+import type { Product, ProductVariant, CustomVariantData } from '@/types';
 import { useNotificationStore } from './notificationStore';
 
 export interface CartItem {
@@ -8,14 +8,18 @@ export interface CartItem {
   quantity: number;
   product: Product;
   variant?: ProductVariant;
+  // Custom variant support
+  isCustomVariant?: boolean;
+  customVariantData?: CustomVariantData;
 }
 
 interface CartStore {
   items: CartItem[];
   total: number;
   addItem: (product: Product, variant?: ProductVariant, quantity?: number) => void;
-  removeItem: (productId: string, variantId?: string) => void;
-  updateQuantity: (productId: string, variantId: string | undefined, quantity: number) => void;
+  addCustomItem: (product: Product, customData: CustomVariantData, quantity?: number) => void;
+  removeItem: (productId: string, variantId?: string, isCustom?: boolean) => void;
+  updateQuantity: (productId: string, variantId: string | undefined, quantity: number, isCustom?: boolean) => void;
   clearCart: () => void;
   getItemCount: () => number;
 }
@@ -27,7 +31,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
   addItem: (product: Product, variant?: ProductVariant, quantity = 1) => {
     const { items } = get();
     const existingItemIndex = items.findIndex(
-      item => item.productId === product.id && item.variantId === variant?.id
+      item => item.productId === product.id && item.variantId === variant?.id && !item.isCustomVariant
     );
 
     let newItems: CartItem[];
@@ -44,12 +48,15 @@ export const useCartStore = create<CartStore>((set, get) => ({
         quantity,
         product,
         variant,
+        isCustomVariant: false,
       };
       newItems = [...items, newItem];
     }
 
     const total = newItems.reduce((sum, item) => {
-      const price = item.variant?.price || item.product.basePrice;
+      const price = item.isCustomVariant 
+        ? item.customVariantData?.customPrice || item.product.basePrice
+        : item.variant?.price || item.product.basePrice;
       return sum + (price * item.quantity);
     }, 0);
 
@@ -64,23 +71,59 @@ export const useCartStore = create<CartStore>((set, get) => ({
     });
   },
 
-  removeItem: (productId: string, variantId?: string) => {
+  addCustomItem: (product: Product, customData: CustomVariantData, quantity = 1) => {
+    const { items } = get();
+    
+    // Custom variants are always treated as unique items (no merging)
+    const newItem: CartItem = {
+      productId: product.id,
+      variantId: `custom-${Date.now()}`, // Unique ID for custom variants
+      quantity,
+      product,
+      isCustomVariant: true,
+      customVariantData: customData,
+    };
+    
+    const newItems = [...items, newItem];
+
+    const total = newItems.reduce((sum, item) => {
+      const price = item.isCustomVariant 
+        ? item.customVariantData?.customPrice || item.product.basePrice
+        : item.variant?.price || item.product.basePrice;
+      return sum + (price * item.quantity);
+    }, 0);
+
+    set({ items: newItems, total });
+
+    // Show notification
+    const customDescription = customData.customDescription ? ` (${customData.customDescription})` : '';
+    const productName = `${product.name} - Custom Price${customDescription}`;
+    useNotificationStore.getState().addNotification({
+      message: `${productName} added to cart`,
+      type: 'success',
+      duration: 2000,
+    });
+  },
+
+  removeItem: (productId: string, variantId?: string, isCustom?: boolean) => {
     const { items } = get();
     const newItems = items.filter(
       item => !(item.productId === productId && item.variantId === variantId)
     );
 
     const total = newItems.reduce((sum, item) => {
-      const price = item.variant?.price || item.product.basePrice;
+      const price = item.isCustomVariant 
+        ? item.customVariantData?.customPrice || item.product.basePrice
+        : item.variant?.price || item.product.basePrice;
       return sum + (price * item.quantity);
     }, 0);
 
     set({ items: newItems, total });
   },
 
-  updateQuantity: (productId: string, variantId: string | undefined, quantity: number) => {
+  updateQuantity: (productId: string, variantId: string | undefined, quantity: number, isCustom?: boolean) => {
     if (quantity <= 0) {
-      get().removeItem(productId, variantId);
+      get().removeItem(productId, variantId, isCustom);
       return;
     }
 
@@ -93,7 +136,9 @@ export const useCartStore = create<CartStore>((set, get) => ({
     });
 
     const total = newItems.reduce((sum, item) => {
-      const price = item.variant?.price || item.product.basePrice;
+      const price = item.isCustomVariant 
+        ? item.customVariantData?.customPrice || item.product.basePrice
+        : item.variant?.price || item.product.basePrice;
       return sum + (price * item.quantity);
     }, 0);
 

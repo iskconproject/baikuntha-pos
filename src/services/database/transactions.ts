@@ -63,6 +63,12 @@ export class TransactionService {
         variantId?: string;
         quantity: number;
         unitPrice: number;
+        isCustomVariant?: boolean;
+        customVariantData?: {
+          customPrice: number;
+          customDescription?: string;
+          customAttributes?: Record<string, string>;
+        };
       }>;
     }
   ): Promise<Transaction> {
@@ -103,14 +109,16 @@ export class TransactionService {
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         totalPrice: item.unitPrice * item.quantity,
+        isCustomVariant: item.isCustomVariant || false,
+        customVariantData: item.customVariantData ? JSON.stringify(item.customVariantData) : null,
         createdAt: new Date(),
       }));
 
       await this.db.insert(transactionItems).values(transactionItemsData);
 
-      // Update stock quantities
+      // Update stock quantities (skip for custom variants)
       for (const item of data.items) {
-        if (item.variantId) {
+        if (item.variantId && !item.isCustomVariant) {
           await this.db
             .update(productVariants)
             .set({

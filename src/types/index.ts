@@ -34,6 +34,13 @@ export interface ProductVariant {
   stockQuantity: number
   attributes: Record<string, string>
   keywords: string[]
+  isCustom?: boolean // Flag for custom variants
+}
+
+export interface CustomVariantData {
+  customPrice: number
+  customDescription?: string
+  customAttributes?: Record<string, string>
 }
 
 export interface ProductMetadata {
@@ -84,6 +91,9 @@ export interface TransactionItem {
   // Optional fields for enhanced transaction items with product details
   productName?: string
   variantName?: string
+  // Custom variant fields
+  isCustomVariant?: boolean
+  customVariantData?: CustomVariantData
 }
 
 export interface SearchQuery {
@@ -149,6 +159,9 @@ export interface CartItem {
   quantity: number
   product: Product
   variant?: ProductVariant
+  // Custom variant support
+  isCustomVariant?: boolean
+  customVariantData?: CustomVariantData
 }
 
 export interface Cart {

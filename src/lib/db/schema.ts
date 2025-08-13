@@ -97,11 +97,15 @@ export const transactionItems = sqliteTable('transaction_items', {
   quantity: integer('quantity').notNull(),
   unitPrice: real('unit_price').notNull(),
   totalPrice: real('total_price').notNull(),
+  // Custom variant support
+  isCustomVariant: integer('is_custom_variant', { mode: 'boolean' }).default(false),
+  customVariantData: text('custom_variant_data'), // JSON object for custom variant details
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 }, (table) => ({
   transactionIdx: index('item_transaction_idx').on(table.transactionId),
   productIdx: index('item_product_idx').on(table.productId),
   variantIdx: index('item_variant_idx').on(table.variantId),
+  customIdx: index('item_custom_idx').on(table.isCustomVariant),
 }));
 
 // Search analytics table

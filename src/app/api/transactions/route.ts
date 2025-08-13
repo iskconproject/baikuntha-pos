@@ -52,12 +52,36 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Check if variant exists (if specified)
-      if (item.variantId) {
+      // Check if variant exists (if specified and not custom)
+      if (item.variantId && !item.isCustomVariant) {
         const variant = await productService.findVariantById(item.variantId);
         if (!variant || variant.productId !== item.productId) {
           return NextResponse.json(
             { error: `Variant with ID ${item.variantId} not found or doesn't belong to product ${item.productId}` },
+            { status: 400 }
+          );
+        }
+      }
+
+      // Validate custom variant data
+      if (item.isCustomVariant) {
+        if (!item.customVariantData || !item.customVariantData.customPrice) {
+          return NextResponse.json(
+            { error: "Custom variant data with price is required for custom variants" },
+            { status: 400 }
+          );
+        }
+
+        if (item.customVariantData.customPrice <= 0) {
+          return NextResponse.json(
+            { error: "Custom variant price must be greater than 0" },
+            { status: 400 }
+          );
+        }
+
+        if (item.customVariantData.customPrice > 100000) {
+          return NextResponse.json(
+            { error: "Custom variant price cannot exceed ₹1,00,000" },
             { status: 400 }
           );
         }

@@ -4,8 +4,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useCartStore } from "@/stores/cartStore";
 import { useDebounce } from "@/hooks/useDebounce";
 import { VariantSelector } from "./VariantSelector";
+import { CustomVariantSelector } from "./CustomVariantSelector";
 import { Store, Book, Gem, Flame, Shirt, Crown } from "lucide-react";
-import type { Product, ProductVariant } from "@/types";
+import type { Product, ProductVariant, CustomVariantData } from "@/types";
 import type { ProductSearchResult } from "@/types/search";
 
 interface ProductSelectionProps {
@@ -20,8 +21,14 @@ export function ProductSelection({ className = "" }: ProductSelectionProps) {
   const [showVariantSelector, setShowVariantSelector] = useState<string | null>(
     null
   );
+  const [showCustomVariantSelector, setShowCustomVariantSelector] = useState<string | null>(
+    null
+  );
   const [productVariants, setProductVariants] = useState<
     Record<string, ProductVariant[]>
+  >({});
+  const [selectedProducts, setSelectedProducts] = useState<
+    Record<string, Product>
   >({});
   const [addedToCart, setAddedToCart] = useState<string | null>(null);
 
@@ -29,6 +36,7 @@ export function ProductSelection({ className = "" }: ProductSelectionProps) {
   const debouncedQuery = useDebounce(searchQuery, 300);
 
   const addItem = useCartStore((state) => state.addItem);
+  const addCustomItem = useCartStore((state) => state.addCustomItem);
 
   // Focus search input on mount
   useEffect(() => {
@@ -156,6 +164,12 @@ export function ProductSelection({ className = "" }: ProductSelectionProps) {
         variants: fullProduct.variants || [],
       };
 
+      // Store product data for potential custom variant use
+      setSelectedProducts((prev) => ({
+        ...prev,
+        [product.id]: productData,
+      }));
+
       // If product has variants, show inline variant selector
       if (productData.variants && productData.variants.length > 0) {
         setProductVariants((prev) => ({
@@ -219,6 +233,50 @@ export function ProductSelection({ className = "" }: ProductSelectionProps) {
       const newVariants = { ...prev };
       delete newVariants[productId];
       return newVariants;
+    });
+    setSelectedProducts((prev) => {
+      const newProducts = { ...prev };
+      delete newProducts[productId];
+      return newProducts;
+    });
+  };
+
+  const handleCustomVariantSelect = (productId: string) => {
+    setShowVariantSelector(null);
+    setShowCustomVariantSelector(productId);
+  };
+
+  const handleCustomVariantSubmit = (productId: string, customData: CustomVariantData) => {
+    const product = selectedProducts[productId];
+    if (product) {
+      addCustomItem(product, customData, 1);
+      setShowCustomVariantSelector(null);
+      setProductVariants((prev) => {
+        const newVariants = { ...prev };
+        delete newVariants[productId];
+        return newVariants;
+      });
+      setSelectedProducts((prev) => {
+        const newProducts = { ...prev };
+        delete newProducts[productId];
+        return newProducts;
+      });
+      setAddedToCart(productId);
+      setTimeout(() => setAddedToCart(null), 2000);
+    }
+  };
+
+  const handleCustomVariantCancel = (productId: string) => {
+    setShowCustomVariantSelector(null);
+    setProductVariants((prev) => {
+      const newVariants = { ...prev };
+      delete newVariants[productId];
+      return newVariants;
+    });
+    setSelectedProducts((prev) => {
+      const newProducts = { ...prev };
+      delete newProducts[productId];
+      return newProducts;
     });
   };
 
@@ -335,9 +393,9 @@ export function ProductSelection({ className = "" }: ProductSelectionProps) {
                   </div>
 
                   <div className="ml-4 flex items-center space-x-2">
-                    {showVariantSelector === product.id ? (
+                    {showVariantSelector === product.id || showCustomVariantSelector === product.id ? (
                       <div className="text-sm text-gray-600 font-medium">
-                        Select variant below
+                        {showCustomVariantSelector === product.id ? 'Set custom price below' : 'Select variant below'}
                       </div>
                     ) : (
                       <button
@@ -385,7 +443,22 @@ export function ProductSelection({ className = "" }: ProductSelectionProps) {
                         onSelect={(variant) =>
                           handleVariantSelect(product.id, variant)
                         }
+                        onSelectCustom={() => handleCustomVariantSelect(product.id)}
                         onCancel={() => handleVariantCancel(product.id)}
+                      />
+                    </div>
+                  )}
+
+                {/* Inline Custom Variant Selector */}
+                {showCustomVariantSelector === product.id &&
+                  selectedProducts[product.id] && (
+                    <div className="mt-4 animate-in slide-in-from-top-2 duration-200">
+                      <CustomVariantSelector
+                        product={selectedProducts[product.id]}
+                        onSelect={(customData) =>
+                          handleCustomVariantSubmit(product.id, customData)
+                        }
+                        onCancel={() => handleCustomVariantCancel(product.id)}
                       />
                     </div>
                   )}
